@@ -37,9 +37,9 @@ CREATE TABLE Rating (
   updated DATETIME NOT NULL,
   active BIT NOT NULL,
   value FLOAT NOT NULL,
-  CONSTRAINT pk_favorite PRIMARY KEY(id),
-  CONSTRAINT fk_favorite_user FOREIGN KEY(user_id) REFERENCES User(id),
-  CONSTRAINT fk_favorite_content FOREIGN KEY(content_id) REFERENCES Content(id)
+  CONSTRAINT pk_rating PRIMARY KEY(id),
+  CONSTRAINT fk_rating_user FOREIGN KEY(user_id) REFERENCES User(id),
+  CONSTRAINT fk_rating_content FOREIGN KEY(content_id) REFERENCES Content(id)
 ) ENGINE = InnoDB;
 
 
