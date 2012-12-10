@@ -81,7 +81,7 @@ public class RatingResource extends ResourceSupport {
         }
 
         try {
-            Long id = contentService.saveUserRating(rating.getUserId(), rating.getSiteId(), 
+            Long id = contentService.saveRating(rating.getUserId(), rating.getSiteId(), 
                     rating.getContentType(), rating.getContentId(), rating.getValue());
             if(id == null) {
                 sendServerError(new Exception("Problem saving rating: rating id is null"));
@@ -90,6 +90,6 @@ public class RatingResource extends ResourceSupport {
             handleGenericException(e);
         }
         
-        return Response.status(Status.CREATED).build();
+        return Response.status(Status.CREATED).entity(rating).build();
     }
 }

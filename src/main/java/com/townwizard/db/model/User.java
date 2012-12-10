@@ -50,7 +50,7 @@ public class User extends AuditableEntity {
     private String firstName;
     private String lastName;
     private Integer year;
-    private String gender;
+    private Character gender;
     private String mobilePhone;
     private String registrationIp;
     @Column(name="login_type_id")
@@ -106,10 +106,10 @@ public class User extends AuditableEntity {
     public void setYear(Integer year) {
         this.year = year;
     }
-    public String getGender() {
+    public Character getGender() {
         return gender;
     }
-    public void setGender(String gender) {
+    public void setGender(Character gender) {
         this.gender = gender;
     }
     public String getMobilePhone() {
@@ -169,8 +169,8 @@ public class User extends AuditableEntity {
         String gender = (String)fbUser.get("gender");
         if(gender != null && !gender.isEmpty()) {
             switch(gender.charAt(0)) {
-            case 'm': u.setGender("M"); break;
-            case 'f': u.setGender("F"); break;
+            case 'm': u.setGender('M'); break;
+            case 'f': u.setGender('F'); break;
             }
         }
         u.setLoginType(LoginType.FACEBOOK);

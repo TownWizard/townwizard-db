@@ -24,7 +24,7 @@
   <bean id="sessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
     <property name="dataSource" ref="twMasterDataSource"></property>
     <property name="namingStrategy">
-      <bean class="org.hibernate.cfg.ImprovedNamingStrategy" />
+      <bean class="com.townwizard.db.model.TwNamingStrategy" />
     </property>
     <property name="packagesToScan">
       <list>

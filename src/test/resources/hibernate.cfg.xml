@@ -17,6 +17,8 @@
     <mapping class="com.townwizard.db.model.User"/>
     <mapping class="com.townwizard.db.model.Address"/>
     <mapping class="com.townwizard.db.model.Content"/>
-    <mapping class="com.townwizard.db.model.Rating"/>   
+    <mapping class="com.townwizard.db.model.Rating"/>
+    <mapping class="com.townwizard.db.model.Event"/>
+    <mapping class="com.townwizard.db.model.EventResponse"/>
   </session-factory>
 </hibernate-configuration>

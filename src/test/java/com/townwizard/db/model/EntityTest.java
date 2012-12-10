@@ -5,6 +5,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import java.util.Date;
+
+import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.junit.After;
@@ -67,6 +70,90 @@ public class EntityTest extends TestSupport {
     }
     
     @Test
+    public void testEventMapping() {
+        try {
+            Event e = createEvent();
+            session.save(e);
+            Long id = e.getId();
+            assertNotNull("Event id should not be null after save()", id);
+            
+            Event fromDb = (Event)session.load(Event.class, id);
+            assertNotNull("Event id should be found by id after save()", fromDb);
+            
+            Date updatedDate = new Date();
+            fromDb.setDate(updatedDate);
+            session.save(fromDb);
+            
+            fromDb = (Event)session.load(Event.class, id);
+            assertEquals("Event date should be updated", updatedDate, fromDb.getDate());
+            
+            session.delete(fromDb);
+            try {
+                fromDb = (Event)session.load(Event.class, id);
+                fail("Event should not be found after delete()");
+            } catch (ObjectNotFoundException ex) {
+                //this is expected
+            }
+            
+            Content eventContent = getContentById(id);
+            assertNull("Content should not be found after deleting event", eventContent);            
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testEventResponseMapping() {
+        User u = null;
+        Event e = null;
+        try {
+            u = createUserWithAddress();
+            session.save(u);
+            e = createEvent();
+            session.save(e);
+            
+            EventResponse er = new EventResponse();
+            er.setUser(u);
+            er.setEvent(e);
+            er.setValue('Y');
+            session.save(er);
+            Long id = er.getId();
+            assertNotNull("Event id should not be null after save()", id);
+            
+            EventResponse fromDb = (EventResponse)session.load(EventResponse.class, id);
+            assertNotNull("Event response should be found in db after save()", fromDb);
+            assertNotNull("Event response should have a user after save()", fromDb.getUser());
+            assertNotNull("Event response should have an event after save()", fromDb.getEvent());
+            assertEquals("Event response should have a value after save()", new Character('Y'), fromDb.getValue());
+            
+            fromDb.setValue('M');
+            session.save(fromDb);
+            fromDb = (EventResponse)session.load(EventResponse.class, id);
+            assertEquals("Event response should have an updated value after save ()", 
+                    new Character('M'), fromDb.getValue());
+            
+            session.delete(fromDb);
+            try {
+                fromDb = (EventResponse)session.load(EventResponse.class, id);
+                fail("Event response should not be found after delete()");
+            } catch (ObjectNotFoundException ex) {
+                //this is expected
+            }           
+        } catch(Exception ex) {
+            ex.printStackTrace();
+            fail(ex.getMessage());
+        } finally {
+            if(u != null) {
+                try { session.delete(u); } catch(Exception ex) {ex.printStackTrace();}                
+            }
+            if(e != null) { 
+                try { session.delete(e); } catch(Exception ex) {ex.printStackTrace();}
+            }
+        }
+    }
+    
+    @Test
     public void testUserMapping() {
         try {
             User u = createUserWithAddress();
@@ -98,10 +185,12 @@ public class EntityTest extends TestSupport {
     
     @Test
     public void testRatingMapping() {
+        User u = null;
+        Content c = null;
         try {
-            User u = createUserWithAddress();
+            u = createUserWithAddress();
             session.save(u);
-            Content c = createContent();
+            c = createContent();
             session.save(c);
             
             Rating r = new Rating();
@@ -134,6 +223,13 @@ public class EntityTest extends TestSupport {
         } catch (Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
+        } finally {
+            if(u != null) {
+                try { session.delete(u); } catch(Exception e){e.printStackTrace();}                
+            }
+            if(c != null) {
+                try { session.delete(c); } catch(Exception e){e.printStackTrace();}
+            }
         }
     }
     
@@ -160,7 +256,7 @@ public class EntityTest extends TestSupport {
         u.setFirstName("Vladimir");
         u.setLastName("Mazheru");
         u.setYear(1968);
-        u.setGender("M");
+        u.setGender('M');
         u.setMobilePhone("917-439-7193");
         u.setRegistrationIp("192.168.112.231");
         u.setLoginType(LoginType.FACEBOOK);
@@ -189,6 +285,16 @@ public class EntityTest extends TestSupport {
         return c;
     }
     
+    private Event createEvent() {
+        Event e = new Event();
+        e.setSiteId(getSiteIdByName("demo.townwizard.com"));
+        e.setExternalId(1L);
+        e.setContentType(ContentType.EVENT);
+        e.setActive(true);
+        e.setDate(new Date());
+        return e;
+    }
+
     private Integer getSiteIdByName(String siteName) {
         Query q = session.createSQLQuery("SELECT mid FROM master WHERE site_url = ?")
                 .setString(0, siteName);

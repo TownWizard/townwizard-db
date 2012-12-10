@@ -4,13 +4,13 @@ import java.util.Properties;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import org.hibernate.cfg.ImprovedNamingStrategy;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.service.ServiceRegistryBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import com.townwizard.db.model.EntityInterceptor;
+import com.townwizard.db.model.TwNamingStrategy;
 
 public abstract class TestSupport {
     
@@ -42,7 +42,7 @@ public abstract class TestSupport {
     private static SessionFactory initSessionFactory() {
         Configuration configuration = new Configuration();
         configuration.configure();
-        configuration.setNamingStrategy(ImprovedNamingStrategy.INSTANCE);
+        configuration.setNamingStrategy(new TwNamingStrategy());
         configuration.setInterceptor(new EntityInterceptor());
         ServiceRegistry serviceRegistry = new ServiceRegistryBuilder().
                 applySettings(configuration.getProperties()).buildServiceRegistry();
