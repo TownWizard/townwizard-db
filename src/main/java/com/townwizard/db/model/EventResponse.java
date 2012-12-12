@@ -13,13 +13,11 @@ public class EventResponse extends AuditableEntity {
 
     @OneToOne(fetch = FetchType.LAZY) @JoinColumn(name = "userId")
     private User user;
-    @OneToOne(fetch = FetchType.LAZY) @JoinColumn(name = "eventId")
+    @OneToOne(fetch = FetchType.EAGER) @JoinColumn(name = "eventId")
     private Event event;
     private Character value;
     @Column (insertable = false, updatable = false)
     private Long userId;
-    @Column (insertable = false, updatable = false)
-    private Long eventId;
     
     public User getUser() {
         return user;
@@ -45,10 +43,4 @@ public class EventResponse extends AuditableEntity {
     public void setUserId(Long userId) {
         this.userId = userId;
     }
-    public Long getEventId() {
-        return eventId;
-    }
-    public void setEventId(Long eventId) {
-        this.eventId = eventId;
-    }        
 }

@@ -35,16 +35,18 @@ public class EventResponseResource extends ResourceSupport {
     @Produces(MediaType.APPLICATION_JSON)
     public EventResponseDTO[] getRsvpsByPersion(
             @PathParam ("userid") Long userId,
-            @QueryParam ("from") Date from,
-            @QueryParam ("to") Date to) {
+            @QueryParam ("from") Long fromDateMillis,
+            @QueryParam ("to") Long toDateMillis) {
         EventResponseDTO[] rsvps = null;
         try {
-           List<EventResponse> responses = contentService.getUserEventResponses(userId, from, to);
-           rsvps = new EventResponseDTO[responses.size()];
-           int i = 0;
-           for(EventResponse r : responses) {               
-               rsvps[i++] = new EventResponseDTO(userId, r.getEventId(), r.getValue());
-           }
+            Date from = fromDateMillis != null ? new Date(fromDateMillis) : null;
+            Date to = toDateMillis != null ? new Date(toDateMillis) : null;
+            List<EventResponse> responses = contentService.getUserEventResponses(userId, from, to);
+            rsvps = new EventResponseDTO[responses.size()];
+            int i = 0;
+            for(EventResponse r : responses) {               
+                rsvps[i++] = new EventResponseDTO(userId, r.getEvent().getExternalId(), r.getValue());
+            }
            return rsvps;
         } catch (Exception e) {
             handleGenericException(e);

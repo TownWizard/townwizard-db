@@ -35,7 +35,7 @@ public class EventResponseResourceTest extends ResourceTest {
     
     @Test
     public void testPostAndGet() {
-        String email = "rating_test_user@test.com";
+        String email = "event_test_user1@test.com";
         try {
             deleteTestEventAndEventResponse();
             deleteUserByEmail(email);            
@@ -86,10 +86,87 @@ public class EventResponseResourceTest extends ResourceTest {
         }
     }
     
+    @Test
+    public void testCreateEventResponseWithEventDate() {
+        String email = "event_test_user2@test.com";
+        try {
+            deleteTestEventAndEventResponse();
+            deleteUserByEmail(email);            
+            
+            createTestUserViaService(email);
+            User u = getUserByEmailFromTheService(email);
+            
+            //create rsvp
+            long eventDate = 1355353200000L;
+            StatusLine statusLine = executePostJsonRequest(
+                    "/rsvps", getEventResponseWithDateJson(u.getId(), 'Y', eventDate));
+            int status = statusLine.getStatusCode();
+            Assert.assertEquals(
+                    "HTTP status should be 201 (created) when creating rsvp", 201, status);
+            
+            //get rsvp by user id
+            String getUrl = "/rsvps/" + u.getId() + "?from="+ (eventDate - 1) + "&to=" + (eventDate+1);
+            String response = executeGetRequest(getUrl);
+            EventResponseDTO rsvp = rsvpFromJson(response);
+            Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail(e.getMessage());
+        } finally {
+            deleteTestEventAndEventResponse();
+            deleteUserByEmail(email);
+        }  
+    }
+    
+    @Test
+    public void testGetEventResponsesForEventWithEventDate() {
+        String email = "event_test_user3@test.com";
+        try {
+            deleteTestEventAndEventResponse();
+            deleteUserByEmail(email);            
+            
+            createTestUserViaService(email);
+            User u = getUserByEmailFromTheService(email);
+            
+            //create rsvp
+            long eventDate = 1355353200000L;
+            StatusLine statusLine = executePostJsonRequest(
+                    "/rsvps", getEventResponseWithDateJson(u.getId(), 'Y', eventDate));
+            int status = statusLine.getStatusCode();
+            Assert.assertEquals(
+                    "HTTP status should be 201 (created) when creating rsvp", 201, status);
+            
+            //get rsvp by event id with modified date
+            long newEventDate = eventDate + 1000 * 3600;
+            String getUrl = "/rsvps/15/" + TEST_EVENT_ID + "/?d=" + (newEventDate);
+            String response = executeGetRequest(getUrl);
+            EventResponseDTO rsvp = rsvpFromJson(response);
+            Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
+            
+            Event e = getTestEvent();
+            Assert.assertEquals("Event date should change", newEventDate, e.getDate().getTime());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail(e.getMessage());
+        } finally {
+            deleteTestEventAndEventResponse();
+            deleteUserByEmail(email);
+        }  
+    }
+    
+    
     private String getEventResponseJson(Long userId, Character value) {
         return "{\"userId\":" + userId + 
                 ",\"siteId\":15,\"eventId\":" + TEST_EVENT_ID + 
                 ",\"value\":\"" + value +"\"}";
+    }
+    
+    private String getEventResponseWithDateJson(Long userId, Character value, long dateInMillis) {
+        String json = "{\"userId\":" + userId + 
+                ",\"siteId\":15,\"eventId\":" + TEST_EVENT_ID +
+                ",\"eventDate\":\"" + dateInMillis + "\"" + 
+                ",\"value\":\"" + value +"\"}";
+        return json;
     }
     
     private EventResponseDTO rsvpFromJson(String json) throws Exception {
@@ -97,7 +174,32 @@ public class EventResponseResourceTest extends ResourceTest {
         EventResponseDTO[] rsvps = m.readValue(new StringReader(json), EventResponseDTO[].class);
         if(rsvps.length > 0) return rsvps[0];
         return null;
-    }    
+    } 
+    
+    private Event getTestEvent() {
+        Session session = null;
+        try {
+            session = getSessionFactory().openSession();
+            session.beginTransaction();
+            
+            Query q = session.createQuery("from Event where externalId = :external_id")
+                    .setLong("external_id", TEST_EVENT_ID);
+            
+            @SuppressWarnings("unchecked")
+            List<Event> events = q.list();
+            session.getTransaction().commit();
+            
+            if(events.size() > 0) {
+                return events.get(0);
+            }
+        } finally {
+            if(session != null) {
+                session.close();
+            }
+        }
+        
+        return null;
+    }
     
     private void deleteTestEventAndEventResponse() {
         Session session = null;

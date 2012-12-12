@@ -100,14 +100,14 @@ public class ContentServiceImpl implements ContentService {
     
     @Override
     public List<EventResponse> getEventResponses(Integer siteId, Long eventId, Date eventDate) {
-        Event event = createEventIfAbsent(siteId, eventId, eventDate);
+        Event event = updateEvent(siteId, eventId, eventDate);
         return eventDao.getEventResponses(event);
     }
     
     @Override
     public Long saveEventResponse(
             Long userId, Integer siteId, Long eventId, Date eventDate, Character value) {
-        Event e = createEventIfAbsent(siteId, eventId, eventDate);
+        Event e = updateEvent(siteId, eventId, eventDate);
         User u = new User();
         u.setId(userId);
 
@@ -123,11 +123,14 @@ public class ContentServiceImpl implements ContentService {
         return er == null ? null : er.getId();
     }
     
-    private Event createEventIfAbsent(Integer siteId, Long eventId, Date eventDate) {
+    private Event updateEvent(Integer siteId, Long eventId, Date eventDate) {
         Event event = eventDao.getEvent(siteId, eventId);
         if(event == null) {
             event = createEvent(siteId, eventId, eventDate); 
             eventDao.create(event);
+        } else if(eventDate != null && !eventDate.equals(event.getDate())) {
+            event.setDate(eventDate);
+            eventDao.update(event);
         }
         return event;
     }
@@ -167,7 +170,7 @@ public class ContentServiceImpl implements ContentService {
     private static Date BEGINNING_OF_TIME = null;
     static {
         Calendar c = Calendar.getInstance();
-        c.set(2012, 0, 1);
+        c.set(1970, 0, 1);
         BEGINNING_OF_TIME = c.getTime();
     }
 
