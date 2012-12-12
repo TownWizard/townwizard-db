@@ -1,5 +1,7 @@
 USE master;
 
+DELETE FROM EventResponse;
+DELETE FROM Event;
 DELETE FROM Rating;
 DELETE FROM Content;
 DELETE FROM Address;

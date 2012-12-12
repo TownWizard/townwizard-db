@@ -42,6 +42,11 @@ public final class Log {
     public static void exception(Throwable e) {
         if(isErrorEnabled()) {
             error(e.getMessage());
+            StringBuilder stack = new StringBuilder();
+            for(StackTraceElement elem : e.getStackTrace()) {
+                stack.append(elem.toString()).append("\n");
+            }
+            error(stack.toString());
         }
     }
 }

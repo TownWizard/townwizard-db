@@ -40,7 +40,12 @@ public class EventResponseResource extends ResourceSupport {
         EventResponseDTO[] rsvps = null;
         try {
            List<EventResponse> responses = contentService.getUserEventResponses(userId, from, to);
-           return toArray(responses);
+           rsvps = new EventResponseDTO[responses.size()];
+           int i = 0;
+           for(EventResponse r : responses) {               
+               rsvps[i++] = new EventResponseDTO(userId, r.getEventId(), r.getValue());
+           }
+           return rsvps;
         } catch (Exception e) {
             handleGenericException(e);
         }
@@ -49,16 +54,22 @@ public class EventResponseResource extends ResourceSupport {
     }
     
     @GET
-    @Path("/{siteid}/{eventid}/{eventdate}")
+    @Path("/{siteid}/{eventid}")
     @Produces(MediaType.APPLICATION_JSON)
     public EventResponseDTO[] getRsvpsByEvent(
             @PathParam ("siteid") Integer siteId,
             @PathParam ("eventid") Long eventId,
-            @PathParam ("eventdate") Date eventDate) {
+            @QueryParam ("d") Long eventDateMillis) {        
         EventResponseDTO[] rsvps = null;
         try {
-           List<EventResponse> responses = contentService.getEventResponses(siteId, eventId, eventDate);
-           return toArray(responses);
+            Date eventDate = (eventDateMillis != null) ? new Date(eventDateMillis) : null;
+            List<EventResponse> responses = contentService.getEventResponses(siteId, eventId, eventDate);
+            rsvps = new EventResponseDTO[responses.size()];
+            int i = 0;
+            for(EventResponse r : responses) {               
+                rsvps[i++] = new EventResponseDTO(r.getUserId(), eventId, r.getValue());
+            }
+            return rsvps;
         } catch (Exception e) {
             handleGenericException(e);
         }
@@ -73,12 +84,12 @@ public class EventResponseResource extends ResourceSupport {
     public Response createRsvp(InputStream is) {
         EventResponseDTO rsvp = null;
         try {
-           rsvp = parseJson(EventResponseDTO.class, is);
+            rsvp = parseJson(EventResponseDTO.class, is);
         } catch(Exception e) {
             handleGenericException(e);
         }
         
-        if(rsvp == null || !rsvp.isValid()) {
+        if(rsvp == null || !rsvp.isValid() || rsvp.getSiteId() == null) {
             throw new WebApplicationException(Response
                     .status(Status.BAD_REQUEST)
                     .entity("Cannot create rsvp: missing or invalid data")
@@ -98,17 +109,4 @@ public class EventResponseResource extends ResourceSupport {
         return Response.status(Status.CREATED).entity(rsvp).build();
     }
     
-    private EventResponseDTO[] toArray(List<EventResponse> responses) {
-        EventResponseDTO[] rsvps = new EventResponseDTO[responses.size()];
-        int i = 0;
-        for(EventResponse r : responses) {
-            EventResponseDTO er = new EventResponseDTO();
-            er.setUserId(r.getUser().getId());
-            er.setSiteId(r.getEvent().getSiteId());
-            er.setEventId(r.getEvent().getExternalId());
-            er.setValue(r.getValue());
-            rsvps[i++] = er;
-        }
-        return rsvps;        
-    }
 }

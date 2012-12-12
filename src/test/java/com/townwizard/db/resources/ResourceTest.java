@@ -94,6 +94,15 @@ public abstract class ResourceTest extends TestSupport {
         }
     }
     
+    protected void createTestUserViaService(String email) throws Exception {
+        StatusLine statusLine = executePostJsonRequest("/users", 
+                "{\"email\":\"" + email + "\",\"password\":\"secret\"}");
+        int status = statusLine.getStatusCode();
+        if(status != 201) {
+            throw new Exception("Problem creating test user");
+        }
+    }    
+    
     protected User getUserByEmailFromTheService(String email) throws Exception {
         String response = executeGetRequest("/users/1/" + email);
         return userFromJson(response);

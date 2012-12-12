@@ -17,7 +17,7 @@ import com.townwizard.db.model.dto.RatingDTO;
 
 public class RatingResourceTest extends ResourceTest {
 
-    private static final Long TEST_CONTENT_ID = 123456789L;    
+    private static final Long TEST_CONTENT_ID = 123456789L;
     
     @Test
     public void testGetForUnexistingRating() {
@@ -80,22 +80,10 @@ public class RatingResourceTest extends ResourceTest {
         }
     }
     
-    private void createTestUserViaService(String email) throws Exception {
-        StatusLine statusLine = executePostJsonRequest("/users", getUserJson(email));
-        int status = statusLine.getStatusCode();
-        if(status != 201) {
-            throw new Exception("Problem creating test user");
-        }
-    }
-    
     protected User getUserByEmailFromTheService(String email) throws Exception {
         String response = executeGetRequest("/users/1/" + email);
         return userFromJson(response);
     }    
-    
-    private String getUserJson(String email) {
-        return "{\"email\":\"" + email + "\",\"password\":\"secret\"}";
-    }
     
     private String getRatingJson(Long userId, float value) {
         return "{\"userId\":" + userId + 

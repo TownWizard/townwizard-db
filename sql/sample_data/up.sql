@@ -35,5 +35,47 @@ VALUES(
     NOW(), NOW(), true, 4              
 );
 
+-- events
+INSERT INTO Content(external_id, site_id, type_id, active)
+VALUES (52, (SELECT mid FROM master WHERE site_url = 'demo.townwizard.com'), (SELECT id FROM ContentType WHERE name = 'Event'), true);
+
+INSERT INTO Content(external_id, site_id, type_id, active)
+VALUES (53, (SELECT mid FROM master WHERE site_url = 'demo.townwizard.com'), (SELECT id FROM ContentType WHERE name = 'Event'), true);
+
+INSERT INTO Event(id, date)
+VALUES(
+    (SELECT id FROM Content WHERE external_id = 52 AND 
+                                  site_id = (SELECT mid FROM master WHERE site_url = 'demo.townwizard.com') AND 
+                                  type_id = (SELECT id FROM ContentType WHERE name = 'Event')),
+    NOW()
+);
+
+INSERT INTO Event(id, date)
+VALUES(
+    (SELECT id FROM Content WHERE external_id = 53 AND 
+                                  site_id = (SELECT mid FROM master WHERE site_url = 'demo.townwizard.com') AND 
+                                  type_id = (SELECT id FROM ContentType WHERE name = 'Event')),
+    NOW()
+);
+
+-- event responses
+INSERT INTO EventResponse(user_id, event_id, created, updated, active, value)
+VALUES (
+    (SELECT id FROM User WHERE email = 'vmazheru@salzinger.com'),
+    (SELECT id FROM Content WHERE external_id = 52 AND 
+                                  site_id = (SELECT mid FROM master WHERE site_url = 'demo.townwizard.com') AND 
+                                  type_id = (SELECT id FROM ContentType WHERE name = 'Event')),
+    NOW(), NOW(), true, 'Y'
+);
+
+INSERT INTO EventResponse(user_id, event_id, created, updated, active, value)
+VALUES (
+    (SELECT id FROM User WHERE email = 'vmazheru@salzinger.com'),
+    (SELECT id FROM Content WHERE external_id = 53 AND 
+                                  site_id = (SELECT mid FROM master WHERE site_url = 'demo.townwizard.com') AND 
+                                  type_id = (SELECT id FROM ContentType WHERE name = 'Event')),
+    NOW(), NOW(), true, 'N'
+);
+
 
 COMMIT;

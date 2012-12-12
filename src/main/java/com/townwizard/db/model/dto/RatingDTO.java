@@ -1,9 +1,11 @@
 package com.townwizard.db.model.dto;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import com.townwizard.db.model.Content.ContentType;
 
+@JsonSerialize (include = JsonSerialize.Inclusion.NON_EMPTY)
 public class RatingDTO {
     
     private Long userId;

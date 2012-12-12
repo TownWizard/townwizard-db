@@ -14,13 +14,6 @@ import com.townwizard.db.model.User;
 public class UserResourceTest extends ResourceTest {
     
     @Test
-    public void testPostMulformedJson() {
-        StatusLine statusLine = executePostJsonRequest("/users", "Not a JSON string");
-        int status = statusLine.getStatusCode();
-        Assert.assertEquals("HTTP status should be 400 when JSON data is mulformed", 400, status);
-    }
-    
-    @Test
     public void testPostEmptyJson() {
         StatusLine statusLine = executePostJsonRequest("/users", "{}");
         int status = statusLine.getStatusCode();

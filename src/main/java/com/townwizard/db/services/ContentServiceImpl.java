@@ -167,7 +167,7 @@ public class ContentServiceImpl implements ContentService {
     private static Date BEGINNING_OF_TIME = null;
     static {
         Calendar c = Calendar.getInstance();
-        c.set(2012, 1, 1);
+        c.set(2012, 0, 1);
         BEGINNING_OF_TIME = c.getTime();
     }
 

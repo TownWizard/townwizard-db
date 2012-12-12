@@ -6,7 +6,7 @@ public final class ExceptionHandler {
 
     private ExceptionHandler() {}
     
-    public static void handle(Exception e) {
+    public static void handle(Exception e) {        
         Log.exception(e);
     }
 }

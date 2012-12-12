@@ -28,7 +28,7 @@ public class EventDaoHibernateImpl extends AbstractDaoHibernateImpl implements E
         return (EventResponse)getSession().createQuery(
                 "from EventResponse where user = :user and event = :event and active = true")
             .setEntity("user", user)
-            .setEntity("content", event).uniqueResult();
+            .setEntity("event", event).uniqueResult();
     }
     
 
@@ -36,8 +36,8 @@ public class EventDaoHibernateImpl extends AbstractDaoHibernateImpl implements E
     public List<EventResponse> getUserEventResponses(User user, Date from, Date to) {
         @SuppressWarnings("unchecked")
         List<EventResponse> retVal = getSession().createQuery(
-                "from EventResponse where user = :user and event.date between :from and :to and active = true")
-                .list();
+                "from EventResponse where user = :user and (event.date between :from and :to or event.date is null) and active = true")
+                .setEntity("user", user).setTimestamp("from", from).setTimestamp("to", to).list();
         return retVal;
     }
 
@@ -45,8 +45,8 @@ public class EventDaoHibernateImpl extends AbstractDaoHibernateImpl implements E
     public List<EventResponse> getEventResponses(Event event) {
         @SuppressWarnings("unchecked")
         List<EventResponse> retVal = getSession().createQuery(
-                "from EventResponse where user = :user and event = :event and active = true")
-                .list();
+                "from EventResponse where event = :event and active = true")
+                .setEntity("event", event).list();
         return retVal;
     }
 

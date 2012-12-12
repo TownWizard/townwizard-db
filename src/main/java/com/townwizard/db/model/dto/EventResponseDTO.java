@@ -3,13 +3,23 @@ package com.townwizard.db.model.dto;
 import java.util.Date;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+@JsonSerialize (include = JsonSerialize.Inclusion.NON_EMPTY)
 public class EventResponseDTO {
     private Long userId;
     private Integer siteId;
     private Long eventId;
     private Date eventDate;
     private Character value;
+    
+    public EventResponseDTO(){}
+            
+    public EventResponseDTO(Long userId, Long eventId, Character value) {
+        this.userId = userId;        
+        this.eventId = eventId;
+        this.value = value;
+    }
     
     public Long getUserId() {
         return userId;
@@ -53,7 +63,7 @@ public class EventResponseDTO {
     
     @JsonIgnore
     public boolean isValid() {
-        return userId != null && siteId != null && eventId != null && value != null;
+        return userId != null && eventId != null && value != null;
     }
     
 }
