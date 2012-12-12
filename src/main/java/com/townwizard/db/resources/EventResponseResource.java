@@ -24,7 +24,7 @@ import com.townwizard.db.model.dto.EventResponseDTO;
 import com.townwizard.db.services.ContentService;
 
 @Component
-@Path("/rsvp")
+@Path("/rsvps")
 public class EventResponseResource extends ResourceSupport {
 
     @Autowired

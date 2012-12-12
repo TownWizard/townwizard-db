@@ -22,7 +22,7 @@ public class EventResponseResourceTest extends ResourceTest {
     @Test
     public void testGetForUnexistingRsvp() {
         try {
-            String getUrl = "/rsvp/9999999"; //unknown user id
+            String getUrl = "/rsvps/9999999"; //unknown user id
             String response = executeGetRequest(getUrl);
             EventResponseDTO rsvp = rsvpFromJson(response);
             Assert.assertTrue("Rsvp must be null", rsvp == null);            
@@ -44,13 +44,13 @@ public class EventResponseResourceTest extends ResourceTest {
             User u = getUserByEmailFromTheService(email);
             
             //create rsvp            
-            StatusLine statusLine = executePostJsonRequest("/rsvp", getEventResponseJson(u.getId(), 'Y'));
+            StatusLine statusLine = executePostJsonRequest("/rsvps", getEventResponseJson(u.getId(), 'Y'));
             int status = statusLine.getStatusCode();
             Assert.assertEquals(
                     "HTTP status should be 201 (created) when creating rsvp", 201, status);
             
             //get rsvp by user id
-            String getUrl = "/rsvp/" + u.getId();
+            String getUrl = "/rsvps/" + u.getId();
             String response = executeGetRequest(getUrl);
             EventResponseDTO rsvp = rsvpFromJson(response);
             Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
@@ -59,7 +59,7 @@ public class EventResponseResourceTest extends ResourceTest {
             }
             
             //change rsvp value
-            statusLine = executePostJsonRequest("/rsvp", getEventResponseJson(u.getId(), 'M'));
+            statusLine = executePostJsonRequest("/rsvps", getEventResponseJson(u.getId(), 'M'));
             status = statusLine.getStatusCode();
             Assert.assertEquals(
                     "HTTP status should be 201 (created) when updating rsvp", 201, status);
@@ -73,7 +73,7 @@ public class EventResponseResourceTest extends ResourceTest {
             }
             
             //get rsvp by event id
-            getUrl = "/rsvp/15/" + TEST_EVENT_ID;
+            getUrl = "/rsvps/15/" + TEST_EVENT_ID;
             response = executeGetRequest(getUrl);
             rsvp = rsvpFromJson(response);
             Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
