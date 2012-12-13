@@ -18,8 +18,11 @@ public interface ContentService {
     List<Rating> getUserRatings(Long userId, Integer siteId,
             ContentType contentType, List<Long> externalContentIds);    
     
-    Float getAverageRating(Integer siteId,
+    Rating getAverageRating(Integer siteId,
             ContentType contentType, Long externalContentId);
+    
+    List<Rating> getAverageRatings(Integer siteId,
+            ContentType contentType, List<Long> externalContentIds);    
     
     List<EventResponse> getUserEventResponses(Long userId, Date from, Date to);
     

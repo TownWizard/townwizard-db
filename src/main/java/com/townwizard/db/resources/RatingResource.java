@@ -59,6 +59,36 @@ public class RatingResource extends ResourceSupport {
         }
         
         return ratings;
+    }
+    
+    @GET
+    @Path("/{contenttype}/{siteid}/{contentids}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<RatingDTO> getAverageRatings(
+            @PathParam("contenttype") String contentTypeStr,
+            @PathParam("siteid") Integer siteId,
+            @PathParam("contentids") String contentIds) {
+        
+        List<RatingDTO> ratings = new ArrayList<>();
+        try {
+            List<Long> externalContentIds = new ArrayList<>();
+            for(String contentIdStr : contentIds.split(",")) {
+                externalContentIds.add(Long.parseLong(contentIdStr));
+            }
+            
+            ContentType contentType = ContentType.valueOf(contentTypeStr);
+            List<Rating> ratingList = contentService.getAverageRatings(
+                    siteId, contentType, externalContentIds);
+            
+            for(Rating r : ratingList) {
+                ratings.add(new RatingDTO(
+                        null, siteId, r.getContent().getExternalId(), r.getValue(), contentType));
+            }
+        } catch (Exception e) {
+            handleGenericException(e);
+        }
+        
+        return ratings;
     }    
 
     @POST

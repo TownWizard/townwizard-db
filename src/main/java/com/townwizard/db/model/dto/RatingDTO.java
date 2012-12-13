@@ -59,5 +59,10 @@ public class RatingDTO {
     public boolean isValid() {
         return userId != null && siteId != null && contentId != null && value != null && contentType != null;
     }
-
+    
+    @JsonIgnore
+    public boolean isValidAverage() {
+        return siteId != null && contentId != null && value != null && contentType != null;
+    }
+    
 }

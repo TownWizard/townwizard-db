@@ -79,15 +79,25 @@ public class ContentServiceImpl implements ContentService {
     } 
 
     @Override
-    public Float getAverageRating(Integer siteId, ContentType contentType,
+    public Rating getAverageRating(Integer siteId, ContentType contentType,
             Long externalContentId) {
-        Float rating = 0F;
+        Rating rating = null;
         Content c = contentDao.getContent(siteId, contentType, externalContentId);
         if(c != null) {
             rating = ratingDao.getAverageRating(c);            
         }
         return rating;
     }
+    
+    @Override
+    public List<Rating> getAverageRatings(Integer siteId,
+            ContentType contentType, List<Long> externalContentIds) {
+        List<Content> contents = contentDao.getContents(siteId, contentType, externalContentIds);
+        if(!contents.isEmpty()) {
+            return ratingDao.getAverageRatings(contents);
+        }
+        return Collections.emptyList();
+    }    
     
     @Override
     public List<EventResponse> getUserEventResponses(Long userId, Date from, Date to) {
@@ -173,5 +183,5 @@ public class ContentServiceImpl implements ContentService {
         c.set(1970, 0, 1);
         BEGINNING_OF_TIME = c.getTime();
     }
-
+    
 }

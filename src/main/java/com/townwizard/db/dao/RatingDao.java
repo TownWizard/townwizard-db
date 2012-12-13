@@ -12,6 +12,8 @@ public interface RatingDao extends AbstractDao {
     
     List<Rating> getRatings(User user, List<Content> contents);
     
-    Float getAverageRating(Content content);
+    Rating getAverageRating(Content content);
+    
+    List<Rating> getAverageRatings(List<Content> content);
     
 }

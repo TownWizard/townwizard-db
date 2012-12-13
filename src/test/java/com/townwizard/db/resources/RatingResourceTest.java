@@ -34,7 +34,7 @@ public class RatingResourceTest extends ResourceTest {
     
     @Test
     public void testPostAndGet() {
-        String email = "rating_test_user@test.com";
+        String email = "rating_test_user1@test.com";
         try {
             deleteTestRatingAndContent();
             deleteUserByEmail(email);            
@@ -66,6 +66,38 @@ public class RatingResourceTest extends ResourceTest {
             Assert.assertTrue("A valid rating must be retrieved", rating != null && rating.isValid());
             if(rating != null) {
                 Assert.assertEquals("Rating value should change", new Float(4.5), rating.getValue());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail(e.getMessage());
+        } finally {
+            deleteTestRatingAndContent();
+            deleteUserByEmail(email);
+        }
+    }
+    
+    @Test
+    public void testAverageRatings() {
+        String email = "rating_test_user2@test.com";
+        try {
+            deleteTestRatingAndContent();
+            deleteUserByEmail(email);            
+            
+            createTestUserViaService(email);
+            User u = getUserByEmailFromTheService(email);
+            
+            StatusLine statusLine = executePostJsonRequest("/ratings", getRatingJson(u.getId(), 4.0F));
+            int status = statusLine.getStatusCode();
+            Assert.assertEquals(
+                    "HTTP status should be 201 (created) when creating rating", 201, status);
+            
+            String getUrl = "/ratings/LOCATION/15/" + TEST_CONTENT_ID;
+            String response = executeGetRequest(getUrl);
+            RatingDTO rating = ratingFromJson(response);
+            Assert.assertTrue("A valid average rating must be retrieved",
+                    rating != null && rating.isValidAverage());
+            if(rating != null) {
+                Assert.assertEquals("Rating value should match", new Float(4.0), rating.getValue());
             }
         } catch (Exception e) {
             e.printStackTrace();
