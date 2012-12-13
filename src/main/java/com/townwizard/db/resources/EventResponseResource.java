@@ -1,6 +1,7 @@
 package com.townwizard.db.resources;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -33,21 +34,18 @@ public class EventResponseResource extends ResourceSupport {
     @GET
     @Path("/{userid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public EventResponseDTO[] getRsvpsByPersion(
+    public List<EventResponseDTO> getRsvpsByPersion(
             @PathParam ("userid") Long userId,
             @QueryParam ("from") Long fromDateMillis,
             @QueryParam ("to") Long toDateMillis) {
-        EventResponseDTO[] rsvps = null;
+        List<EventResponseDTO> rsvps = new ArrayList<>();
         try {
             Date from = fromDateMillis != null ? new Date(fromDateMillis) : null;
             Date to = toDateMillis != null ? new Date(toDateMillis) : null;
             List<EventResponse> responses = contentService.getUserEventResponses(userId, from, to);
-            rsvps = new EventResponseDTO[responses.size()];
-            int i = 0;
-            for(EventResponse r : responses) {               
-                rsvps[i++] = new EventResponseDTO(userId, r.getEvent().getExternalId(), r.getValue());
+            for(EventResponse r : responses) {
+                rsvps.add(new EventResponseDTO(userId, r.getEvent().getExternalId(), r.getValue()));
             }
-           return rsvps;
         } catch (Exception e) {
             handleGenericException(e);
         }
@@ -58,20 +56,17 @@ public class EventResponseResource extends ResourceSupport {
     @GET
     @Path("/{siteid}/{eventid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public EventResponseDTO[] getRsvpsByEvent(
+    public List<EventResponseDTO> getRsvpsByEvent(
             @PathParam ("siteid") Integer siteId,
             @PathParam ("eventid") Long eventId,
             @QueryParam ("d") Long eventDateMillis) {        
-        EventResponseDTO[] rsvps = null;
+        List<EventResponseDTO> rsvps = new ArrayList<>();
         try {
             Date eventDate = (eventDateMillis != null) ? new Date(eventDateMillis) : null;
             List<EventResponse> responses = contentService.getEventResponses(siteId, eventId, eventDate);
-            rsvps = new EventResponseDTO[responses.size()];
-            int i = 0;
             for(EventResponse r : responses) {               
-                rsvps[i++] = new EventResponseDTO(r.getUserId(), eventId, r.getValue());
+                rsvps.add(new EventResponseDTO(r.getUserId(), eventId, r.getValue()));
             }
-            return rsvps;
         } catch (Exception e) {
             handleGenericException(e);
         }
