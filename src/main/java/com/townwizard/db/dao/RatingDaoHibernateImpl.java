@@ -1,5 +1,7 @@
 package com.townwizard.db.dao;
 
+import java.util.List;
+
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.model.Content;
@@ -16,6 +18,16 @@ public class RatingDaoHibernateImpl extends AbstractDaoHibernateImpl implements 
             .setEntity("user", user)
             .setEntity("content", content).uniqueResult();
     }
+    
+    @Override
+    public List<Rating> getRatings(User user, List<Content> contents) {
+        @SuppressWarnings("unchecked")
+        List<Rating> ratings = getSession().createQuery(
+                "from Rating where user = :user and content in :contents and active = true")
+            .setEntity("user", user)
+            .setParameterList("contents", contents).list();
+        return ratings;
+    }    
 
     @Override
     public Float getAverageRating(Content content) {

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.model.Content.ContentType;
+import com.townwizard.db.model.Rating;
 import com.townwizard.db.model.dto.RatingDTO;
 import com.townwizard.db.services.ContentService;
 
@@ -32,28 +33,26 @@ public class RatingResource extends ResourceSupport {
     @GET
     @Path("/{contenttype}/{siteid}/{userid}/{contentids}")
     @Produces(MediaType.APPLICATION_JSON)
-    public RatingDTO[] getRatings(
+    public List<RatingDTO> getRatings(
             @PathParam("contenttype") String contentTypeStr,
             @PathParam("siteid") Integer siteId,
             @PathParam("userid") Long userId,
             @PathParam("contentids") String contentIds) {
         
-        RatingDTO[] ratings = null;
+        List<RatingDTO> ratings = new ArrayList<>();
         try {
             List<Long> externalContentIds = new ArrayList<>();
             for(String contentIdStr : contentIds.split(",")) {
                 externalContentIds.add(Long.parseLong(contentIdStr));
             }
             
-            ContentType contentType = ContentType.valueOf(contentTypeStr); 
-            Long[] ratingContentIds = externalContentIds.toArray(new Long[]{});
-            Float[] ratingValues = contentService.getUserRatings(
-                    userId, siteId, contentType, ratingContentIds);
+            ContentType contentType = ContentType.valueOf(contentTypeStr);
+            List<Rating> ratingList = contentService.getUserRatings(
+                    userId, siteId, contentType, externalContentIds);
             
-            ratings = new RatingDTO[ratingValues.length];
-            for(int i = 0; i < ratingValues.length; i++) {
-                ratings[i] = new RatingDTO(
-                        userId, siteId, ratingContentIds[i], ratingValues[i], contentType);
+            for(Rating r : ratingList) {
+                ratings.add(new RatingDTO(
+                        userId, siteId, r.getContent().getExternalId(), r.getValue(), contentType));
             }
         } catch (Exception e) {
             handleGenericException(e);

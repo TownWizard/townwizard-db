@@ -25,11 +25,7 @@ public class RatingResourceTest extends ResourceTest {
             String getUrl = "/ratings/LOCATION/15/9999999/987654321";
             String response = executeGetRequest(getUrl);
             RatingDTO rating = ratingFromJson(response);
-            Assert.assertTrue("Rating must not be null", rating != null);            
-            if(rating != null) {
-                Assert.assertTrue("Rating must be invalid", !rating.isValid());
-                Assert.assertEquals("Rating value must be null", null, rating.getValue());
-            }
+            Assert.assertTrue("Rating must be null", rating == null);            
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail(e.getMessage());

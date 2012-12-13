@@ -1,6 +1,7 @@
 package com.townwizard.db.services;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -53,29 +54,28 @@ public class ContentServiceImpl implements ContentService {
     }
     
     @Override
-    public Float getUserRating(Long userId, Integer siteId,
+    public Rating getUserRating(Long userId, Integer siteId,
             ContentType contentType, Long externalContentId) {
-        Float rating = null;
+        Rating rating = null;
         Content c = contentDao.getContent(siteId, contentType, externalContentId);
         if(c != null) {
             User u = new User();
             u.setId(userId);
-            Rating r = ratingDao.getRating(u, c);
-            if(r != null) {
-                rating = r.getValue();
-            }
+            rating = ratingDao.getRating(u, c);
         }
         return rating;
     }
     
     @Override
-    public Float[] getUserRatings(Long userId, Integer siteId,
-            ContentType contentType, Long[] externalContentIds) {
-        Float[] retVal = new Float[externalContentIds.length];
-        for(int i = 0; i < externalContentIds.length; i++) {
-            retVal[i] = getUserRating(userId, siteId, contentType, externalContentIds[i]);
+    public List<Rating> getUserRatings(Long userId, Integer siteId,
+            ContentType contentType, List<Long> externalContentIds) {
+        List<Content> contents = contentDao.getContents(siteId, contentType, externalContentIds);
+        if(!contents.isEmpty()) {
+            User u = new User();
+            u.setId(userId);
+            return ratingDao.getRatings(u, contents);
         }
-        return retVal;
+        return Collections.emptyList();
     } 
 
     @Override

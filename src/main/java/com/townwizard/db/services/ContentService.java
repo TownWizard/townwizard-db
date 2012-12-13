@@ -5,17 +5,18 @@ import java.util.List;
 
 import com.townwizard.db.model.Content.ContentType;
 import com.townwizard.db.model.EventResponse;
+import com.townwizard.db.model.Rating;
 
 public interface ContentService {
 
     Long saveRating(Long userId, Integer siteId, 
             ContentType contentType, Long externalContentId,  Float value);    
     
-    Float getUserRating(Long userId, Integer siteId,
+    Rating getUserRating(Long userId, Integer siteId,
             ContentType contentType, Long externalContentId);
     
-    Float[] getUserRatings(Long userId, Integer siteId,
-            ContentType contentType, Long[] externalContentIds);    
+    List<Rating> getUserRatings(Long userId, Integer siteId,
+            ContentType contentType, List<Long> externalContentIds);    
     
     Float getAverageRating(Integer siteId,
             ContentType contentType, Long externalContentId);
