@@ -10,10 +10,13 @@ import javax.persistence.Enumerated;
 import javax.persistence.OneToOne;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.townwizard.db.util.EmailValidator;
 
 @Entity
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class User extends AuditableEntity {
     
     public static enum LoginType {
