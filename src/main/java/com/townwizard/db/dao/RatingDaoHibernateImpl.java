@@ -34,13 +34,13 @@ public class RatingDaoHibernateImpl extends AbstractDaoHibernateImpl implements 
 
     @Override
     public Rating getAverageRating(Content content) {        
-        Float value = (Float) getSession().createQuery(
+        Double value = (Double)getSession().createQuery(
                 "select avg(value) from Rating where content = :content and active = true")
             .setEntity("content", content).uniqueResult();
         
         Rating r = new Rating();
         r.setContent(content);
-        r.setValue(value);
+        r.setValue(new Float(value));
         return r;
     }
     
