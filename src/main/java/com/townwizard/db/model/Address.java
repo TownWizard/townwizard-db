@@ -8,8 +8,11 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="users")
 public class Address extends AuditableEntity {
     
     private static final long serialVersionUID = -7937478988122266498L;

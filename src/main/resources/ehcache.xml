@@ -3,10 +3,24 @@
     monitoring="autodetect" dynamicConfig="true">
 
 <defaultCache
+    maxElementsInMemory="100"
+    eternal="true"
+    overflowToDisk="false"
+    memoryStoreEvictionPolicy="LFU"
+    statistics="false"/>
+ 
+<cache name="users"
     maxElementsInMemory="100000"
     eternal="true"          
     overflowToDisk="false"
     memoryStoreEvictionPolicy="LFU"
-    statistics="true"/>
+    statistics="false"/>
+
+<cache name="ratings"
+    maxElementsInMemory="100000"
+    eternal="true"          
+    overflowToDisk="false"
+    memoryStoreEvictionPolicy="LFU"
+    statistics="false"/>
 
 </ehcache>

@@ -16,6 +16,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.model.Content.ContentType;
@@ -64,6 +66,7 @@ public class RatingResource extends ResourceSupport {
     @GET
     @Path("/{contenttype}/{siteid}/{contentids}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Cacheable("ratings")
     public List<RatingDTO> getAverageRatings(
             @PathParam("contenttype") String contentTypeStr,
             @PathParam("siteid") Integer siteId,
@@ -94,6 +97,7 @@ public class RatingResource extends ResourceSupport {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @CacheEvict(value="ratings", allEntries=true)
     public Response createRating(InputStream is) {
         RatingDTO rating = null;
         try {
