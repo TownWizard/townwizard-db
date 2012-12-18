@@ -4,6 +4,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 @Entity
 public class Rating extends AuditableEntity {
@@ -15,6 +16,8 @@ public class Rating extends AuditableEntity {
     @OneToOne(fetch = FetchType.LAZY) @JoinColumn(name = "contentId")
     private Content content;
     private Float value;
+    @Transient
+    private Integer count;
     
     public User getUser() {
         return user;
@@ -34,5 +37,10 @@ public class Rating extends AuditableEntity {
     public void setValue(Float value) {
         this.value = value;
     }
-
+    public Integer getCount() {
+        return count;
+    }
+    public void setCount(Integer count) {
+        this.count = count;
+    }
 }

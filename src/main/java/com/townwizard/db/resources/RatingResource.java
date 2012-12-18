@@ -84,8 +84,8 @@ public class RatingResource extends ResourceSupport {
                     siteId, contentType, externalContentIds);
             
             for(Rating r : ratingList) {
-                ratings.add(new RatingDTO(
-                        null, siteId, r.getContent().getExternalId(), r.getValue(), contentType));
+                ratings.add(new RatingDTO(null, siteId, r.getContent().getExternalId(),
+                        r.getValue(), contentType, r.getCount()));
             }
         } catch (Exception e) {
             handleGenericException(e);

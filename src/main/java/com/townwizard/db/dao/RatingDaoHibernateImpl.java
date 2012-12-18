@@ -34,13 +34,14 @@ public class RatingDaoHibernateImpl extends AbstractDaoHibernateImpl implements 
 
     @Override
     public Rating getAverageRating(Content content) {        
-        Double value = (Double)getSession().createQuery(
-                "select avg(value) from Rating where content = :content and active = true")
+        Object[] valueAndCount = (Object[])getSession().createQuery(
+                "select avg(value), count(value) from Rating where content = :content and active = true")
             .setEntity("content", content).uniqueResult();
         
         Rating r = new Rating();
         r.setContent(content);
-        r.setValue(new Float(value));
+        r.setValue(new Float((Double)valueAndCount[0]));
+        r.setCount(((Long)valueAndCount[1]).intValue());
         return r;
     }
     
@@ -48,7 +49,7 @@ public class RatingDaoHibernateImpl extends AbstractDaoHibernateImpl implements 
     public List<Rating> getAverageRatings(List<Content> contents) {
         @SuppressWarnings("unchecked")
         List<Object[]> ratings = getSession().createQuery(
-                "select content.id, avg(value) from Rating " + 
+                "select content.id, avg(value), count(value) from Rating " + 
                 "where content in :contents and active = true " + 
                 "group by content")
             .setParameterList("contents", contents).list();        
@@ -65,6 +66,7 @@ public class RatingDaoHibernateImpl extends AbstractDaoHibernateImpl implements 
                 Rating rating = new Rating();
                 rating.setContent(idToContent.get(r[0]));
                 rating.setValue(new Float((Double)r[1]));
+                rating.setCount(((Long)r[2]).intValue());
                 result.add(rating);
             }
         }

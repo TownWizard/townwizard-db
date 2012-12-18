@@ -12,7 +12,8 @@ public class RatingDTO {
     private Integer siteId;
     private Long contentId;
     private Float value;
-    private ContentType contentType;
+    private ContentType contentType;    
+    private Integer count;
     
     public RatingDTO() {}
     
@@ -23,38 +24,31 @@ public class RatingDTO {
         this.value = value;
         this.contentType = contentType;
     }
+
+    public RatingDTO(Long userId, Integer siteId, Long contentId, Float value, ContentType contentType, Integer count) {
+        this(userId, siteId, contentId, value, contentType);
+        this.count = count;
+    }    
     
     public Long getUserId() {
         return userId;
     }
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
     public Integer getSiteId() {
         return siteId;
-    }
-    public void setSiteId(Integer siteId) {
-        this.siteId = siteId;
     }
     public Long getContentId() {
         return contentId;
     }
-    public void setContentId(Long contentId) {
-        this.contentId = contentId;
-    }
     public Float getValue() {
         return value;
-    }
-    public void setValue(Float value) {
-        this.value = value;
     }
     public ContentType getContentType() {
         return contentType;
     }
-    public void setContentType(ContentType contentType) {
-        this.contentType = contentType;
+    public Integer getCount() {
+        return count;
     }
-    
+
     @JsonIgnore
     public boolean isValid() {
         return userId != null && siteId != null && contentId != null && value != null && contentType != null;
