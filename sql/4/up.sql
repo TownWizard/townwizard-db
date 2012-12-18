@@ -13,7 +13,7 @@ EXECUTE stmt;
 CREATE TABLE Event (
   id BIGINT NOT NULL,
   date DATETIME,
-  CONSTRAINT pk_event_ PRIMARY KEY(id),
+  CONSTRAINT pk_event PRIMARY KEY(id),
   CONSTRAINT fk_event_content FOREIGN KEY(id) REFERENCES Content(id)
 ) ENGINE = InnoDB;
 
