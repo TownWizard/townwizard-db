@@ -4,7 +4,6 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -44,67 +43,65 @@ public class FacebookLoginResource extends UserResource {
             @QueryParam("state") String loginRequestId,
             @QueryParam("l") String location,
             @QueryParam("uid") Integer userId) {
-
-        if(userId != null && location != null) {
-            String server = getServerPartFromLocationUrl(location);
-            StringBuilder html = new StringBuilder();
-            html.append("<!DOCTYPE HTML>");
-            html.append("<html><head><meta charset=\"UTF-8\"><meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\"></head><body>");
-            html.append("<script>");
-            html.append("window.location.href='").append(server).append(PHP_LOGIN_PATH)
-                .append("?uid=").append(userId).append("&l=").append(location).append("';");            
-            html.append("</script>");
-            html.append("</body></html>");
-            return Response.status(Status.OK).entity(html.toString()).build();
-        }
-        
-        if(code == null && loginRequestId == null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("https://www.facebook.com/dialog/oauth?");
-            sb.append("client_id=").append(FB_APP_ID);
-            sb.append("&redirect_uri=").append(FB_LOGIN_RESOURCE);
-            String lRequestId = UUID.randomUUID().toString();
-            sb.append("&state=").append(lRequestId);
-            sb.append("&display=popup");
-            sb.append("&scope=email");            
-            String dialogUrl = sb.toString();
-            StringBuilder html = new StringBuilder();
-            html.append("<!DOCTYPE HTML>");
-            html.append("<html><head><meta charset=\"UTF-8\"><meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\"></head><body>");
-            html.append("<script>window.location.href='" + dialogUrl + "'</script>");
-            html.append("</body></html>");
+        try {
+            if(userId != null && location != null) {
+                String server = getServerPartFromLocationUrl(location);
+                StringBuilder html = new StringBuilder();
+                html.append("<!DOCTYPE HTML>");
+                html.append("<html><head><meta charset=\"UTF-8\"><meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\"></head><body>");
+                html.append("<script>");
+                html.append("window.location.href='").append(server).append(PHP_LOGIN_PATH)
+                    .append("?uid=").append(userId).append("&l=").append(location).append("';");            
+                html.append("</script>");
+                html.append("</body></html>");
+                return Response.status(Status.OK).entity(html.toString()).build();
+            }
             
-            cacheLoginRequest(new LoginRequest(lRequestId, location, new Date()));
+            if(code == null && loginRequestId == null) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("https://www.facebook.com/dialog/oauth?");
+                sb.append("client_id=").append(FB_APP_ID);
+                sb.append("&redirect_uri=").append(FB_LOGIN_RESOURCE);
+                String lRequestId = UUID.randomUUID().toString();
+                sb.append("&state=").append(lRequestId);
+                sb.append("&display=popup");
+                sb.append("&scope=email");            
+                String dialogUrl = sb.toString();
+                StringBuilder html = new StringBuilder();
+                html.append("<!DOCTYPE HTML>");
+                html.append("<html><head><meta charset=\"UTF-8\"><meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\"></head><body>");
+                html.append("<script>window.location.href='" + dialogUrl + "'</script>");
+                html.append("</body></html>");
+                userService.createLoginRequest(new LoginRequest(lRequestId, location, new Date()));
+                return Response.status(Status.OK).entity(html.toString()).build();
+            }
             
-            return Response.status(Status.OK).entity(html.toString()).build();
-        }
-        
-        if(code == null && loginRequestId != null) {
-            StringBuilder html = new StringBuilder();
-            html.append("<!DOCTYPE HTML>");
-            html.append("<html><head><meta charset=\"UTF-8\"><meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\"></head><body>");
-            html.append("<script>window.close();</script>");
-            html.append("</body></html>");            
-            return Response.status(Status.OK).entity(html.toString()).build();
-        }
-        
-        LoginRequest lRequest;
-        if(code != null && (lRequest = getLoginRequestFromCache(loginRequestId)) != null) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("https://graph.facebook.com/oauth/access_token?");
-            sb.append("client_id=").append(FB_APP_ID);
-            sb.append("&redirect_uri=").append(FB_LOGIN_RESOURCE);
-            sb.append("&client_secret=").append(FB_APP_SECRET);
-            sb.append("&code=").append(code);
+            if(code == null && loginRequestId != null) {
+                StringBuilder html = new StringBuilder();
+                html.append("<!DOCTYPE HTML>");
+                html.append("<html><head><meta charset=\"UTF-8\"><meta http-equiv=\"Content-type\" content=\"text/html;charset=UTF-8\"></head><body>");
+                html.append("<script>window.close();</script>");
+                html.append("</body></html>");            
+                return Response.status(Status.OK).entity(html.toString()).build();
+            }
+            
+            LoginRequest lRequest;
+            if(code != null && (lRequest = userService.getLoginRequest(loginRequestId)) != null) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("https://graph.facebook.com/oauth/access_token?");
+                sb.append("client_id=").append(FB_APP_ID);
+                sb.append("&redirect_uri=").append(FB_LOGIN_RESOURCE);
+                sb.append("&client_secret=").append(FB_APP_SECRET);
+                sb.append("&code=").append(code);
+                    
+                String tokenUrl = sb.toString();
+                String response = HttpUtils.executeGetRequest(tokenUrl);
+                Map<String, String> accessInfo = parseAcessTokenResponse(response);
+                String accessToken = accessInfo.get("access_token");            
                 
-            String tokenUrl = sb.toString();
-            String response = HttpUtils.executeGetRequest(tokenUrl);
-            Map<String, String> accessInfo = parseAcessTokenResponse(response);
-            String accessToken = accessInfo.get("access_token");            
-            
-            String userUrl = "https://graph.facebook.com/me?access_token=" + accessToken;
-            String userData = HttpUtils.executeGetRequest(userUrl);
-            try {
+                String userUrl = "https://graph.facebook.com/me?access_token=" + accessToken;
+                String userData = HttpUtils.executeGetRequest(userUrl);
+                
                 Map<String, Object> fbUser = parseJson(userData);
                 User u = User.fromFbUser(fbUser);
                 createOrUpdateExternalUser(u);
@@ -115,12 +112,11 @@ public class FacebookLoginResource extends UserResource {
                 html.append("window.location.href='").append(FB_LOGIN_RESOURCE)
                     .append("?uid=").append(u.getId()).append("&l=").append(lRequest.getLocation()).append("';");
                 html.append("</script>");
-                html.append("</body></html>");
-                
+                html.append("</body></html>");                
                 return Response.status(Status.OK).entity(html.toString()).build();            
-            } catch (Exception e) {
-                handleGenericException(e);
             }
+        } catch(Exception e) {
+            handleGenericException(e);
         }
         
         return Response.status(Status.BAD_REQUEST).build();
@@ -155,36 +151,6 @@ public class FacebookLoginResource extends UserResource {
         }
     }
     
-
     
-    //TODO: implement login request caching with DB table instead of hashmap
-    //in order to remove state handling from the application
-    private static final Map<String, LoginRequest> LOGIN_REQUEST_CACHE= new HashMap<>();
-    private static final long LOGIN_REQUEST_CACHE_TTL = 30 * 60 * 1000; //30 minutes
-    private static final long LOGIN_REQUEST_CACHE_MAX_SIZE = 1000; //30 minutes
-    
-    private static void cacheLoginRequest(LoginRequest loginRequest) {
-        LOGIN_REQUEST_CACHE.put(loginRequest.getLoginId(), loginRequest);
-    }    
-    
-    private static LoginRequest getLoginRequestFromCache(String loginId) {        
-        LoginRequest retVal = LOGIN_REQUEST_CACHE.remove(loginId);
-        cleanLoginRequestCache();        
-        return retVal;
-    }
-    
-    private static void cleanLoginRequestCache() {
-        if(LOGIN_REQUEST_CACHE.size() > LOGIN_REQUEST_CACHE_MAX_SIZE) {
-            synchronized(LOGIN_REQUEST_CACHE) {
-                long now = System.currentTimeMillis();
-                Iterator<Map.Entry<String, LoginRequest>> i = LOGIN_REQUEST_CACHE.entrySet().iterator();
-                while(i.hasNext()) {
-                    Map.Entry<String, LoginRequest> e = i.next();
-                    if(now - LOGIN_REQUEST_CACHE_TTL > e.getValue().getCreated().getTime()) {
-                        i.remove();
-                    }
-                }
-            }
-        }
-    }
+    //TODO: implement login request cleanup job
 }

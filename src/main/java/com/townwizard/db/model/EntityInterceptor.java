@@ -16,16 +16,18 @@ public class EntityInterceptor extends EmptyInterceptor {
     public boolean onSave(Object o, Serializable id, Object[] state,
             String[] propertyNames, Type[] types) {
 
-        AbstractEntity entity = (AbstractEntity)o;
-        boolean isNew = (entity.getId() == null);
-        Date now = new Date();
-        
-        for(int i = 0; i < propertyNames.length; i++) {
-            String propertyName = propertyNames[i];
-            if("active".equals(propertyName) && isNew) {
-                state[i] = true;
-            } else if("updated".equals(propertyName) || ("created".equals(propertyName) && isNew)) {
-                state[i] = now;
+        if(o instanceof AbstractEntity) {
+            AbstractEntity entity = (AbstractEntity)o;
+            boolean isNew = (entity.getId() == null);
+            Date now = new Date();
+            
+            for(int i = 0; i < propertyNames.length; i++) {
+                String propertyName = propertyNames[i];
+                if("active".equals(propertyName) && isNew) {
+                    state[i] = true;
+                } else if("updated".equals(propertyName) || ("created".equals(propertyName) && isNew)) {
+                    state[i] = now;
+                }
             }
         }
         

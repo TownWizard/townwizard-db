@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.townwizard.db.dao.UserDao;
+import com.townwizard.db.model.LoginRequest;
 import com.townwizard.db.model.User;
 import com.townwizard.db.model.User.LoginType;
 
@@ -50,6 +51,16 @@ public class UserServiceImpl implements UserService {
     public void update(User user) {
         encryptPassword(user);
         userDao.update(user);        
+    }
+    
+    @Override
+    public void createLoginRequest(LoginRequest loginRequest) {
+        userDao.createLoginRequest(loginRequest);
+    }
+    
+    @Override
+    public LoginRequest getLoginRequest(String uuid) {
+        return userDao.getLoginRequest(uuid);
     }
     
     private void encryptPassword(User user) {
