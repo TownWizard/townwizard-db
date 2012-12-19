@@ -29,7 +29,7 @@ public class FacebookLoginResource extends UserResource {
     
     private static final String FB_APP_ID = "373685232723588";
     private static final String FB_APP_SECRET = "d9c84a8e96b422fe8075360a8415f584";
-    private static final String FB_LOGIN_RESOURCE = "http://tw-db.com/login/fb";
+    private static final String FB_LOGIN_RESOURCE = "http://www.townwizardconnect.com/login/fb";
     private static final String PHP_LOGIN_PATH = "/townwizard-db-api/fb-login.php";
   
     @Autowired
