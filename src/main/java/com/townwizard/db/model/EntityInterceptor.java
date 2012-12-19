@@ -7,6 +7,12 @@ import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.Type;
 import org.springframework.stereotype.Component;
 
+/**
+ * This class is used by hibernate to fill an entity active flag, created, and updated dates
+ * before the object is saved in the DB
+ * 
+ * The instance of this class is added to the Hibernate configuration at the application startup
+ */
 @Component("entityInterceptor")
 public class EntityInterceptor extends EmptyInterceptor {
     

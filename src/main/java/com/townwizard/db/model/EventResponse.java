@@ -6,6 +6,10 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 
+/**
+ * A model class representing event responses (that is RSVPs)
+ * It contains a user object, an event object, and a value, which maybe 'Y', 'N', or 'M' (maybe)
+ */
 @Entity
 public class EventResponse extends AuditableEntity {
     

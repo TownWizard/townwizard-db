@@ -20,6 +20,9 @@ import com.townwizard.db.services.UserService;
 import com.townwizard.db.util.ExceptionHandler;
 import com.townwizard.db.util.jackson.NullStringDeserializer;
 
+/**
+ * A common superclass for all classes which represent REST endpoints
+ */
 public abstract class ResourceSupport {
     
     public static final String EMPTY_JSON = "{}";
@@ -28,7 +31,13 @@ public abstract class ResourceSupport {
     private UserService userService;
     private static ObjectMapper objectMapper = initializeObjectMapper();    
     
-
+    /**
+     * Translates a generic exception into an HTTP response with code 500 (server error)
+     * and send it to the client.
+     * 
+     * All endpoints should be using this method to report error to clients in order to maintain
+     * consistency in handling errors accross the site
+     */
     protected void sendServerError(Exception e) {
         throw new WebApplicationException(Response
                 .status(Status.INTERNAL_SERVER_ERROR)
@@ -36,6 +45,10 @@ public abstract class ResourceSupport {
                 .type(MediaType.TEXT_PLAIN).build());
     }
     
+    /**
+     * Generic exception handler for all endpoints.
+     * This method logs the error, as well as reports it to the client
+     */
     protected void handleGenericException(Exception e) {
         if(!(e instanceof WebApplicationException)) {
             ExceptionHandler.handle(e);
@@ -45,6 +58,9 @@ public abstract class ResourceSupport {
         }
     } 
     
+    /**
+     * Generic request to json parsers available to all services
+     */
     protected <T> T parseJson(Class<T> entityClass, InputStream is) {
         T entity = null;
         try {
@@ -55,13 +71,15 @@ public abstract class ResourceSupport {
                       .status(Status.BAD_REQUEST).entity("Cannot parse JSON: " + e.getMessage())
                       .type(MediaType.TEXT_PLAIN).build());
           } catch (IOException e) {
-              ExceptionHandler.handle(e);
-              sendServerError(e);
+              handleGenericException(e);
               return null;
           }
         return entity;
     }
     
+    /**
+     * Json to java map parser
+     */
     @SuppressWarnings("unchecked")
     protected Map<String, Object> parseJson(String json) throws IOException, JsonProcessingException {      
         return objectMapper.readValue(json, HashMap.class);

@@ -7,10 +7,21 @@ import javax.persistence.Enumerated;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 
+/**
+ * A model class for content objects, where content is anything which can be rated, favorited,
+ * reviewed and so on by a user.
+ * 
+ * Every content has a content type, a site id, and an external id which together comprise a unique
+ * content identifier.
+ */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Content extends AbstractEntity {     
-        
+    
+    /**
+     * Enuration representing available content types.  This is mapped to a type_id column in the
+     * content table.
+     */
     public static enum ContentType {
         ZERO(0, "Zero"), //to make sure Java Enum ordinals will start with 1 for hibernate mapping
         LOCATION(1, "Location"),

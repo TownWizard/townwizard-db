@@ -11,6 +11,9 @@ import org.junit.Test;
 import com.townwizard.db.model.Address;
 import com.townwizard.db.model.User;
 
+/**
+ * Unit tests for user web services.
+ */
 public class UserResourceTest extends ResourceTest {
     
     @Test

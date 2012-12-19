@@ -3,10 +3,16 @@ package com.townwizard.db.util;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * Class with date handling helper methods
+ */
 public final class DateUtils {
 
     private DateUtils(){}
     
+    /**
+     * Get a date representing beginning of a day
+     */
     public static Date floor(Date date) {
         Calendar c = Calendar.getInstance();
         c.setTime(date);
@@ -16,7 +22,10 @@ public final class DateUtils {
         c.set(Calendar.MILLISECOND, 0);
         return c.getTime();
     }
-    
+
+    /**
+     * Get a date representing the end of the day (last millisecond of the day)
+     */
     public static Date ceiling(Date date) {
         Calendar c = Calendar.getInstance();
         c.setTime(date);

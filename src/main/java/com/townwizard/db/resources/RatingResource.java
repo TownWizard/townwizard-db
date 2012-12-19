@@ -23,6 +23,9 @@ import com.townwizard.db.model.Rating;
 import com.townwizard.db.model.dto.RatingDTO;
 import com.townwizard.db.services.ContentService;
 
+/**
+ * Contains rating related services
+ */
 @Component
 @Path("/ratings")
 public class RatingResource extends ResourceSupport {
@@ -30,6 +33,12 @@ public class RatingResource extends ResourceSupport {
     @Autowired
     private ContentService contentService;
     
+    /**
+     * Give a GET request with content type, site id, user id, and comma separated string with
+     * content ids as path parameters, return JSON containing list of ratings.
+     * 
+     * This is a "get ratings for a user" service.
+     */
     @GET
     @Path("/{contenttype}/{siteid}/{userid}/{contentids}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -61,6 +70,12 @@ public class RatingResource extends ResourceSupport {
         return ratings;
     }
     
+    /**
+     * Given a GET request with content type, site id, and content ids (comma-separated string), 
+     * return a JSON representation of a list of ratings.
+     * 
+     * This is a "get average ratings" service.
+     */
     @GET
     @Path("/{contenttype}/{siteid}/{contentids}")
     @Produces(MediaType.APPLICATION_JSON)    
@@ -91,6 +106,9 @@ public class RatingResource extends ResourceSupport {
         return ratings;
     }    
 
+    /**
+     * Translate a POST request's JSON body into a rating object, and save it in the DB
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

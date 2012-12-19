@@ -19,6 +19,10 @@ import com.townwizard.db.logger.Log;
 
 /**
  * Starts standalone server
+ * 
+ * This server can be used in development/production instead of the application server (Tomcat),
+ * and it is also used as part of the running test suite (starts up before tests run, and shuts down
+ * after)
  */
 public class Standalone {    
    
@@ -45,6 +49,10 @@ public class Standalone {
         }
     }
     
+    /**
+     * Starts and returns a reference to the standalone HTTP server object.
+     * The called is responsible of stopping the server after it's no longer needed
+     */
     public static HttpServer startServer() throws Exception {
         ResourceConfig rc = new PackagesResourceConfig(RESOURCES_PACKAGE);
         rc.setPropertiesAndFeatures(RESOURCE_FEATURES);

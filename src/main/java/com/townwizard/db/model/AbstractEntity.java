@@ -10,6 +10,19 @@ import javax.persistence.MappedSuperclass;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+/**
+ * A common super class for all entity classes in the application.
+ * 
+ * From this class all entities in the system will inherit:
+ * 
+ * - serializability
+ * - exclusion of null fields during json rendering
+ * - ability to be used as hash keys (the class provides generic equals() and hashCode() for all subclasses)
+ * - ability to be sorted (the class implements Comparable for all subclasses)
+ * - a database generated ID (primary key)
+ * - a database active flag.  This flag should be used for soft deletes.  No objects should be
+ *   retrieved from the db with the active flag set to false 
+ */
 @MappedSuperclass
 @JsonSerialize (include = JsonSerialize.Inclusion.NON_EMPTY)
 public abstract class AbstractEntity implements Serializable, Comparable<AbstractEntity> {
@@ -37,6 +50,9 @@ public abstract class AbstractEntity implements Serializable, Comparable<Abstrac
         this.active = active;
     }
 
+    /**
+     * Database ID based implementation of hashCode()
+     */
     @Override
     public int hashCode() {
         if(id == null) {
@@ -45,6 +61,9 @@ public abstract class AbstractEntity implements Serializable, Comparable<Abstrac
         return id.hashCode();
     }
     
+    /**
+     * Database ID based implementation of equals()
+     */
     @Override
     public boolean equals(Object o) {
         if(o == null) return false;
@@ -57,6 +76,9 @@ public abstract class AbstractEntity implements Serializable, Comparable<Abstrac
         return id.equals(e.id);
     }
     
+    /**
+     * Database ID based implementation of compareTo()
+     */
     @Override
     public int compareTo(AbstractEntity e) {
         if(id == null) {

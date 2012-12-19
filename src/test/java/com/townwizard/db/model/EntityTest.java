@@ -18,6 +18,10 @@ import com.townwizard.db.model.Content.ContentType;
 import com.townwizard.db.model.User.LoginType;
 import com.townwizard.db.test.TestSupport;
 
+/**
+ * Java object hibernate mapping test suite.
+ * There should be at least one test per Java model class, which verifies object CRUD operations
+ */
 public class EntityTest extends TestSupport {
     
     private Session session;

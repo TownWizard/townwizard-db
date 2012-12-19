@@ -7,6 +7,11 @@ import javax.persistence.MappedSuperclass;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
+/**
+ * An extension to the AbstractEntity class, which provides every subclassing entity with
+ * - date created
+ * - date updated
+ */
 @MappedSuperclass
 public abstract class AuditableEntity extends AbstractEntity {
 

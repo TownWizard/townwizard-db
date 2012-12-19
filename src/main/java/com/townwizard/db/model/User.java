@@ -15,10 +15,20 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.townwizard.db.util.EmailValidator;
 
+/**
+ * A model class representing users.
+ * 
+ * A user object has among other attributes an email and a login type, which together comprise
+ * a unique user identifier
+ */
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="users")
 public class User extends AuditableEntity {
     
+    /**
+     * Enumeration representing login types.  This is mapped to the 'login_type_id' column in the
+     * 'User' table
+     */
     public static enum LoginType {
         ZERO(0, "Zero"), //to make sure Java Enum ordinals will start with 1 for hibernate mapping
         TOWNWIZARD(1, "Townwizard"),

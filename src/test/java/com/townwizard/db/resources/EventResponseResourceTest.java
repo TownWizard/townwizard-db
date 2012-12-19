@@ -15,6 +15,9 @@ import com.townwizard.db.model.EventResponse;
 import com.townwizard.db.model.User;
 import com.townwizard.db.model.dto.EventResponseDTO;
 
+/**
+ * Unit tests for RSVP web services
+ */
 public class EventResponseResourceTest extends ResourceTest {
     
     private static final Long TEST_EVENT_ID = 123456788L;

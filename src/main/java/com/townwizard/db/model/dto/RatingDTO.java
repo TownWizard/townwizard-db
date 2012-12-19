@@ -5,6 +5,10 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import com.townwizard.db.model.Content.ContentType;
 
+/**
+ * A "flat" version of an Rating object, more suitable for JSON rendering than the
+ * Rating object
+ */
 @JsonSerialize (include = JsonSerialize.Inclusion.NON_EMPTY)
 public class RatingDTO {
     

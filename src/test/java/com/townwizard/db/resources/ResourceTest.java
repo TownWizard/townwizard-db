@@ -29,6 +29,11 @@ import com.townwizard.db.model.User;
 import com.townwizard.db.test.TestSupport;
 import com.townwizard.db.util.HttpUtils;
 
+/**
+ * Common superclass to all resource (that is web services) tests.
+ * This class guarantees server startup and shutdown before and after the tests complete, as well as
+ * provides with common utility methods useful for all web service tests.
+ */
 public abstract class ResourceTest extends TestSupport {
     
     private static HttpServer httpServer;
@@ -49,10 +54,16 @@ public abstract class ResourceTest extends TestSupport {
         }
     }
     
+    /**
+     * Execute get request and return its response as a string
+     */
     protected String executeGetRequest(String path) {
         return HttpUtils.executeGetRequest(getWebServicesUrlBase() + path);
     }
-
+    
+    /**
+     * Execute post request, and return its status
+     */
     protected StatusLine executePostRequest(String path, HttpEntity entity, String contentType) {
         StatusLine statusLine = null;
         try {
@@ -71,7 +82,10 @@ public abstract class ResourceTest extends TestSupport {
         }
         return statusLine;
     }
-    
+
+    /**
+     * Execute post request with JSON string body, and return its status
+     */
     protected StatusLine executePostJsonRequest(String path, String entity) {
         try {
           return executePostRequest(path, new StringEntity(entity), "application/json");
@@ -81,6 +95,9 @@ public abstract class ResourceTest extends TestSupport {
         }
     }
     
+    /**
+     * Execute post request with parameter map, and return its status
+     */
     protected StatusLine executePostFormRequest(String path, Map<String, String> parameters) {
         try {
             List<NameValuePair> params = new ArrayList<>();
@@ -94,6 +111,9 @@ public abstract class ResourceTest extends TestSupport {
         }
     }
     
+    /**
+     * Create a user object with the give email by calling web service.
+     */
     protected void createTestUserViaService(String email) throws Exception {
         StatusLine statusLine = executePostJsonRequest("/users", 
                 "{\"email\":\"" + email + "\",\"password\":\"secret\"}");
@@ -102,18 +122,27 @@ public abstract class ResourceTest extends TestSupport {
             throw new Exception("Problem creating test user");
         }
     }    
-    
+
+    /**
+     * Get a user by email by user a web service. Assumes login type = 1
+     */
     protected User getUserByEmailFromTheService(String email) throws Exception {
         String response = executeGetRequest("/users/1/" + email);
         return userFromJson(response);
     }
     
+    /**
+     * Parse json into a user object
+     */
     protected User userFromJson(String json) throws Exception {
         ObjectMapper m = new ObjectMapper();
         User u = m.readValue(new StringReader(json), User.class);
         return u;
     }
-    
+
+    /**
+     * Delete users by email in the DB (cleanup method)
+     */
     protected void deleteUserByEmail(String email) {
         Session session = null;
         try {

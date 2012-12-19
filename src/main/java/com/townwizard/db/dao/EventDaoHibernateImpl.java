@@ -10,6 +10,9 @@ import com.townwizard.db.model.Event;
 import com.townwizard.db.model.EventResponse;
 import com.townwizard.db.model.User;
 
+/**
+ * Hibernate implementation of the EventDao interface
+ */
 @Component("eventDao")
 public class EventDaoHibernateImpl extends AbstractDaoHibernateImpl implements EventDao {
 

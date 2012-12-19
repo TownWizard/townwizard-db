@@ -11,6 +11,9 @@ import com.townwizard.db.model.Content;
 import com.townwizard.db.model.Rating;
 import com.townwizard.db.model.User;
 
+/**
+ * Hibernamte implementation of RatingDao
+ */
 @Component("ratingDao")
 public class RatingDaoHibernateImpl extends AbstractDaoHibernateImpl implements RatingDao {
 
@@ -38,11 +41,15 @@ public class RatingDaoHibernateImpl extends AbstractDaoHibernateImpl implements 
                 "select avg(value), count(value) from Rating where content = :content and active = true")
             .setEntity("content", content).uniqueResult();
         
-        Rating r = new Rating();
-        r.setContent(content);
-        r.setValue(new Float((Double)valueAndCount[0]));
-        r.setCount(((Long)valueAndCount[1]).intValue());
-        return r;
+        int count = ((Long)valueAndCount[1]).intValue();
+        if(count != 0){        
+            Rating r = new Rating();
+            r.setContent(content);
+            r.setValue(new Float((Double)valueAndCount[0]));
+            r.setCount(count);
+            return r;
+        }
+        return null;
     }
     
     @Override

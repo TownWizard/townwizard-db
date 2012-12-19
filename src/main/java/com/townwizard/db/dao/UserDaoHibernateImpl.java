@@ -8,6 +8,9 @@ import com.townwizard.db.model.LoginRequest;
 import com.townwizard.db.model.User;
 import com.townwizard.db.model.User.LoginType;
 
+/**
+ * Hibernate implementation of UserDao interface
+ */
 @Component("userDao")
 public class UserDaoHibernateImpl extends AbstractDaoHibernateImpl implements UserDao {
 

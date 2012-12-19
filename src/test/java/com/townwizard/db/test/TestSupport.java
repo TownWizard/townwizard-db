@@ -12,6 +12,11 @@ import org.junit.BeforeClass;
 import com.townwizard.db.model.EntityInterceptor;
 import com.townwizard.db.model.TwNamingStrategy;
 
+/**
+ * Superclass for all unit test classes
+ * The purpose of this class is to load properties from test.properties file, and initialize
+ * Hibernate session factory object
+ */
 public abstract class TestSupport {
     
     private static Properties properties;

@@ -1,8 +1,5 @@
 package com.townwizard.db.model;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
@@ -11,6 +8,9 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+/**
+ * A model class for address objects.
+ */
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="users")
 public class Address extends AuditableEntity {
@@ -75,17 +75,6 @@ public class Address extends AuditableEntity {
     @JsonIgnore
     public boolean isValid() {
        return address1 != null && city != null && state != null && postalCode != null;
-    }
-    
-    public Map<String, String> asParametersMap() {
-        Map<String, String> map = new HashMap<>();
-        if(getAddress1() != null) map.put("address1", getAddress1());
-        if(getAddress2() != null) map.put("address2", getAddress2());
-        if(getCity() != null) map.put("city", getCity());
-        if(getState() != null) map.put("state", getState());
-        if(getPostalCode() != null) map.put("postal_code", getPostalCode());
-        if(getCountry() != null) map.put("country", getCountry());
-        return map;
     }
     
     @Override

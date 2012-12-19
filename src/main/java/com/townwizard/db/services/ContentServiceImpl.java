@@ -20,6 +20,9 @@ import com.townwizard.db.model.Rating;
 import com.townwizard.db.model.User;
 import com.townwizard.db.util.DateUtils;
 
+/**
+ * Implementation of ContentService interface
+ */
 @Component("contentService")
 @Transactional
 public class ContentServiceImpl implements ContentService {
@@ -102,7 +105,7 @@ public class ContentServiceImpl implements ContentService {
     @Override
     public List<EventResponse> getUserEventResponses(Long userId, Date from, Date to) {
         Date fromDate = DateUtils.floor(from == null ? BEGINNING_OF_TIME : from);
-        Date toDate = DateUtils.ceiling(to == null ? new Date() : to);
+        Date toDate = DateUtils.ceiling(to == null ? END_OF_TIME : to);
         User u = new User();
         u.setId(userId);
         return eventDao.getUserEventResponses(u, fromDate, toDate);
@@ -178,10 +181,14 @@ public class ContentServiceImpl implements ContentService {
     }
     
     private static Date BEGINNING_OF_TIME = null;
+    private static Date END_OF_TIME = null;
     static {
-        Calendar c = Calendar.getInstance();
-        c.set(1970, 0, 1);
-        BEGINNING_OF_TIME = c.getTime();
+        Calendar c1 = Calendar.getInstance();
+        c1.set(1970, 0, 1);
+        BEGINNING_OF_TIME = c1.getTime();
+        Calendar c2 = Calendar.getInstance();
+        c2.set(2100, 0, 1);
+        END_OF_TIME = c2.getTime();
     }
     
 }

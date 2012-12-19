@@ -6,6 +6,15 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
+/**
+ * A model class representing ratings.
+ * 
+ * This class can be used to represent individual user ratings, as well as average ratings for
+ * a specific content.
+ * 
+ * When representing a user rating, the user field is set and the cound field is null;
+ * and for average ratings the user field is null, but the count field is set
+ */
 @Entity
 public class Rating extends AuditableEntity {
     

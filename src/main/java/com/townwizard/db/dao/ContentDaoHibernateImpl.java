@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 import com.townwizard.db.model.Content;
 import com.townwizard.db.model.Content.ContentType;
 
+/**
+ * Hibernate implementation of ContentDao interface.
+ */
 @Component("contentDao")
 public class ContentDaoHibernateImpl extends AbstractDaoHibernateImpl implements ContentDao {
 

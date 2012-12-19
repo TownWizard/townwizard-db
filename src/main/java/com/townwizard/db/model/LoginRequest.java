@@ -6,6 +6,12 @@ import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+/**
+ * A class representing login request.
+ * Note that this class is not an AbstractEntity subclass, and it doesn't have all it's properties.
+ * It's mapped to a table with three columns: id, date, and location, where location means the original
+ * user URL from which the user is trying to login to the system.
+ */
 @Entity
 public class LoginRequest implements Serializable {    
     

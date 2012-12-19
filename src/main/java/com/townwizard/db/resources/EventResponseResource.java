@@ -24,6 +24,9 @@ import com.townwizard.db.model.EventResponse;
 import com.townwizard.db.model.dto.EventResponseDTO;
 import com.townwizard.db.services.ContentService;
 
+/**
+ * Represents RSVP related REST endpoints
+ */
 @Component
 @Path("/rsvps")
 public class EventResponseResource extends ResourceSupport {
@@ -31,6 +34,12 @@ public class EventResponseResource extends ResourceSupport {
     @Autowired
     private ContentService contentService;
     
+    /**
+     * Given a GET request with user id as a path parameter, and optional parameters
+     * for start and end dates, return JSON containing a list of RSVP objects     
+     * 
+     * This is a "get RSVPs by user" service
+     */
     @GET
     @Path("/{userid}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -53,6 +62,15 @@ public class EventResponseResource extends ResourceSupport {
         return rsvps;
     }
     
+    /**
+     * Given a GET request with site id and event id path parameters, and an optional
+     * event date (d) parameter, return JSON containing a list of RSVP objects
+     * 
+     * This is a "get RSVPs by event" service.
+     * 
+     * If the event date parameter is given, this service will also update the event date
+     * in the DB
+     */
     @GET
     @Path("/{siteid}/{eventid}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -75,6 +93,9 @@ public class EventResponseResource extends ResourceSupport {
     }
     
 
+    /**
+     * Translate a POST request's JSON body into a RSVP object, and save it in the DB
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

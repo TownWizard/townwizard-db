@@ -15,6 +15,9 @@ import com.townwizard.db.model.Rating;
 import com.townwizard.db.model.User;
 import com.townwizard.db.model.dto.RatingDTO;
 
+/**
+ * Unit tests for rating web services.
+ */
 public class RatingResourceTest extends ResourceTest {
 
     private static final Long TEST_CONTENT_ID = 123456789L;

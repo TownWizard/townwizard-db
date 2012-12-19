@@ -1,5 +1,9 @@
 package com.townwizard.db.model;
 
+/**
+ * A class representing a content of type event.
+ * Event is a content with one additional attribute: date
+ */
 import java.util.Date;
 
 import javax.persistence.Entity;

@@ -10,6 +10,9 @@ import com.townwizard.db.model.LoginRequest;
 import com.townwizard.db.model.User;
 import com.townwizard.db.model.User.LoginType;
 
+/**
+ * UserService interface implementation
+ */
 @Component("userService")
 @Transactional
 public class UserServiceImpl implements UserService {    

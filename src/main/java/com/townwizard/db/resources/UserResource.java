@@ -20,6 +20,9 @@ import com.townwizard.db.model.User;
 import com.townwizard.db.model.User.LoginType;
 import com.townwizard.db.services.UserService;
 
+/**
+ * Contains user (that is user registration, login, etc) related services.
+ */
 @Component
 @Path("/users")
 public class UserResource extends ResourceSupport {
@@ -27,6 +30,9 @@ public class UserResource extends ResourceSupport {
     @Autowired
     private UserService userService;
     
+    /**
+     * Given a GET request with user id as a path parameter, return JSON user representation.
+     */
     @GET
     @Path("/{userid}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -46,7 +52,10 @@ public class UserResource extends ResourceSupport {
         }
         return u.asJsonView();
     }
-    
+
+    /**
+     * Given a GET request with user email and user login type, return JSON user representation.
+     */
     @GET
     @Path("/{logintype}/{email}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -69,6 +78,12 @@ public class UserResource extends ResourceSupport {
         return u.asJsonView();
     }    
     
+    /**
+     * Given POST json body, parse it into a user object, and login the user by verifying the user's
+     * email and password.
+     * 
+     * This service is used to login Townwizard's own users (that is with login type TOWNWIZARD).
+     */
     @POST
     @Path("/login")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -91,6 +106,14 @@ public class UserResource extends ResourceSupport {
         return u.asJsonView();
     }
     
+    /**
+     * Given POST json body, parse it into a user object and create or update the user in the DB
+     * with the data from the request.
+     * 
+     * This is actually a service to update external users data.  Such users have NULL password.
+     * 
+     * This method is generic and not used for Facebook login.
+     */
     @POST
     @Path("/loginwith")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -114,6 +137,11 @@ public class UserResource extends ResourceSupport {
         return u.asJsonView();
     }
     
+    /**
+     * Given POST json body, parse it into a user object and save the user in the DB.
+     * 
+     * This is a "user registration" service.
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

@@ -3,6 +3,9 @@ package com.townwizard.db.logger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Centrilized place for logging methods.  This class is a thin wraper around Java logging system
+ */
 public final class Log {
     
     private static Logger logger = Logger.getLogger("com.townwizard.db");
@@ -39,6 +42,10 @@ public final class Log {
         logger.warning(message);
     }
     
+    /**
+     * A convinience method to log exceptions.  Prints exception message
+     * and a stack trace.
+     */
     public static void exception(Throwable e) {
         if(isErrorEnabled()) {
             error(e.getMessage());

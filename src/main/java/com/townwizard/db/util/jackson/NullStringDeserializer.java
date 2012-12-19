@@ -8,6 +8,9 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.deser.std.StringDeserializer;
 
+/**
+ * Custom Json deserializer, the purpose of which is to not output empty strings in JSON
+ */
 public class NullStringDeserializer extends StringDeserializer {
 
     @Override

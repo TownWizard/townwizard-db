@@ -5,6 +5,10 @@ import java.util.Date;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+/**
+ * A "flat" version of an RSVP object, more suitable for JSON rendering than the
+ * Event object
+ */
 @JsonSerialize (include = JsonSerialize.Inclusion.NON_EMPTY)
 public class EventResponseDTO {
     private Long userId;
