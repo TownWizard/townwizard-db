@@ -1,0 +1,61 @@
+#!/usr/bin/python
+
+import os
+import sys
+
+def main(argv):
+    if os.getcwd().find('/sql') == -1:
+        print "Cannot run from outside directory.  Run cd sql"
+        return
+
+    curr = getCurrentMigration()
+    avail = getAvailableMigrations()
+    
+    if len(argv) == 0:
+        target = avail
+    else:
+        try:
+            target = int(argv[0])
+            if target > avail: target = avail
+        except:
+            print "Migration parameter should be non negative number"
+            return
+    
+    migrate(curr, target)    
+    
+def outputOf(command):
+    stream = os.popen(command)
+    output = stream.read()
+    stream.close()
+    return output.split('\n')
+
+def getCurrentMigration():
+    for line in outputOf('mysql -uroot -pbitnami -e"SELECT migration FROM master.migration;" -E'):
+        if line.find('migration:') != -1:
+            return int(line[len('migration: '):])
+    return -1
+    
+def getAvailableMigrations():
+    max = 0
+    for line in outputOf('ls'):
+        try:
+            migration = int(line)
+            if migration > max: max = migration
+        except:
+            pass
+    return max
+ 
+def migrate(current, to):
+    if(current < to):
+        for m in range(current+1, to+1):
+            os.system("mysql -uroot -pbitnami < %d/up.sql" % m)
+        print "Migrated to %d" % to
+    elif(current > to):
+        for m in range(current, to, -1):
+            os.system("mysql -uroot -pbitnami < %d/down.sql" % m)
+        print "Migrated to %d" % to
+    else:
+        print "Currently on migration %d" % to        
+ 
+if __name__ == '__main__':
+    main(sys.argv[1:])
