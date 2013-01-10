@@ -1,3 +1,3 @@
 USE master;
 
-DROP TABLE migration;
+DROP TABLE Migration;

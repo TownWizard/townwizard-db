@@ -4,7 +4,7 @@ SET @migration := 1;
 
 -- check migration number
 SELECT CASE migration WHEN @migration - 1 THEN 'SELECT ''Performing update...''' ELSE CONCAT('KILL CONNECTION ', connection_id()) END
-INTO @stmt FROM migration;
+INTO @stmt FROM Migration;
 
 PREPARE stmt FROM @stmt;
 EXECUTE stmt;

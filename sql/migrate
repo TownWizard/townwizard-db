@@ -30,7 +30,7 @@ def outputOf(command):
     return output.split('\n')
 
 def getCurrentMigration():
-    for line in outputOf('mysql -uroot -pbitnami -e"SELECT migration FROM master.migration;" -E'):
+    for line in outputOf('mysql -uroot -pbitnami -e"SELECT migration FROM master.Migration;" -E'):
         if line.find('migration:') != -1:
             return int(line[len('migration: '):])
     return -1
