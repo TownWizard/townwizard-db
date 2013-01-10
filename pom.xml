@@ -171,9 +171,70 @@
         <artifactId>maven-war-plugin</artifactId>
         <version>2.1.1</version>
         <configuration>
-          <warName>townwizard-db</warName>
+          <warName>tw</warName>
         </configuration>
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>stage</id>
+      <activation><activeByDefault>false</activeByDefault></activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>upload-sql-files</id>
+                <phase>install</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <tasks>
+                <echo>Uploading war file ...</echo>
+                <scp file="${project.build.directory}/tw.war"
+                  todir="${deploy.user}@${deploy.server}:/opt/bitnami/tomcat7/webapps"
+                  password="${deploy.password}" trust="true" failonerror="true"
+                  verbose="true">
+                </scp>
+                <echo>Done uploading war file</echo>
+                <echo>Uploading and running SQL script ...</echo>
+                <sshexec host="${deploy.server}" username="${deploy.user}"
+                  password="${deploy.password}"
+                  command="rm -Rf /home/${deploy.user}/sql; mkdir /home/${deploy.user}/sql"
+                  trust="true" output="${project.build.directory}/deploy.out" />
+                <scp todir="${deploy.user}@${deploy.server}:/home/${deploy.user}/sql"
+                  password="${deploy.password}" trust="true" failonerror="true"
+                  verbose="true">
+                  <fileset dir="${project.basedir}/sql" />
+                </scp>
+                <sshexec host="${deploy.server}" username="${deploy.user}"
+                  password="${deploy.password}"
+                  command="chmod +x /home/${deploy.user}/sql/migrate; cd /home/${deploy.user}/sql; ./migrate"
+                  trust="true" output="${project.build.directory}/deploy.out" />
+                <echo>Done running SQL scripts</echo>
+              </tasks>
+            </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>ant</groupId>
+                <artifactId>ant-jsch</artifactId>
+                <version>1.6.5</version>
+              </dependency>
+              <dependency>
+                <groupId>com.jcraft</groupId>
+                <artifactId>jsch</artifactId>
+                <version>0.1.29</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

@@ -1,0 +1,96 @@
+# Install Java
+#######################################
+
+sudo add-apt-repository ppa:webupd8team/java
+sudo apt-get update
+sudo apt-get install oracle-java7-installer
+
+
+# Install Tomcat 7
+#######################################
+
+cd ~
+wget http://apache.petsads.us/tomcat/tomcat-7/v7.0.34/bin/apache-tomcat-7.0.34.tar.gz
+sudo tar xvzf apache-tomcat-7.0.34.tar.gz
+sudo mv apache-tomcat-7.0.34 /opt/bitnami/tomcat7
+
+# Make Tomcat start on system start
+#######################################
+
+sudo vim /etc/init.d/tomcat7  # Add lines below to /etc/init.d/tomcat7
+
+#
+# Tomcat 7 start script
+#
+
+case $1 in
+start)
+        sh /opt/bitnami/tomcat7/bin/catalina.sh start
+        ;;
+stop)
+        sh /opt/bitnami/tomcat7/bin/catalina.sh stop
+        ;;
+restart)
+        sh /opt/bitnami/tomcat7/bin/catalina.sh stop
+        sh /opt/bitnami/tomcat7/bin/catalina.sh start
+        ;;
+esac
+exit 0
+###########################
+
+sudo chmod 755 /etc/init.d/tomcat7
+sudo ln -s /etc/init.d/tomcat7 /etc/rc1.d/K99tomcat
+sudo ln -s /etc/init.d/tomcat7 /etc/rc2.d/S99tomcat
+
+# Make Tomcat webapps tomcat directory writeable so deployment will not require sudo
+####################################################################################
+
+sudo chmod 777 /opt/bitnami/tomcat7/webapps
+
+
+# Start Tomcat
+#######################################
+
+sudo /etc/init.d/tomcat7 start
+
+# Deploy application and run DB scripts
+#######################################
+
+git pull
+mvn -Pstage -Dmaven.test.skip=true -Ddeploy.server=23.21.160.121 -Ddeploy.user=townwiz -Ddeploy.password=[password here] clean install
+
+# Check Tomcat and application installation
+###########################################
+cd /tmp
+wget localhost:8080/tw/users/1
+cat 1
+rm 1
+
+# Configure Apache
+###########################################
+
+sudo vim /etc/hosts        #Add two lines below
+
+127.0.0.1       www.townwizardconnect.com
+127.0.0.1       townwizardconnect.com
+
+
+sudo vim /opt/bitnami/apache2/conf/extra/newv1-httpd-vhosts.conf #Add lines below
+
+<VirtualHost *:80>
+   ServerName townwizardconnect.com
+   ServerAlias www.townwizardconnect.com
+   ProxyPass / http://localhost:8080/tw/
+   ProxyPassReverse / http://localhost:8080/tw/
+</VirtualHost>
+
+
+sudo apachectl restart
+
+
+# Check Overall installation
+###########################################
+cd /tmp
+wget http://townwizardconnect.com/users/1  -- should not give 404
+cat 1 -- should show "{}"
+rm 1
