@@ -9,14 +9,14 @@ import com.townwizard.db.model.User.LoginType;
  */
 public interface UserDao extends AbstractDao {
     /**
-     * Find a user by email and login type.
-
-     * Since users can be registered via different parties (Facebook, Twitter), a user email is not
-     * considered a unique key. That's why the notion of login type is introduced.
-     * 
-     * The combination of an email and a login type is considered a unique user identifier
+     * Find a user by email and login type. 
      */
     User getByEmailAndLoginType(String email, LoginType loginType);
+    
+    /**
+     *  Find a user by external id and login type.
+     */
+    User getByExternalIdAndLoginType(Long externalId, LoginType loginType);
     
     /**
      * Create a login request object in the DB. Login request is an axillary DB object necessary

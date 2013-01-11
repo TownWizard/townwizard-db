@@ -24,6 +24,16 @@ public class UserDaoHibernateImpl extends AbstractDaoHibernateImpl implements Us
     }
     
     @Override
+    public User getByExternalIdAndLoginType(Long externalId, LoginType loginType) {
+        Query q = getSession().createQuery(
+                "from User where externalId = :external_id and loginType = :login_type and active = true")
+                .setLong("external_id", externalId)
+                .setInteger("login_type", loginType.getId());
+        User u = (User)q.uniqueResult();
+        return u;
+    }
+    
+    @Override
     public void createLoginRequest(LoginRequest loginRequest) {
         getSession().save(loginRequest);
     }

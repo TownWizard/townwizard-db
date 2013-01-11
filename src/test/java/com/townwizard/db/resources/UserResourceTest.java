@@ -137,52 +137,6 @@ public class UserResourceTest extends ResourceTest {
         }
     }
     
-    @Test
-    public void testLoginWith() {
-        try {
-            deleteUserByLastName("UNIQUE_LAST_NAME");
-            String json = "{\"firstName\":\"test\",\"lastName\":\"UNIQUE_LAST_NAME\",\"loginType\":\"FACEBOOK\"}";            
-            StatusLine statusLine = executePostJsonRequest("/users/loginwith", json);
-            int status = statusLine.getStatusCode();
-            Assert.assertEquals(
-                    "HTTP status should be 200 when trying to create a facebook user with email and password null", 200, status);
-            
-            User u = getUserByLastNameFromDB("UNIQUE_LAST_NAME");
-            Assert.assertNotNull("Facebook user with no email and password must be found in the DB", u);
-        } finally {
-            deleteUserByLastName("UNIQUE_LAST_NAME");
-        }
-    }
-    
-    @Test
-    public void testLoginWithFacebookTwice() {
-        try {
-            deleteUserByEmail("test_fb@yahoo.com");
-            String json1 = "{\"email\":\"test_fb@yahoo.com\",\"firstName\":\"test\",\"lastName\":\"UNIQUE_LAST_NAME\",\"loginType\":\"FACEBOOK\",\"externalId\":\"123456\"}";
-            String json2 = "{\"email\":\"test_fb@yahoo.com\",\"firstName\":\"test2\",\"lastName\":\"UNIQUE_LAST_NAME\",\"loginType\":\"FACEBOOK\",\"externalId\":\"123456\"}";
-            
-            StatusLine statusLine = executePostJsonRequest("/users/loginwith", json1);
-            int status = statusLine.getStatusCode();
-            Assert.assertEquals(
-                    "HTTP status should be 200 when trying to login a facebook user for the first time", 200, status);
-            
-            User u = getUserByLastNameFromDB("UNIQUE_LAST_NAME");
-            Assert.assertNotNull("Facebook user with no email and password must be found in the DB", u);
-            Assert.assertEquals("The facebook user name should saved", "test", u.getFirstName());            
-            
-            // post again with different first name:  should not fail and the name should get updated
-            statusLine = executePostJsonRequest("/users/loginwith", json2);
-            status = statusLine.getStatusCode();
-            Assert.assertEquals(
-                    "HTTP status should be 200 when trying to login the same facebook user again", 200, status);
-            u = getUserByLastNameFromDB("UNIQUE_LAST_NAME");
-            Assert.assertEquals("The facebook user name should change", "test2", u.getFirstName());
-        } finally {
-            deleteUserByEmail("test_fb@yahoo.com");
-        }
-    }    
-    
-    
     private String getMinimalUserJson(String email) {
         return "{\"email\":\"" + email + "\",\"password\":\"secret\"}";
     }
@@ -199,22 +153,6 @@ public class UserResourceTest extends ResourceTest {
         User userFromJson = userFromJson(userJson);
         Assert.assertTrue("User created should have the same properties as user submitted", 
                 usersEqual(createdUser, userFromJson));
-    }
-    
-    private User getUserByLastNameFromDB(String lastName) {
-        Session session = null;
-        try {
-            session = getSessionFactory().openSession();
-            session.beginTransaction();
-            Query q = session.createQuery("from User where lastName = :last_name").setString("last_name", lastName);
-            User u = (User)q.uniqueResult();
-            session.getTransaction().commit();
-            return u;
-        } finally {
-            if(session != null) {
-                session.close();
-            }
-        }        
     }
     
     private void deleteUserByLastName(String lastName) {

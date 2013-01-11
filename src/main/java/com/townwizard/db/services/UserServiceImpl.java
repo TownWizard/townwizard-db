@@ -29,11 +29,30 @@ public class UserServiceImpl implements UserService {
     
     @Override
     public User getByEmailAndLoginType(String email, LoginType loginType) {
+        if(email == null) {
+            throw new ServiceException("Can only get user by email when email is not null");
+        }
         return userDao.getByEmailAndLoginType(email, loginType);
     }
     
     @Override
+    public User getByExternalIdAndLoginType(Long externalId, LoginType loginType) {
+        if(externalId == null) {
+            throw new ServiceException("Can only get user by external id when it is not null");
+        }
+        return userDao.getByExternalIdAndLoginType(externalId, loginType);
+    }
+    
+    @Override
     public User login(String email, String password) {
+        if(email == null) {
+            throw new ServiceException("Can only login a user when email is not null");
+        }
+        
+        if(password == null) {
+            throw new ServiceException("Can only login a user when password is not null");
+        }        
+        
         User user = userDao.getByEmailAndLoginType(email, LoginType.TOWNWIZARD);
         if(user != null) {
             if(passwordEncryptor.checkPassword(password, user.getPassword())) {

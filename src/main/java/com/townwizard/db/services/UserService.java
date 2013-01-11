@@ -15,12 +15,20 @@ public interface UserService {
     
     /**
      * Get user by email, and login type.  Return null if no user found.
+     * Throws exception if email is null.
      */
     User getByEmailAndLoginType(String email, LoginType loginType);
+    
+    /**
+     * Get user by externalId and login type. Return null if no user found.
+     * Throws exception when externalId is null 
+     */
+    User getByExternalIdAndLoginType(Long externalId, LoginType loginType);
 
     /**
      * Get a townwizard user (a user with login type TOWNWIZARD) by email and password.
      * If no users found (password or email incorrect), return null
+     * Throws exception if email or password is null
      */
     User login(String email, String password);
     

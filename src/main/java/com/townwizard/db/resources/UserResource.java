@@ -105,38 +105,7 @@ public class UserResource extends ResourceSupport {
         }
         return u.asJsonView();
     }
-    
-    /**
-     * Given POST json body, parse it into a user object and create or update the user in the DB
-     * with the data from the request.
-     * 
-     * This is actually a service to update external users data.  Such users have NULL password.
-     * 
-     * This method is generic and not used for Facebook login.
-     */
-    @POST
-    @Path("/loginwith")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public User loginWith(InputStream is) {
-        User u = null;        
-        try {
-            u = parseJson(User.class, is);
-            createOrUpdateExternalUser(u);
-        } catch (Exception e) {
-            handleGenericException(e);
-        }
-        
-        if (u == null || u.getId() == null) {
-            throw new WebApplicationException(Response
-                    .status(Status.NOT_FOUND)
-                    .entity(EMPTY_JSON)
-                    .type(MediaType.APPLICATION_JSON).build());
-        }
-        
-        return u.asJsonView();
-    }
-    
+  
     /**
      * Given POST json body, parse it into a user object and save the user in the DB.
      * 
@@ -181,18 +150,6 @@ public class UserResource extends ResourceSupport {
         }
         
         return Response.status(Status.CREATED).entity(user).build();
-    }
+    } 
     
-    
-    protected void createOrUpdateExternalUser(User u) {
-        User fromDb = userService.getByEmailAndLoginType(u.getEmail(), u.getLoginType()); 
-        if(fromDb != null) {
-            u.setId(fromDb.getId());
-            u.setCreated(fromDb.getCreated());
-            u.setActive(fromDb.getActive());
-            userService.update(u);
-        } else {
-            userService.create(u);
-        }
-    }
 }
