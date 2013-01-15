@@ -33,7 +33,7 @@ import com.townwizard.db.util.HttpUtils;
  */
 @Component
 @Path("/login")
-public class ThirdPartyLoginResource extends UserResource {
+public class ThirdPartyLoginResource extends ResourceSupport {
     
     private static final String FB_APP_ID = "373685232723588";
     private static final String FB_APP_SECRET = "d9c84a8e96b422fe8075360a8415f584";
