@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -21,17 +22,12 @@ public final class HttpUtils {
     /**
      * Execute get request, and return the response as a string.
      */
-    public static String executeGetRequest(String path) {
-        try {
-            HttpClient c = new DefaultHttpClient();
-            HttpGet get = new HttpGet(path);
-            HttpResponse response = c.execute(get);
-            String result = copyToString(response.getEntity().getContent());
-            return result;
-        } catch (Throwable e) {
-            e.printStackTrace();
-            return null;
-        }
+    public static String executeGetRequest(String path) throws IOException, ClientProtocolException {        
+        HttpClient c = new DefaultHttpClient();
+        HttpGet get = new HttpGet(path);
+        HttpResponse response = c.execute(get);
+        String result = copyToString(response.getEntity().getContent());
+        return result;
     }
     
     private static String copyToString(InputStream is) throws IOException {

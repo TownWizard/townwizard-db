@@ -35,14 +35,8 @@ import com.townwizard.db.util.HttpUtils;
 @Path("/login")
 public class ThirdPartyLoginResource extends ResourceSupport {
     
-    private static final String FB_APP_ID = "373685232723588";
-    private static final String FB_APP_SECRET = "d9c84a8e96b422fe8075360a8415f584";
-    private static final String FB_LOGIN_RESOURCE = "http://www.townwizardconnect.com/login/fb";    
-
-    private static final String TWITTER_APP_ID = "nkmH275UmsX63Zg1JP0Ejw";
-    private static final String TWITTER_APP_SECRET = "cjxlpRfxn4Au1aEnIM8ETggH9Y77dy0otxFucJxMA";
+    private static final String FB_LOGIN_RESOURCE = "http://www.townwizardconnect.com/login/fb";
     private static final String TWITTER_LOGIN_RESOURCE = "http://www.townwizardconnect.com/login/twitter";
-    
     private static final String PHP_LOGIN_PATH = "/townwizard-db-api/fb-login.php";
   
     @Autowired
