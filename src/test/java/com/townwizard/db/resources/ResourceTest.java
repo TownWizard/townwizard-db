@@ -58,7 +58,12 @@ public abstract class ResourceTest extends TestSupport {
      * Execute get request and return its response as a string
      */
     protected String executeGetRequest(String path) {
-        return HttpUtils.executeGetRequest(getWebServicesUrlBase() + path);
+        try {
+            return HttpUtils.executeGetRequest(getWebServicesUrlBase() + path);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
     
     /**
