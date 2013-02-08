@@ -1,5 +1,6 @@
 package com.townwizard.db.resources;
 
+import java.util.Date;
 import java.util.List;
 
 import org.apache.http.StatusLine;
@@ -129,6 +130,43 @@ public class UserResourceTest extends ResourceTest {
             StatusLine statusLine2 = executePostJsonRequest("/users/login", getMinimalUserJson(email));
             Assert.assertEquals("HTTP status should be 200 when login in existing user", 
                     200, statusLine2.getStatusCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail(e.getMessage());
+        } finally {
+            deleteUserByEmail(email);
+        }
+    }
+    
+    @Test
+    public void testRegistrationIpUpdate() {
+        String email = "reg_ip_test_user@test.com";
+        String testIp = "216.215.88.11";
+        try {
+            deleteUserByEmail(email);
+            StatusLine statusLine = executePostJsonRequest("/users", getMinimalUserJson(email));
+            Assert.assertEquals(
+                    "Can't create user for update registration ip test.  Expected 201 http status", 
+                    201, statusLine.getStatusCode());
+            
+            User u = getUserByEmailFromTheDb(email);
+            Assert.assertNull(u.getRegistrationIp());
+            Date updatedOnCreate = u.getUpdated();
+            Assert.assertNotNull("User updated time should be set when created", updatedOnCreate);
+            
+            try {Thread.sleep(100);} catch(Exception e) {}
+            String response = executeGetRequest("/users/" + u.getId() + "?ip=" + testIp);
+            User updatedUser = userFromJson(response);
+            Assert.assertEquals("Test IP must be set", testIp, updatedUser.getRegistrationIp());
+
+            User userFromDb = getUserByEmailFromTheDb(email);
+            Date updated = userFromDb.getUpdated();            
+            Assert.assertTrue("The updated time should change on IP update", updated.after(updatedOnCreate));
+            
+            String differentIp = "127.0.0.1";
+            response = executeGetRequest("/users/" + u.getId() + "?ip=" + differentIp);
+            User notUpdatedUser = userFromJson(response);
+            Assert.assertEquals("Test IP must not change if present", testIp, notUpdatedUser.getRegistrationIp());            
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail(e.getMessage());

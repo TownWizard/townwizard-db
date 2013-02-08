@@ -124,7 +124,7 @@ public abstract class ResourceTest extends TestSupport {
     }    
 
     /**
-     * Get a user by email by user a web service. Assumes login type = 1
+     * Get a user by email from a web service. Assumes login type = 1
      */
     protected User getUserByEmailFromTheService(String email) throws Exception {
         String response = executeGetRequest("/users/1/" + email);
@@ -132,13 +132,31 @@ public abstract class ResourceTest extends TestSupport {
     }
     
     /**
+     * Get a user by email directly from DB. Assumes the email is unique (test email).
+     */
+    protected User getUserByEmailFromTheDb(String email) {
+        Session session = null;
+        try {
+            session = getSessionFactory().openSession();
+            session.beginTransaction();
+            Query q = session.createQuery("from User where email = :email").setString("email", email);
+            session.getTransaction().commit();
+            return (User)q.uniqueResult();
+        } finally {
+            if(session != null) {
+                session.close();
+            }
+        }     
+    }
+
+    /**
      * Parse json into a user object
      */
     protected User userFromJson(String json) throws Exception {
         ObjectMapper m = new ObjectMapper();
         User u = m.readValue(new StringReader(json), User.class);
         return u;
-    }
+    }    
 
     /**
      * Delete users by email in the DB (cleanup method)

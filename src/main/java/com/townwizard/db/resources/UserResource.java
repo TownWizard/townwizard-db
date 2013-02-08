@@ -8,6 +8,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -36,10 +37,16 @@ public class UserResource extends ResourceSupport {
     @GET
     @Path("/{userid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public User getUserById(@PathParam("userid") Long userId) {
+    public User getUserById(
+            @PathParam("userid") Long userId,
+            @QueryParam("ip") String ip) {
         User u = null;
         try {
-            u = userService.getById(userId);            
+            u = userService.getById(userId);
+            if(ip != null && u.getRegistrationIp() == null) {
+                u.setRegistrationIp(ip);
+                userService.update(u);
+            }
         } catch (Exception e) {
             handleGenericException(e);
         }
