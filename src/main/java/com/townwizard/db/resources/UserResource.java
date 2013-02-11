@@ -39,12 +39,21 @@ public class UserResource extends ResourceSupport {
     @Produces(MediaType.APPLICATION_JSON)
     public User getUserById(
             @PathParam("userid") Long userId,
-            @QueryParam("ip") String ip) {
+            @QueryParam("ip") String ip,
+            @QueryParam("siteid") Integer siteId) {
         User u = null;
         try {
             u = userService.getById(userId);
+            boolean needsUpdate = false;
             if(ip != null && u.getRegistrationIp() == null) {
                 u.setRegistrationIp(ip);
+                needsUpdate = true;
+            }            
+            if(siteId != null && u.getSiteId() == null) {                
+                u.setSiteId(siteId);
+                needsUpdate = true;
+            }
+            if(needsUpdate) {
                 userService.update(u);
             }
         } catch (Exception e) {

@@ -71,6 +71,7 @@ public class User extends AuditableEntity {
     @Enumerated(EnumType.ORDINAL)
     private LoginType loginType;
     private Long externalId;
+    private Integer siteId;
     
     @OneToOne(mappedBy = "user", cascade = {CascadeType.ALL})
     private Address address;
@@ -155,6 +156,12 @@ public class User extends AuditableEntity {
     }
     public void setExternalId(Long externalId) {
         this.externalId = externalId;
+    }
+    public Integer getSiteId() {
+        return siteId;
+    }
+    public void setSiteId(Integer siteId) {
+        this.siteId = siteId;
     }
     @JsonIgnore
     public boolean isValid() {

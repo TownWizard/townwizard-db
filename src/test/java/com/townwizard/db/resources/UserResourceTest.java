@@ -175,6 +175,37 @@ public class UserResourceTest extends ResourceTest {
         }
     }
     
+    @Test
+    public void testSiteIdUpdate() {
+        String email = "reg_site_id_test_user@test.com";
+        Integer testSiteId = 2;
+        try {
+            deleteUserByEmail(email);
+            StatusLine statusLine = executePostJsonRequest("/users", getMinimalUserJson(email));
+            Assert.assertEquals(
+                    "Can't create user for update registration ip test.  Expected 201 http status", 
+                    201, statusLine.getStatusCode());
+            
+            User u = getUserByEmailFromTheDb(email);
+            Assert.assertNull(u.getSiteId());
+
+            String response = executeGetRequest("/users/" + u.getId() + "?siteid=" + testSiteId);
+            User updatedUser = userFromJson(response);
+            Assert.assertEquals("Test site ID must be set", testSiteId, updatedUser.getSiteId());
+            
+            Integer differentSiteId = 5;
+            response = executeGetRequest("/users/" + u.getId() + "?siteid=" + differentSiteId);
+            User notUpdatedUser = userFromJson(response);
+            Assert.assertEquals("Test site ID must not change if present", testSiteId, notUpdatedUser.getSiteId());            
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail(e.getMessage());
+        } finally {
+            deleteUserByEmail(email);
+        }
+    }
+    
     private String getMinimalUserJson(String email) {
         return "{\"email\":\"" + email + "\",\"password\":\"secret\"}";
     }

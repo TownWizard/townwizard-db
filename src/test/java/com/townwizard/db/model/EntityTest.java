@@ -264,7 +264,8 @@ public class EntityTest extends TestSupport {
         u.setMobilePhone("917-439-7193");
         u.setRegistrationIp("192.168.112.231");
         u.setLoginType(LoginType.FACEBOOK);
-        u.setExternalId(123456L);        
+        u.setExternalId(123456L);
+        u.setSiteId(getSiteIdByName("demo.townwizard.com"));
                 
         Address a = new Address();
         a.setAddress1("324 Nelson Ave");
