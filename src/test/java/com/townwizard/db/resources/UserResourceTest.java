@@ -154,7 +154,7 @@ public class UserResourceTest extends ResourceTest {
             Date updatedOnCreate = u.getUpdated();
             Assert.assertNotNull("User updated time should be set when created", updatedOnCreate);
             
-            try {Thread.sleep(100);} catch(Exception e) {}
+            try {Thread.sleep(1000);} catch(Exception e) {}
             String response = executeGetRequest("/users/" + u.getId() + "?ip=" + testIp);
             User updatedUser = userFromJson(response);
             Assert.assertEquals("Test IP must be set", testIp, updatedUser.getRegistrationIp());
