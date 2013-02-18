@@ -56,9 +56,10 @@ public class EventResponseResourceTest extends ResourceTest {
             String getUrl = "/rsvps/" + u.getId();
             String response = executeGetRequest(getUrl);
             EventResponseDTO rsvp = rsvpFromJson(response);
-            Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
+            Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());            
             if(rsvp != null) {
                 Assert.assertEquals("Rsvp value should match", new Character('Y'), rsvp.getValue());
+                Assert.assertNotNull("RSVP must contain user info", rsvp.getUser());
             }
             
             //change rsvp value
@@ -73,6 +74,7 @@ public class EventResponseResourceTest extends ResourceTest {
             Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
             if(rsvp != null) {
                 Assert.assertEquals("Rsvp value should change", new Character('M'), rsvp.getValue());
+                Assert.assertNotNull("RSVP must contain user info", rsvp.getUser());
             }
             
             //get rsvp by event id
@@ -80,6 +82,9 @@ public class EventResponseResourceTest extends ResourceTest {
             response = executeGetRequest(getUrl);
             rsvp = rsvpFromJson(response);
             Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
+            if(rsvp != null) {
+                Assert.assertNotNull("RSVP must contain user info", rsvp.getUser());
+            }
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail(e.getMessage());
@@ -112,6 +117,9 @@ public class EventResponseResourceTest extends ResourceTest {
             String response = executeGetRequest(getUrl);
             EventResponseDTO rsvp = rsvpFromJson(response);
             Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
+            if(rsvp != null) {
+                Assert.assertNotNull("RSVP must contain user info", rsvp.getUser());
+            }
         } catch (Exception e) {
             e.printStackTrace();
             Assert.fail(e.getMessage());
@@ -145,6 +153,9 @@ public class EventResponseResourceTest extends ResourceTest {
             String response = executeGetRequest(getUrl);
             EventResponseDTO rsvp = rsvpFromJson(response);
             Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
+            if(rsvp != null) {
+                Assert.assertNotNull("RSVP must contain user info", rsvp.getUser());
+            }
             
             Event e = getTestEvent();
             Assert.assertEquals("Event date should change", newEventDate, e.getDate().getTime());

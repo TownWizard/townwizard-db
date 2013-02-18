@@ -5,13 +5,17 @@ import java.util.Date;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import com.townwizard.db.model.User;
+
 /**
  * A "flat" version of an RSVP object, more suitable for JSON rendering than the
  * Event object
  */
 @JsonSerialize (include = JsonSerialize.Inclusion.NON_EMPTY)
 public class EventResponseDTO {
+    
     private Long userId;
+    private User user;
     private Integer siteId;
     private Long eventId;
     private Date eventDate;
@@ -19,8 +23,9 @@ public class EventResponseDTO {
     
     public EventResponseDTO(){}
             
-    public EventResponseDTO(Long userId, Long eventId, Character value) {
-        this.userId = userId;        
+    public EventResponseDTO(User user, Long eventId, Character value) {
+        this.userId = user.getId();
+        this.user = user;
         this.eventId = eventId;
         this.value = value;
     }
@@ -31,6 +36,14 @@ public class EventResponseDTO {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Integer getSiteId() {

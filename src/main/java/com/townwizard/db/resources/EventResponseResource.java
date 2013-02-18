@@ -51,9 +51,9 @@ public class EventResponseResource extends ResourceSupport {
         try {
             Date from = fromDateMillis != null ? new Date(fromDateMillis) : null;
             Date to = toDateMillis != null ? new Date(toDateMillis) : null;
-            List<EventResponse> responses = contentService.getUserEventResponses(userId, from, to);
-            for(EventResponse r : responses) {
-                rsvps.add(new EventResponseDTO(userId, r.getEvent().getExternalId(), r.getValue()));
+            List<EventResponse> responses = contentService.getUserEventResponses(userId, from, to);            
+            for(EventResponse r : responses) {                
+                rsvps.add(new EventResponseDTO(r.getUser(), r.getEvent().getExternalId(), r.getValue()));
             }
         } catch (Exception e) {
             handleGenericException(e);
@@ -83,7 +83,7 @@ public class EventResponseResource extends ResourceSupport {
             Date eventDate = (eventDateMillis != null) ? new Date(eventDateMillis) : null;
             List<EventResponse> responses = contentService.getEventResponses(siteId, eventId, eventDate);
             for(EventResponse r : responses) {               
-                rsvps.add(new EventResponseDTO(r.getUserId(), eventId, r.getValue()));
+                rsvps.add(new EventResponseDTO(r.getUser(), eventId, r.getValue()));
             }
         } catch (Exception e) {
             handleGenericException(e);

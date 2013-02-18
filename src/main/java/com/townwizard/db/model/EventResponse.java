@@ -15,7 +15,7 @@ public class EventResponse extends AuditableEntity {
     
     private static final long serialVersionUID = 4334139873708624469L;
 
-    @OneToOne(fetch = FetchType.LAZY) @JoinColumn(name = "userId")
+    @OneToOne(fetch = FetchType.EAGER) @JoinColumn(name = "userId")
     private User user;
     @OneToOne(fetch = FetchType.EAGER) @JoinColumn(name = "eventId")
     private Event event;
