@@ -23,7 +23,7 @@ public interface UserService {
      * Get user by externalId and login type. Return null if no user found.
      * Throws exception when externalId is null 
      */
-    User getByExternalIdAndLoginType(Long externalId, LoginType loginType);
+    User getByExternalIdAndLoginType(String externalId, LoginType loginType);
 
     /**
      * Get a townwizard user (a user with login type TOWNWIZARD) by email and password.

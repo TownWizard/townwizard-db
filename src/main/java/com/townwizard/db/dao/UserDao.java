@@ -16,7 +16,7 @@ public interface UserDao extends AbstractDao {
     /**
      *  Find a user by external id and login type.
      */
-    User getByExternalIdAndLoginType(Long externalId, LoginType loginType);
+    User getByExternalIdAndLoginType(String externalId, LoginType loginType);
     
     /**
      * Create a login request object in the DB. Login request is an axillary DB object necessary

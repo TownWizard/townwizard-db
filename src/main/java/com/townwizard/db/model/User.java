@@ -70,7 +70,7 @@ public class User extends AuditableEntity {
     @Column(name="login_type_id")
     @Enumerated(EnumType.ORDINAL)
     private LoginType loginType;
-    private Long externalId;
+    private String externalId;
     private Integer siteId;
     
     @OneToOne(mappedBy = "user", cascade = {CascadeType.ALL})
@@ -151,10 +151,10 @@ public class User extends AuditableEntity {
     public void setLoginType(LoginType loginType) {
         this.loginType = loginType;
     }
-    public Long getExternalId() {
+    public String getExternalId() {
         return externalId;
     }
-    public void setExternalId(Long externalId) {
+    public void setExternalId(String externalId) {
         this.externalId = externalId;
     }
     public Integer getSiteId() {
@@ -206,7 +206,7 @@ public class User extends AuditableEntity {
         //"updated_time":"2012-11-27T20:05:07+0000"}
         
         User u = new User();
-        u.setExternalId(new Long((String)fbUser.get("id")));
+        u.setExternalId((String)fbUser.get("id"));
         u.setEmail((String)fbUser.get("email"));
         u.setFirstName((String)fbUser.get("first_name"));
         u.setLastName((String)fbUser.get("last_name"));
@@ -247,7 +247,7 @@ public class User extends AuditableEntity {
         //"default_profile_image":true,"following":null,"follow_request_sent":null,"notifications":null}
         
         User u = new User();
-        u.setExternalId(new Long((Integer)twitterUser.get("id")));
+        u.setExternalId(twitterUser.get("id").toString());
         u.setName((String)twitterUser.get("name"));
         u.setUsername((String)twitterUser.get("screen_name"));
         u.setLoginType(LoginType.TWITTER);

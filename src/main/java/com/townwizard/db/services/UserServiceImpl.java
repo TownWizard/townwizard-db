@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
     }
     
     @Override
-    public User getByExternalIdAndLoginType(Long externalId, LoginType loginType) {
+    public User getByExternalIdAndLoginType(String externalId, LoginType loginType) {
         if(externalId == null) {
             throw new ServiceException("Can only get user by external id when it is not null");
         }
