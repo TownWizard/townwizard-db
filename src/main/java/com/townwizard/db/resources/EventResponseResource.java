@@ -43,7 +43,7 @@ public class EventResponseResource extends ResourceSupport {
     @GET
     @Path("/{userid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<EventResponseDTO> getRsvpsByPersion(
+    public List<EventResponseDTO> getRsvpsByUser(
             @PathParam ("userid") Long userId,
             @QueryParam ("from") Long fromDateMillis,
             @QueryParam ("to") Long toDateMillis) {
@@ -61,10 +61,39 @@ public class EventResponseResource extends ResourceSupport {
         
         return rsvps;
     }
+
+    
+    /**
+     * Given a GET request with site id, event id, and user id path parameters, and an optional
+     * event date (d) query string parameter, return JSON containing a single RSVP object
+     * 
+     * This is a "get RSVPs by event and user" service.
+     * 
+     * If the event date parameter is given, this service will also update the event date
+     * in the DB
+     */
+    @GET
+    @Path("/{siteid}/{eventid}/{userid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public EventResponseDTO getRsvpsByEventAndUser(
+            @PathParam ("siteid") Integer siteId,
+            @PathParam ("eventid") Long eventId,
+            @PathParam ("userid") Long userId,
+            @QueryParam ("d") Long eventDateMillis) {
+        try {
+            Date eventDate = (eventDateMillis != null) ? new Date(eventDateMillis) : null;             
+            EventResponse r = contentService.getUserEventResponse(siteId, eventId, userId, eventDate);
+            return new EventResponseDTO(r.getUser(), eventId, r.getValue());
+        } catch (Exception e) {
+            handleGenericException(e);
+            return null;
+        }
+    }
+    
     
     /**
      * Given a GET request with site id and event id path parameters, and an optional
-     * event date (d) parameter, return JSON containing a list of RSVP objects
+     * event date (d) query string parameter, return JSON containing a list of RSVP objects
      * 
      * This is a "get RSVPs by event" service.
      * 

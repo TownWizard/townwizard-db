@@ -112,6 +112,16 @@ public class ContentServiceImpl implements ContentService {
     }
     
     @Override
+    public EventResponse getUserEventResponse(
+            Integer siteId, Long eventId, Long userId, Date eventDate) {
+        Event e = updateEvent(siteId, eventId, eventDate);
+        User u = new User();
+        u.setId(userId);
+        
+        return eventDao.getEventResponse(u, e);
+    }
+    
+    @Override
     public List<EventResponse> getEventResponses(Integer siteId, Long eventId, Date eventDate) {
         Event event = updateEvent(siteId, eventId, eventDate);
         return eventDao.getEventResponses(event);

@@ -52,6 +52,13 @@ public interface ContentService {
     List<EventResponse> getUserEventResponses(Long userId, Date from, Date to);
     
     /**
+     * Retrieve RSVP for a particular user for a particular event.
+     * Return null if nothing found.
+     * If the optional event date parameter is given, update the event date in the DB
+     */
+    EventResponse getUserEventResponse(Integer siteId, Long eventId, Long userId, Date eventDate);
+    
+    /**
      * Retrieve RSVPs for a particular event.
      * Even event date (optional) parameter is given, update the event date in the DB (if different)
      */

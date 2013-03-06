@@ -27,7 +27,7 @@ public class EventResponseResourceTest extends ResourceTest {
         try {
             String getUrl = "/rsvps/9999999"; //unknown user id
             String response = executeGetRequest(getUrl);
-            EventResponseDTO rsvp = rsvpFromJson(response);
+            EventResponseDTO rsvp = rsvpFromJsonArray(response);
             Assert.assertTrue("Rsvp must be null", rsvp == null);            
         } catch (Exception e) {
             e.printStackTrace();
@@ -55,7 +55,7 @@ public class EventResponseResourceTest extends ResourceTest {
             //get rsvp by user id
             String getUrl = "/rsvps/" + u.getId();
             String response = executeGetRequest(getUrl);
-            EventResponseDTO rsvp = rsvpFromJson(response);
+            EventResponseDTO rsvp = rsvpFromJsonArray(response);
             Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());            
             if(rsvp != null) {
                 Assert.assertEquals("Rsvp value should match", new Character('Y'), rsvp.getValue());
@@ -70,7 +70,7 @@ public class EventResponseResourceTest extends ResourceTest {
             
             //check changed value
             response = executeGetRequest(getUrl);
-            rsvp = rsvpFromJson(response);
+            rsvp = rsvpFromJsonArray(response);
             Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
             if(rsvp != null) {
                 Assert.assertEquals("Rsvp value should change", new Character('M'), rsvp.getValue());
@@ -80,7 +80,7 @@ public class EventResponseResourceTest extends ResourceTest {
             //get rsvp by event id
             getUrl = "/rsvps/15/" + TEST_EVENT_ID;
             response = executeGetRequest(getUrl);
-            rsvp = rsvpFromJson(response);
+            rsvp = rsvpFromJsonArray(response);
             Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
             if(rsvp != null) {
                 Assert.assertNotNull("RSVP must contain user info", rsvp.getUser());
@@ -115,7 +115,7 @@ public class EventResponseResourceTest extends ResourceTest {
             //get rsvp by user id
             String getUrl = "/rsvps/" + u.getId() + "?from="+ (eventDate - 1) + "&to=" + (eventDate+1);
             String response = executeGetRequest(getUrl);
-            EventResponseDTO rsvp = rsvpFromJson(response);
+            EventResponseDTO rsvp = rsvpFromJsonArray(response);
             Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
             if(rsvp != null) {
                 Assert.assertNotNull("RSVP must contain user info", rsvp.getUser());
@@ -151,6 +151,45 @@ public class EventResponseResourceTest extends ResourceTest {
             long newEventDate = eventDate + 1000 * 3600;
             String getUrl = "/rsvps/15/" + TEST_EVENT_ID + "/?d=" + (newEventDate);
             String response = executeGetRequest(getUrl);
+            EventResponseDTO rsvp = rsvpFromJsonArray(response);
+            Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
+            if(rsvp != null) {
+                Assert.assertNotNull("RSVP must contain user info", rsvp.getUser());
+            }
+            
+            Event e = getTestEvent();
+            Assert.assertEquals("Event date should change", newEventDate, e.getDate().getTime());
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.fail(e.getMessage());
+        } finally {
+            deleteTestEventAndEventResponse();
+            deleteUserByEmail(email);
+        }  
+    }
+    
+    @Test
+    public void testGetEventResponseForEventAndUser() {
+        String email = "event_test_user4@test.com";
+        try {
+            deleteTestEventAndEventResponse();
+            deleteUserByEmail(email);            
+            
+            createTestUserViaService(email);
+            User u = getUserByEmailFromTheService(email);
+            
+            //create rsvp
+            long eventDate = 1355353200000L;
+            StatusLine statusLine = executePostJsonRequest(
+                    "/rsvps", getEventResponseWithDateJson(u.getId(), 'Y', eventDate));
+            int status = statusLine.getStatusCode();
+            Assert.assertEquals(
+                    "HTTP status should be 201 (created) when creating rsvp", 201, status);
+            
+            //get rsvp by event id and user id with modified date
+            long newEventDate = eventDate + 1000 * 3600;
+            String getUrl = "/rsvps/15/" + TEST_EVENT_ID + "/" + u.getId() + "/?d=" + (newEventDate);
+            String response = executeGetRequest(getUrl);
             EventResponseDTO rsvp = rsvpFromJson(response);
             Assert.assertTrue("A valid rsvp must be retrieved", rsvp != null && rsvp.isValid());
             if(rsvp != null) {
@@ -183,12 +222,18 @@ public class EventResponseResourceTest extends ResourceTest {
         return json;
     }
     
-    private EventResponseDTO rsvpFromJson(String json) throws Exception {
+    private EventResponseDTO rsvpFromJsonArray(String json) throws Exception {
         ObjectMapper m = new ObjectMapper();
         EventResponseDTO[] rsvps = m.readValue(new StringReader(json), EventResponseDTO[].class);
         if(rsvps.length > 0) return rsvps[0];
         return null;
-    } 
+    }
+    
+    private EventResponseDTO rsvpFromJson(String json) throws Exception {
+        ObjectMapper m = new ObjectMapper();
+        EventResponseDTO rsvp = m.readValue(new StringReader(json), EventResponseDTO.class);
+        return rsvp;
+    }    
     
     private Event getTestEvent() {
         Session session = null;
