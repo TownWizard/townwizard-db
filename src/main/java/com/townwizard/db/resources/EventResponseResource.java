@@ -83,11 +83,13 @@ public class EventResponseResource extends ResourceSupport {
         try {
             Date eventDate = (eventDateMillis != null) ? new Date(eventDateMillis) : null;             
             EventResponse r = contentService.getUserEventResponse(siteId, eventId, userId, eventDate);
-            return new EventResponseDTO(r.getUser(), eventId, r.getValue());
+            if(r != null) {
+                return new EventResponseDTO(r.getUser(), eventId, r.getValue());
+            }
         } catch (Exception e) {
-            handleGenericException(e);
-            return null;
+            handleGenericException(e);            
         }
+        return null;
     }
     
     
