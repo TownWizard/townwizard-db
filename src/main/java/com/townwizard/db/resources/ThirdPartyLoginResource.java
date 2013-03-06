@@ -34,7 +34,7 @@ import com.townwizard.db.util.HttpUtils;
 @Component
 @Path("/login")
 public class ThirdPartyLoginResource extends ResourceSupport {
-    
+
     private static final String FB_APP_ID = "318928931561066";
     private static final String FB_APP_SECRET = "db2ade8f8cac734d2571547c3fded645";
     private static final String FB_LOGIN_RESOURCE = "http://www.townwizardconnect.com/login/fb";    
