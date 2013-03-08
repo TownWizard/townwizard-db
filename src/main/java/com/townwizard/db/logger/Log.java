@@ -47,10 +47,15 @@ public final class Log {
      * and a stack trace.
      */
     public static void exception(Throwable e) {
-        if(isErrorEnabled()) {
-            error(e.getMessage());
+        if(isErrorEnabled()) {            
+            Throwable c = e;
+            Throwable cause = c;
+            while((c = c.getCause()) != null) {
+                cause = c;
+            }
+            error(cause.getMessage());
             StringBuilder stack = new StringBuilder();
-            for(StackTraceElement elem : e.getStackTrace()) {
+            for(StackTraceElement elem : cause.getStackTrace()) {
                 stack.append(elem.toString()).append("\n");
             }
             error(stack.toString());

@@ -53,11 +53,8 @@
   <tx:annotation-driven transaction-manager="transactionManager" />
   
   <bean id="passwordEncryptor" class="org.jasypt.util.password.StrongPasswordEncryptor" />
-  
-  <context:component-scan base-package="com.townwizard.db.resources" />
-  <context:component-scan base-package="com.townwizard.db.dao" />
-  <context:component-scan base-package="com.townwizard.db.services" />
-  <context:component-scan base-package="com.townwizard.db.model" />
+
+  <context:component-scan base-package="com.townwizard.db" />
   
   <!--  
   <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">

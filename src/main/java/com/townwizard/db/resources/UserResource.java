@@ -1,5 +1,7 @@
 package com.townwizard.db.resources;
 
+import static com.townwizard.db.constants.Constants.EMPTY_JSON;
+
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;

@@ -25,13 +25,6 @@ import com.townwizard.db.util.jackson.NullStringDeserializer;
  */
 public abstract class ResourceSupport {
     
-    protected static final String FB_APP_ID = "373685232723588";
-    protected static final String FB_APP_SECRET = "d9c84a8e96b422fe8075360a8415f584";
-    protected static final String TWITTER_APP_ID = "nkmH275UmsX63Zg1JP0Ejw";
-    protected static final String TWITTER_APP_SECRET = "cjxlpRfxn4Au1aEnIM8ETggH9Y77dy0otxFucJxMA";
-    
-    protected static final String EMPTY_JSON = "{}";
-    
     @Autowired
     private UserService userService;
     private static ObjectMapper objectMapper = initializeObjectMapper();    
