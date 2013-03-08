@@ -1,0 +1,79 @@
+package com.townwizard.db.global.facebook.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.codehaus.jettison.json.JSONArray;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.townwizard.db.global.facebook.connect.FacebookConnector;
+import com.townwizard.db.global.facebook.model.FacebookEvent;
+import com.townwizard.db.global.facebook.model.FacebookLocation;
+import com.townwizard.db.global.location.service.LocationService;
+import com.townwizard.db.global.model.Convertible;
+import com.townwizard.db.global.model.Event;
+import com.townwizard.db.global.model.Location;
+import com.townwizard.db.util.ReflectionUtils;
+
+@Component("facebookService")
+public class FacebookServiceImpl implements FacebookService {
+    
+    @Autowired
+    private FacebookConnector connector;
+    @Autowired
+    private LocationService locationService;
+
+    @Override
+    public List<Event> getEvents(String searchText) {
+        try {
+            String fql = "SELECT eid, name, location, description, host, pic_big, venue " + 
+                         "FROM event WHERE contains('" + searchText + "')";
+            String json = connector.executeFQL(fql);
+            List<FacebookEvent> fbEvents = jsonToObjects(json, FacebookEvent.class);
+            List<Event> events = convertList(fbEvents);
+            return events;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    @Override
+    public List<Location> getLocations(String zip, Integer distanceInMeters) {
+        try {
+            Location zipLocation = locationService.getLocationByZip(zip);            
+            String json = connector.executeLocationsRequest(zipLocation, distanceInMeters);
+            List<FacebookLocation> fbObjects = jsonToObjects(json, FacebookLocation.class);
+            List<Location> objects = convertList(fbObjects);
+            return objects;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    private <T> List<T> jsonToObjects (String json, Class<T> objectClass) 
+            throws JSONException, IllegalAccessException, InstantiationException {
+        List<T> objects = new ArrayList<>();
+        JSONObject j = new JSONObject(json);
+        JSONArray data = j.getJSONArray("data");        
+        for(int i = 0; i < data.length(); i++) {
+            JSONObject o = data.optJSONObject(i);
+            @SuppressWarnings("cast")
+            T object = (T)objectClass.newInstance();
+            ReflectionUtils.populateFromJson(object, o);
+            objects.add(object);
+        }
+        return objects;
+    }
+    
+    private <T> List<T> convertList(List<? extends Convertible<T>> fbObjects) {
+        List<T> objects = new ArrayList<>(fbObjects.size());
+        for(Convertible<T> c : fbObjects) {
+            objects.add(c.convert());
+        }
+        return objects;
+    }
+
+}

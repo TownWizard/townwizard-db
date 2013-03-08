@@ -1,86 +1,64 @@
 package com.townwizard.db.resources;
 
-import java.net.URLEncoder;
+import java.util.List;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.townwizard.db.util.HttpUtils;
+import com.townwizard.db.global.facebook.service.FacebookService;
+import com.townwizard.db.global.model.Event;
+import com.townwizard.db.global.model.Location;
+import com.townwizard.db.util.ReflectionUtils;
 
 @Component
 @Path("/fb")
 public class FBResource extends ResourceSupport {
     
-    private static final String FQL_URL = "https://graph.facebook.com/fql?q=";
-    private static final String PUBLIC_ACCESS_TOKEN_URL =
-            "https://graph.facebook.com/oauth/access_token?" +
-            "client_id=" + FB_APP_ID + "&client_secret=" + FB_APP_SECRET + 
-            "&grant_type=client_credentials";    
-    
-    private String publicAccessToken;    
+    @Autowired
+    private FacebookService facebookService;       
     
     @GET
     @Path("/events")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response events() {
+    @Produces(MediaType.TEXT_HTML)
+    public Response events(@QueryParam ("s") String searchText) {
         try {
-            String json = getPublicEvents();            
-            return Response.status(Status.OK).entity(json).build();
+            List<Event> events = facebookService.getEvents(searchText);
+            return Response.status(Status.OK).entity(objectsToHtml(events)).build();
         } catch(Exception e) {
             handleGenericException(e);
         }
         return Response.status(Status.BAD_REQUEST).build();
     }    
     
-    private String getPublicEvents() throws Exception {        
-//        String url = "https://graph.facebook.com/search?" +
-//        		"q=party&type=event&center=37.76,-122.427&distance=1000";
-        String fql = "SELECT name FROM event WHERE contains('Boom Party')";
-        return executeFQL(fql);                
-    }
-    
-    private void setPublicAccessToken() throws Exception {
-        String response = HttpUtils.executeGetRequest(PUBLIC_ACCESS_TOKEN_URL);
-        //response is "access_token=373685232723588|4x1XxnbQ9IXl5_S2XzOYqyyC4xw"
-        String[] splitted = response.split("=");
-        if(splitted.length > 1) {
-            publicAccessToken = URLEncoder.encode(splitted[1], "UTF-8");         
+    @GET
+    @Path("/locations")
+    @Produces(MediaType.TEXT_HTML)
+    public Response locations(@QueryParam ("zip") String zip) {
+        try {
+            List<Location> locations = facebookService.getLocations(zip, 50000);            
+            return Response.status(Status.OK).entity(objectsToHtml(locations)).build();
+        } catch(Exception e) {
+            handleGenericException(e);
         }
-    }
+        return Response.status(Status.BAD_REQUEST).build();
+    }    
     
-    private String executeFQL(String fql) throws Exception {
-        return executeFBRequest(FQL_URL + URLEncoder.encode(fql, "UTF-8"));
-    }
     
-    private String executeFBRequest(String url) throws Exception {
-        if(publicAccessToken == null) {
-           setPublicAccessToken();
+    private String objectsToHtml(List<?> objects) {
+        StringBuilder sb = new StringBuilder("<html><head></head><body>");
+        for(Object o : objects) {
+            sb.append(ReflectionUtils.toHtml(o));
         }
-        
-        String response = HttpUtils.executeGetRequest(appendPublicToken(url));
-        if(isTokenRequiredResponse(response)) {
-            setPublicAccessToken();
-            response = HttpUtils.executeGetRequest(appendPublicToken(url));
-            if(response.contains("\"error\":")) {
-                publicAccessToken = null;
-                return EMPTY_JSON;
-            }
-        }
-        return response;
-    }
-    
-    private boolean isTokenRequiredResponse(String response) {
-        return response.contains("An access token is required");
-    }
-    
-    private String appendPublicToken(String url) {
-        return url  + "&access_token=" + publicAccessToken;
+        sb.append("</body></html>");
+        return sb.toString();
     }
 
 }
