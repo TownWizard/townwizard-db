@@ -35,7 +35,7 @@ public class FacebookLocation implements Convertible <Location> {
             l.setState(location.getState());
             l.setCountry(location.getCountry());
             l.setLatitude(new Float(location.getLatitude()));
-            l.setLongitude(new Float(location.getLongitude()));
+            l.setLongitude(new Float(location.getLongitude()));            
         }
         return l;
     }

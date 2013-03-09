@@ -95,8 +95,10 @@ public final class ReflectionUtils {
         } else if(isAtomic(f)){
             v = value;
         } else {
-            v = ((Class<?>)type).newInstance();            
-            populateFromJson(v, (JSONObject)value);            
+            v = ((Class<?>)type).newInstance();
+            if(value instanceof JSONObject) {
+                populateFromJson(v, (JSONObject)value);
+            }
         }
         f.set(target, v);
     }

@@ -14,6 +14,7 @@ public class Event {
     private String state;
     private String country;
     private String zip;
+    private String locationId;
     
     public String getStreet() {
         return street;
@@ -69,4 +70,11 @@ public class Event {
     public void setDescription(String description) {
         this.description = description;
     }
+    public String getLocationId() {
+        return locationId;
+    }
+    public void setLocationId(String locationId) {
+        this.locationId = locationId;
+    }
+    
 }
