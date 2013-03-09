@@ -1,5 +1,8 @@
 package com.townwizard.db.resources;
 
+import static com.townwizard.db.constants.Constants.DEFAULT_DISTANCE_IN_METERS;
+
+import java.util.Collections;
 import java.util.List;
 
 import javax.ws.rs.GET;
@@ -23,14 +26,23 @@ import com.townwizard.db.util.ReflectionUtils;
 public class FBResource extends ResourceSupport {
     
     @Autowired
-    private FacebookService facebookService;       
+    private FacebookService facebookService;
     
     @GET
     @Path("/events")
     @Produces(MediaType.TEXT_HTML)
-    public Response events(@QueryParam ("s") String searchText) {
+    public Response events(
+            @QueryParam ("s") String searchText,
+            @QueryParam ("zip") String zip) {
         try {
-            List<Event> events = facebookService.getEvents(searchText);
+            List<Event> events = null;
+            if(zip != null) {
+                events = facebookService.getEvents(zip, DEFAULT_DISTANCE_IN_METERS);
+            } else if(searchText != null) {
+                events = facebookService.getEvents(searchText);
+            } else {
+                events = Collections.emptyList();
+            }
             return Response.status(Status.OK).entity(objectsToHtml(events)).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -43,7 +55,7 @@ public class FBResource extends ResourceSupport {
     @Produces(MediaType.TEXT_HTML)
     public Response locations(@QueryParam ("zip") String zip) {
         try {
-            List<Location> locations = facebookService.getLocations(zip, 50000);            
+            List<Location> locations = facebookService.getLocations(zip, DEFAULT_DISTANCE_IN_METERS);            
             return Response.status(Status.OK).entity(objectsToHtml(locations)).build();
         } catch(Exception e) {
             handleGenericException(e);

@@ -39,8 +39,9 @@ public class FacebookEvent implements Convertible<Event> {
             e.setCity(venue.getCity());
             e.setState(venue.getState());
             e.setCountry(venue.getCountry());
-            /* TODO : set zip*/
+            e.setLocationId(venue.getId());
         }
+        
         return e;
     }
     

@@ -10,7 +10,7 @@ public class Location {
     private String state;
     private String country;
     private Float latitude;
-    private Float longitude;
+    private Float longitude;    
     
     public String getId() {
         return id;

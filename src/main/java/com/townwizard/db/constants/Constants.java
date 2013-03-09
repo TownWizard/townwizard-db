@@ -11,5 +11,6 @@ public class Constants {
     public static final String PHP_LOGIN_PATH = "/townwizard-db-api/fb-login.php";
     
     public static final String EMPTY_JSON = "{}";
+    public static final int DEFAULT_DISTANCE_IN_METERS = 2000;
 
 }
