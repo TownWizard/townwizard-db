@@ -36,14 +36,17 @@ public class FBResource extends ResourceSupport {
             @QueryParam ("zip") String zip) {
         try {
             List<Event> events = null;
+            String search = null;
             if(zip != null) {
                 events = facebookService.getEvents(zip, DEFAULT_DISTANCE_IN_METERS);
+                search = zip;
             } else if(searchText != null) {
+                search = searchText;
                 events = facebookService.getEvents(searchText);
             } else {
                 events = Collections.emptyList();
             }
-            return Response.status(Status.OK).entity(objectsToHtml(events)).build();
+            return Response.status(Status.OK).entity(objectsToHtml(events, search)).build();
         } catch(Exception e) {
             handleGenericException(e);
         }
@@ -56,7 +59,7 @@ public class FBResource extends ResourceSupport {
     public Response locations(@QueryParam ("zip") String zip) {
         try {
             List<Location> locations = facebookService.getLocations(zip, DEFAULT_DISTANCE_IN_METERS);            
-            return Response.status(Status.OK).entity(objectsToHtml(locations)).build();
+            return Response.status(Status.OK).entity(objectsToHtml(locations, null)).build();
         } catch(Exception e) {
             handleGenericException(e);
         }
@@ -64,13 +67,18 @@ public class FBResource extends ResourceSupport {
     }    
     
     
-    private String objectsToHtml(List<?> objects) {
+    private String objectsToHtml(List<?> objects, String search) {
         StringBuilder sb = new StringBuilder("<html><head></head><body>");
         for(Object o : objects) {
             sb.append(ReflectionUtils.toHtml(o));
         }
         sb.append("</body></html>");
-        return sb.toString();
+        String result = sb.toString();
+        if(search != null) {
+            String s = search.startsWith("\"") ? search.substring(1, search.length()-1) : search;
+            result = result.replaceAll(s, "<span style=\"color:red;\">" + s + "</span>");
+        }
+        return result;
     }
 
 }

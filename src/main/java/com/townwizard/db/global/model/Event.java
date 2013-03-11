@@ -15,6 +15,8 @@ public class Event {
     private String country;
     private String zip;
     private String locationId;
+    private String picture;
+    private String privacy;
     
     public String getStreet() {
         return street;
@@ -76,5 +78,19 @@ public class Event {
     public void setLocationId(String locationId) {
         this.locationId = locationId;
     }
+    public String getPicture() {
+        return picture;
+    }
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+    public String getPrivacy() {
+        return privacy;
+    }
+    public void setPrivacy(String privacy) {
+        this.privacy = privacy;
+    }
+
+
     
 }
