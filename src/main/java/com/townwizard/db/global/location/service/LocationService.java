@@ -4,6 +4,8 @@ import com.townwizard.db.global.model.Location;
 
 public interface LocationService {
     
-    Location getLocationByZip(String zip);
+    Location getZipLocation(String zip);
+    Integer distance(Location location, String zip);
+    Integer distance(Location location1, Location location2);
 
 }

@@ -17,7 +17,6 @@ public class FacebookEvent implements Convertible<Event> {
     private String pic_square; 
     private String privacy;
 
-    
     public String getEid() {
         return eid;
     }
@@ -51,6 +50,7 @@ public class FacebookEvent implements Convertible<Event> {
     public String getPic_small() {
         return pic_small;
     }
+    
     public Event convert() {
         Event e = new Event();
         e.setId(getEid());

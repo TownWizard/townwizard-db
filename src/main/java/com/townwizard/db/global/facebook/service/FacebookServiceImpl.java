@@ -2,6 +2,7 @@ package com.townwizard.db.global.facebook.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,11 @@ public class FacebookServiceImpl implements FacebookService {
             String json = connector.executeFQL(fql);
             List<FacebookEvent> fbEvents = jsonToObjects(json, FacebookEvent.class);
             List<Event> events = convertList(fbEvents);
+            
+            List<String> locationIds = collectEventLocationIds(events);
+            List<Page> pages = getPagesByIds(locationIds);
+            populateLocations(events, pages);
+            
             return events;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -48,28 +54,18 @@ public class FacebookServiceImpl implements FacebookService {
     
     @Override
     public List<Event> getEvents(String zip, Integer distanceInMeters) {        
-        List<Location> locations = getLocations(zip, distanceInMeters);
-        
-        String city = null;
-        for(Location location : locations) {
-            city = location.getCity();
-            if(city != null) break;
+        Location location = locationService.getZipLocation(zip);
+        if(location != null && location.getCity() != null) {
+            List<Event> events = getEvents(location.getCity());
+            populateEventDistances(location, events);
+            sortEventsByDistance(events);
+            return events;
         }
         
-        List<Event> events = null;
-        if(city != null) {
-            events = getEvents(city);
-        }
-        
+        /* filter events by zip code strictly */
+        /*
         if(events != null) {
-            List<String> locationIds = new ArrayList<>(events.size());
-            for(Event e : events) {
-                String locationId = e.getLocationId();
-                if(locationId != null) {
-                    locationIds.add(locationId);
-                }
-            }
-            
+            List<String> locationIds = collectEventLocationIds(events);
             Map<String, String> pages = getZipCodesForIds(locationIds);
 
             List<Event> filteredByZip = new ArrayList<>();
@@ -85,14 +81,14 @@ public class FacebookServiceImpl implements FacebookService {
             }
             return filteredByZip;
         }
-        
+        */
         return Collections.emptyList();
     }
     
     @Override
     public List<Location> getLocations(String zip, Integer distanceInMeters) {
         try {
-            Location zipLocation = locationService.getLocationByZip(zip);            
+            Location zipLocation = locationService.getZipLocation(zip);
             String json = connector.executeLocationsRequest(zipLocation, distanceInMeters);
             List<FacebookLocation> fbObjects = jsonToObjects(json, FacebookLocation.class);
             List<Location> objects = convertList(fbObjects);
@@ -102,26 +98,106 @@ public class FacebookServiceImpl implements FacebookService {
         }
     }
     
+    private void populateEventDistances(Location origLocation, List<Event> events) {
+        for(Event e : events) {
+            Double eLat = e.getLatitude();
+            Double eLon = e.getLongitude();
+            String eZip = e.getZip();
+            if(eLat != null && eLon != null) {
+                Location eventLocation = new Location();
+                eventLocation.setLatitude(eLat.floatValue());
+                eventLocation.setLongitude(eLon.floatValue());
+                e.setDistance(locationService.distance(origLocation, eventLocation));
+            } else if(eZip != null) {
+                e.setDistance(locationService.distance(origLocation, eZip));
+            }
+        }
+    }
+    
+    private void sortEventsByDistance(List<Event> events) {
+        class EventDistanceComparator implements Comparator<Event> {
+            @Override            
+            public int compare(Event e1, Event e2) {
+                Integer d1 = e1.getDistance();
+                Integer d2 = e2.getDistance();
+                if(d1 != null && d2 != null) return d1.compareTo(d2);
+                else if(d1 == null && d2 != null) return 1;
+                else if(d1 != null && d2 == null) return -1;
+                return compareNames(e1.getName(), e2.getName());
+            }
+            
+            private int compareNames(String name1, String name2) {
+                if(name1 == null) return 1;
+                else if(name2 == null) return -1;
+                return name1.compareTo(name2);
+            }
+            
+        }
+        
+        Collections.sort(events, new EventDistanceComparator());
+    }
+    
+    
+    private List<String> collectEventLocationIds(List<Event> events) {
+        List<String> locationIds = new ArrayList<>(events.size());
+        for(Event e : events) {
+            String locationId = e.getLocationId();
+            if(locationId != null) {
+                locationIds.add(locationId);
+            }
+        }
+        return locationIds;
+    }
+    /*
     private Map<String, String> getZipCodesForIds(List<String> pageIds) {
+        List<Page> pages = getPagesByIds(pageIds);
+            
+        Map<String, String> result = new HashMap<>();
+        for(Page p : pages) {
+            Venue location = p.getLocation();
+            if(location != null) {
+                result.put(p.getId(), location.getZip());
+            }
+        }
+        return result;
+    }
+    */
+    private List<Page> getPagesByIds(List<String> pageIds) {
         try {
             String fql = 
                     "SELECT page_id, location " + 
                     "FROM page WHERE page_id in (" + CollectionUtils.join(pageIds, ",", "'") + ")";
             String json = connector.executeFQL(fql);
-            List<Page> pages = jsonToObjects(json, Page.class);
-            
-            Map<String, String> result = new HashMap<>();
-            for(Page p : pages) {
-                Venue location = p.getLocation();
-                if(location != null) {
-                    result.put(p.getId(), location.getZip());
-                }
-            }
-            return result;
-        } catch (Exception e) {
+            return jsonToObjects(json, Page.class);
+        } catch(Exception e) {
             throw new RuntimeException(e);
         }
-    }    
+    }
+    
+    private void populateLocations(List<Event> events, List<Page> pages) {
+        Map<String, Venue> locationsMap = new HashMap<>();
+        for(Page p : pages) {
+            Venue location = p.getLocation();
+            if(location != null) {
+                locationsMap.put(p.getId(), location);
+            }
+        }
+        
+        for(Event e : events) {            
+            String locationId = e.getLocationId();
+            Venue v = locationsMap.get(locationId);
+            if(v != null) {
+                e.setState(v.getStreet());
+                e.setCity(v.getCity());
+                e.setCountry(v.getCountry());
+                e.setState(v.getState());
+                e.setZip(v.getZip());
+                e.setLatitude(v.getLatitude());
+                e.setLongitude(v.getLongitude());
+            }            
+        }
+        
+    }
     
     private <T> List<T> jsonToObjects (String json, Class<T> objectClass) 
             throws JSONException, IllegalAccessException, InstantiationException {

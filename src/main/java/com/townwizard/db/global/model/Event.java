@@ -2,6 +2,8 @@ package com.townwizard.db.global.model;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import com.townwizard.db.constants.Constants;
+
 @JsonSerialize (include = JsonSerialize.Inclusion.NON_EMPTY)
 public class Event {
 
@@ -17,6 +19,10 @@ public class Event {
     private String locationId;
     private String picture;
     private String privacy;
+    private Double latitude;
+    private Double longitude;
+    private Integer distance;
+    private Double distanceInMiles;
     
     public String getStreet() {
         return street;
@@ -90,7 +96,30 @@ public class Event {
     public void setPrivacy(String privacy) {
         this.privacy = privacy;
     }
+    public Integer getDistance() {
+        return distance;
+    }
+    public void setDistance(Integer distance) {
+        this.distance = distance;
+        this.distanceInMiles = distance / Constants.METERS_IN_MILE;
+    }
+    public Double getLatitude() {
+        return latitude;
+    }
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+    public Double getLongitude() {
+        return longitude;
+    }
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+    public Double getDistanceInMiles() {
+        return distanceInMiles;
+    }
+    public void setDistanceInMiles(Double distanceInMiles) {
+        this.distanceInMiles = distanceInMiles;
+    }
 
-
-    
 }
