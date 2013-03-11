@@ -12,7 +12,8 @@ public final class DataUtils {
     private DataUtils() {}
     
     public static <K,O> Map<K, O> csvToMap(InputStream csvFile, int skipLines,
-            int[] columns, String[] fieldNames, Class<K> keyClass, Class<O> objectClass) 
+            int[] columns, String[] fieldNames, Class<K> keyClass, Class<O> objectClass,
+            String separator, String encloser) 
             throws IOException, IllegalAccessException, InstantiationException, NoSuchFieldException {
         
         BufferedReader in = null;
@@ -24,13 +25,15 @@ public final class DataUtils {
             while((line = in.readLine()) != null) {
                 if(count++ < skipLines) continue;
 
-                String[] allValues = line.split(",");
+                String[] allValues = line.split(separator);
 
                 String[] values = new String[columns.length];
                 for(int i = 0; i < columns.length; i++) {
-                    String field = allValues[columns[i]];
-                    if(field.startsWith("\"")) {
-                        field = field.substring(1, field.length()-1).trim(); 
+                    int index = columns[i];
+                    if(allValues.length <= index) continue;
+                    String field = allValues[index];
+                    if(field.startsWith(encloser)) {
+                        field = field.substring(encloser.length(), field.length()-encloser.length()).trim(); 
                     }
                     values[i] = field;
                 }

@@ -18,7 +18,7 @@ public final class ReflectionUtils {
             f.setAccessible(true);
             Type t = f.getGenericType();
             String valueStr = values[i];
-            if(valueStr.length() > 0) {
+            if(valueStr != null && valueStr.length() > 0) {
                 if(t.equals(String.class)) {
                     f.set(o, valueStr);    
                 } else if(t.equals(Integer.class)) {
