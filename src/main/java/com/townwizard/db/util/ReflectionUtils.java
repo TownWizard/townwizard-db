@@ -68,8 +68,12 @@ public final class ReflectionUtils {
                         sb.append("<div style=\"padding-bottom:10;padding-left:").append(indent*50).append("\">");
                     }
                     if(isAtomic(f)) {
-                        sb.append("<span>").append(f.getName()).append(":&nbsp;")
-                          .append(value).append("</span><br/>");
+                        if(value instanceof String && ((String) value).startsWith("http") && f.getName().contains("pic")) {
+                            sb.append("<img src=\"" + value + "\"><br/>");
+                        } else {
+                            sb.append("<span>").append(f.getName()).append(":&nbsp;")
+                              .append(value).append("</span><br/>");
+                        }
                     } else {
                         sb.append(f.getName()).append(":&nbsp;").append(toHtml(value, indent+1));
                     }
