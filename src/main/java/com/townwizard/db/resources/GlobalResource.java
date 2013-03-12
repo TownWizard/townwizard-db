@@ -23,7 +23,7 @@ import com.townwizard.db.util.ReflectionUtils;
 
 @Component
 @Path("/fb")
-public class FBResource extends ResourceSupport {
+public class GlobalResource extends ResourceSupport {
     
     @Autowired
     private FacebookService facebookService;
@@ -58,8 +58,10 @@ public class FBResource extends ResourceSupport {
     @Produces(MediaType.TEXT_HTML)
     public Response locations(@QueryParam ("zip") String zip) {
         try {
-            List<Location> locations = facebookService.getLocations(zip, DEFAULT_DISTANCE_IN_METERS);            
-            return Response.status(Status.OK).entity(objectsToHtml(locations, null)).build();
+            if(zip != null) {
+                List<Location> locations = facebookService.getLocations(zip, DEFAULT_DISTANCE_IN_METERS);            
+                return Response.status(Status.OK).entity(objectsToHtml(locations, null)).build();
+            }
         } catch(Exception e) {
             handleGenericException(e);
         }
