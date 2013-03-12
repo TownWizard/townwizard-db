@@ -22,7 +22,7 @@ import com.townwizard.db.global.model.Location;
 import com.townwizard.db.util.ReflectionUtils;
 
 @Component
-@Path("/fb")
+@Path("/g")
 public class GlobalResource extends ResourceSupport {
     
     @Autowired
@@ -51,7 +51,7 @@ public class GlobalResource extends ResourceSupport {
             handleGenericException(e);
         }
         return Response.status(Status.BAD_REQUEST).build();
-    }    
+    }
     
     @GET
     @Path("/locations")
