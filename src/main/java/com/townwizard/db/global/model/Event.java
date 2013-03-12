@@ -23,6 +23,8 @@ public class Event {
     private Double longitude;
     private Integer distance;
     private Double distanceInMiles;
+    private String startTime;
+    private String endTime;
     
     public String getStreet() {
         return street;
@@ -120,6 +122,18 @@ public class Event {
     }
     public void setDistanceInMiles(Double distanceInMiles) {
         this.distanceInMiles = distanceInMiles;
+    }
+    public String getStartTime() {
+        return startTime;
+    }
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
+    }
+    public String getEndTime() {
+        return endTime;
+    }
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
     }
 
 }

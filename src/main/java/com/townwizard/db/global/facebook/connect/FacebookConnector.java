@@ -3,7 +3,6 @@ package com.townwizard.db.global.facebook.connect;
 import static com.townwizard.db.constants.Constants.EMPTY_JSON;
 import static com.townwizard.db.constants.Constants.FB_APP_ID;
 import static com.townwizard.db.constants.Constants.FB_APP_SECRET;
-import static com.townwizard.db.constants.Constants.FB_LOGIN_RESOURCE;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

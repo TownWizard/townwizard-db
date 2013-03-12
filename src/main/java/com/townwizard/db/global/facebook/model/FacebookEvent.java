@@ -16,6 +16,8 @@ public class FacebookEvent implements Convertible<Event> {
     private String pic_small;
     private String pic_square; 
     private String privacy;
+    private String start_time;
+    private String end_time;
 
     public String getEid() {
         return eid;
@@ -50,7 +52,13 @@ public class FacebookEvent implements Convertible<Event> {
     public String getPic_small() {
         return pic_small;
     }
-    
+    public String getStart_time() {
+        return start_time;
+    }
+    public String getEnd_time() {
+        return end_time;
+    }
+
     public Event convert() {
         Event e = new Event();
         e.setId(getEid());
@@ -58,6 +66,8 @@ public class FacebookEvent implements Convertible<Event> {
         e.setLocation(getLocation());
         e.setDescription(getDescription());
         e.setPrivacy(getPrivace());
+        e.setStartTime(getStart_time());
+        e.setEndTime(getEnd_time());
         
         if(venue != null) {
             e.setStreet(venue.getStreet());
