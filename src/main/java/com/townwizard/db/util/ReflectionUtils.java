@@ -95,7 +95,8 @@ public final class ReflectionUtils {
         Object v = null;
         Type type = f.getGenericType();
         if(type.equals(String.class)) {
-            v = value.toString();
+            String val = value.toString();
+            if(!"null".equals(val)) v = val;
         } else if(isAtomic(f)){
             v = value;
         } else {

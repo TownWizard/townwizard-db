@@ -36,7 +36,8 @@ public class FacebookServiceImpl implements FacebookService {
     @Override
     public List<Event> getEvents(String searchText) {
         try {
-            String fql = "SELECT eid, name, location, description, venue, privacy, pic, pic_big, pic_small, pic_square " + 
+            String fql = "SELECT eid, name, location, description, venue, privacy, start_time, end_time, " + 
+                                "pic, pic_big, pic_small, pic_square " + 
                          "FROM event WHERE contains('" + searchText + "')";
             String json = connector.executeFQL(fql);
             List<FacebookEvent> fbEvents = jsonToObjects(json, FacebookEvent.class);
