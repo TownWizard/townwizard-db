@@ -1,5 +1,6 @@
 package com.townwizard.db.global.facebook.model;
 
+import com.townwizard.db.constants.Constants;
 import com.townwizard.db.global.model.Convertible;
 import com.townwizard.db.global.model.Event;
 
@@ -68,6 +69,7 @@ public class FacebookEvent implements Convertible<Event> {
         e.setPrivacy(getPrivace());
         e.setStartTime(getStart_time());
         e.setEndTime(getEnd_time());
+        e.setLink(Constants.FACEBOOK_EVENTS + "/" + getEid());
         
         if(venue != null) {
             e.setStreet(venue.getStreet());

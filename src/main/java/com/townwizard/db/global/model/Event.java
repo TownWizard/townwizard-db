@@ -25,6 +25,7 @@ public class Event {
     private Double distanceInMiles;
     private String startTime;
     private String endTime;
+    private String link;
     
     public String getStreet() {
         return street;
@@ -135,5 +136,11 @@ public class Event {
     public void setEndTime(String endTime) {
         this.endTime = endTime;
     }
-
+    public String getLink() {
+        return link;
+    }
+    public void setLink(String link) {
+        this.link = link;
+    }
+    
 }
