@@ -1,6 +1,8 @@
 package com.townwizard.db.global.location.service;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Component;
@@ -17,10 +19,10 @@ public class LocationServiceImpl implements LocationService {
     // source: http://download.geonames.org/export/zip/
     private static final String LOCATION_DATABASE = "allCountries.txt"; 
     
-    private static Map<String, Location> data;
+    private static Map<String, List<Location>> data;
 
     @Override
-    public Location getZipLocation(String zip) {
+    public List<Location> getLocations(String zip, String countryCode) {
         if(data == null) {
             synchronized(this) {
                 if(data == null) {
@@ -35,12 +37,19 @@ public class LocationServiceImpl implements LocationService {
             }
         }
         
-        return data.get(zip);
+        List<Location> allLocations = data.get(zip);
+        List<Location> locations = new ArrayList<>();
+        for(Location l : allLocations) if(countryCode.equals(l.getCountryCode())) locations.add(l);
+        return locations;
     }
     
     @Override
-    public Integer distance(Location location, String zip) {
-        return distance (location, getZipLocation(zip));
+    public Integer distance(Location location, String zip, String countryCode) {
+        List<Location> locations = getLocations(zip, countryCode);
+        if(locations != null && !locations.isEmpty()) {
+            return distance (location, locations.get(0));    
+        }
+        return null;
     }
     
     @Override
@@ -73,7 +82,7 @@ public class LocationServiceImpl implements LocationService {
         data = DataUtils.csvToMap(
                 getDataInputStream(LOCATION_DATABASE), 0,
                 new int[]{1, 0, 2, 4, 9, 10}, 
-                new String[] {"zip", "country", "city", "state", "latitude", "longitude"},
+                new String[] {"zip", "countryCode", "city", "state", "latitude", "longitude"},
                 String.class, Location.class, "\t", "");
     }
     

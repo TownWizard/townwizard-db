@@ -12,6 +12,7 @@ public class Constants {
     
     public static final String EMPTY_JSON = "{}";
     public static final int DEFAULT_DISTANCE_IN_METERS = 2000;
+    public static final String DEFAULT_COUNTRY_CODE = "US";
     public static final double METERS_IN_MILE = 1609.34;
 
 }

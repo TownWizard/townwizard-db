@@ -1,6 +1,7 @@
 package com.townwizard.db.resources;
 
 import static com.townwizard.db.constants.Constants.DEFAULT_DISTANCE_IN_METERS;
+import static com.townwizard.db.constants.Constants.DEFAULT_COUNTRY_CODE;
 
 import java.util.Collections;
 import java.util.List;
@@ -88,7 +89,7 @@ public class GlobalResource extends ResourceSupport {
         
     private List<Event> getEvents(String searchText, String zip) {
         if(zip != null) {
-            return facebookService.getEvents(zip, DEFAULT_DISTANCE_IN_METERS);            
+            return facebookService.getEvents(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);            
         } else if(searchText != null) {            
             return facebookService.getEvents(searchText);
         }
@@ -97,7 +98,7 @@ public class GlobalResource extends ResourceSupport {
     
     private List<Location> getLocations(String zip) {
         if(zip != null) {
-            return facebookService.getLocations(zip, DEFAULT_DISTANCE_IN_METERS);
+            return facebookService.getLocations(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);
         }
         return Collections.emptyList();
     }

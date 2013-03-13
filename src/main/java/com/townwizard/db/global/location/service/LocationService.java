@@ -1,11 +1,13 @@
 package com.townwizard.db.global.location.service;
 
+import java.util.List;
+
 import com.townwizard.db.global.model.Location;
 
 public interface LocationService {
     
-    Location getZipLocation(String zip);
-    Integer distance(Location location, String zip);
+    List<Location> getLocations(String zip, String countryCode);
+    Integer distance(Location location, String zip, String countryCode);
     Integer distance(Location location1, Location location2);
 
 }

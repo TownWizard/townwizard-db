@@ -9,6 +9,7 @@ public class Location {
     private String city;
     private String state;
     private String country;
+    private String countryCode;
     private Float latitude;
     private Float longitude;    
     
@@ -53,6 +54,12 @@ public class Location {
     }
     public void setCountry(String country) {
         this.country = country;
+    }
+    public String getCountryCode() {
+        return countryCode;
+    }
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
     }
     public Float getLatitude() {
         return latitude;

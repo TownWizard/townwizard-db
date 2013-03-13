@@ -5,19 +5,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public final class DataUtils {
     
     private DataUtils() {}
     
-    public static <K,O> Map<K, O> csvToMap(InputStream csvFile, int skipLines,
+    public static <K,O> Map<K, List<O>> csvToMap(InputStream csvFile, int skipLines,
             int[] columns, String[] fieldNames, Class<K> keyClass, Class<O> objectClass,
             String separator, String encloser) 
             throws IOException, IllegalAccessException, InstantiationException, NoSuchFieldException {
         
         BufferedReader in = null;
-        Map<K,O> map = new HashMap<>();
+        Map<K,List<O>> map = new HashMap<>();
         try {        
             in = new BufferedReader(new InputStreamReader(csvFile));
             String line;
@@ -56,7 +58,12 @@ public final class DataUtils {
                     }
                     if(key != null) {
                         O o = ReflectionUtils.createAndPopulate(objectClass, fieldNames, values);
-                        map.put(key, o);
+                        List<O> entries = map.get(key);
+                        if(entries == null) {
+                            entries = new LinkedList<>();
+                            map.put(key, entries);
+                        }
+                        entries.add(o);
                     }
                 }
             }

@@ -1,6 +1,7 @@
 package com.townwizard.db.global.facebook.service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import com.townwizard.db.global.location.service.LocationService;
 import com.townwizard.db.global.model.Convertible;
 import com.townwizard.db.global.model.Event;
 import com.townwizard.db.global.model.Location;
+import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.ReflectionUtils;
 
@@ -36,70 +38,77 @@ public class FacebookServiceImpl implements FacebookService {
     @Override
     public List<Event> getEvents(String searchText) {
         try {
-            String fql = "SELECT eid, name, location, description, venue, privacy, start_time, end_time, " + 
-                                "pic, pic_big, pic_small, pic_square " + 
-                         "FROM event WHERE contains('" + searchText + "')";
-            String json = connector.executeFQL(fql);
-            List<FacebookEvent> fbEvents = jsonToObjects(json, FacebookEvent.class);
-            List<Event> events = convertList(fbEvents);
-            
-            List<String> locationIds = collectEventLocationIds(events);
-            List<Page> pages = getPagesByIds(locationIds);
-            populateLocations(events, pages);
-            
-            return events;
+            return getEvents(Arrays.asList(new String[]{searchText}));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
     
     @Override
-    public List<Event> getEvents(String zip, Integer distanceInMeters) {        
-        Location location = locationService.getZipLocation(zip);
-        if(location != null && location.getCity() != null) {
-            List<Event> events = getEvents(location.getCity());
-            populateEventDistances(location, events);
-            sortEventsByDistance(events);
-            return events;
-        }
-        
-        /* filter events by zip code strictly */
-        /*
-        if(events != null) {
-            List<String> locationIds = collectEventLocationIds(events);
-            Map<String, String> pages = getZipCodesForIds(locationIds);
-
-            List<Event> filteredByZip = new ArrayList<>();
-            for(Event e : events) {
-                String locationId = e.getLocationId();
-                if(locationId != null) {
-                    String zipForLocation = pages.get(locationId);
-                    if(zip.equals(zipForLocation)) {
-                        e.setZip(zipForLocation);
-                        filteredByZip.add(e);
-                    }
-                }
+    public List<Event> getEvents(String zip, String countryCode, Integer distanceInMeters) {
+        try {
+            List<Location> locations = locationService.getLocations(zip, countryCode);
+            if(locations != null && !locations.isEmpty()) {
+                List<String> cities = new ArrayList<>(locations.size());
+                for(Location l : locations) if(l.getCity() != null) cities.add(l.getCity());
+                Location orig = locations.get(0);
+                List<Event> events = getEvents(cities);
+                populateEventDistances(orig, countryCode, events);
+                sortEventsByDistance(events);
+                return events;
             }
-            return filteredByZip;
+        } catch(Exception e) {
+            throw new RuntimeException (e);
         }
-        */
         return Collections.emptyList();
     }
     
     @Override
-    public List<Location> getLocations(String zip, Integer distanceInMeters) {
+    public List<Location> getLocations(String zip, String countryCode, Integer distanceInMeters) {
         try {
-            Location zipLocation = locationService.getZipLocation(zip);
-            String json = connector.executeLocationsRequest(zipLocation, distanceInMeters);
-            List<FacebookLocation> fbObjects = jsonToObjects(json, FacebookLocation.class);
-            List<Location> objects = convertList(fbObjects);
-            return objects;
+            List<Location> zipLocations = locationService.getLocations(zip, countryCode);
+            if(zipLocations != null && !zipLocations.isEmpty()) {
+                Location zipLocation = zipLocations.get(0);
+                String json = connector.executeLocationsRequest(zipLocation, distanceInMeters);
+                List<FacebookLocation> fbObjects = jsonToObjects(json, FacebookLocation.class);
+                List<Location> objects = convertList(fbObjects);
+                return objects;
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return Collections.emptyList();
     }
     
-    private void populateEventDistances(Location origLocation, List<Event> events) {
+    private List<Event> getEvents(List<String> searchStrings) throws Exception {
+        String fql = getSearchEventsFql(searchStrings);
+        String json = connector.executeFQL(fql);
+        List<FacebookEvent> fbEvents = jsonToObjects(json, FacebookEvent.class);
+        List<Event> events = convertList(fbEvents);
+        List<String> locationIds = collectEventLocationIds(events);
+        List<Page> pages = getPagesByIds(locationIds);
+        populateLocations(events, pages);
+        return events;
+    }
+    
+    
+    private String getSearchEventsFql(List<String> searchStrings) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SELECT eid, name, location, description, venue, privacy, start_time, end_time, ")
+          .append("pic, pic_big, pic_small, pic_square ")
+          .append("FROM event WHERE ");
+        boolean first = true;
+        for(String searchStr : searchStrings) {
+            if(!first) sb.append(" OR ");
+            sb.append("contains('").append(searchStr).append("')");
+            if(first) first = false;
+        }
+        String fql = sb.toString();
+        if(Log.isDebugEnabled()) Log.debug(fql);
+        return fql;
+    }
+    
+    private void populateEventDistances(Location origLocation, String countryCode, List<Event> events) {
         for(Event e : events) {
             Double eLat = e.getLatitude();
             Double eLon = e.getLongitude();
@@ -110,7 +119,7 @@ public class FacebookServiceImpl implements FacebookService {
                 eventLocation.setLongitude(eLon.floatValue());
                 e.setDistance(locationService.distance(origLocation, eventLocation));
             } else if(eZip != null) {
-                e.setDistance(locationService.distance(origLocation, eZip));
+                e.setDistance(locationService.distance(origLocation, eZip, countryCode));
             }
         }
     }
