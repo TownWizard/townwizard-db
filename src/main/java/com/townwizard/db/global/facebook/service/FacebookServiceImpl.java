@@ -49,8 +49,8 @@ public class FacebookServiceImpl implements FacebookService {
         try {
             List<Location> locations = locationService.getLocations(zip, countryCode);
             if(locations != null && !locations.isEmpty()) {
-                List<String> cities = new ArrayList<>(locations.size());
-                for(Location l : locations) if(l.getCity() != null) cities.add(l.getCity());
+                List<String> cities = new ArrayList<>(locations.size());                
+                for(Location l : locations) if(l.getCity() != null) cities.add(preprocessCityName(l.getCity()));
                 Location orig = locations.get(0);
                 List<Event> events = getEvents(cities);
                 populateEventDistances(orig, countryCode, events);
@@ -90,7 +90,6 @@ public class FacebookServiceImpl implements FacebookService {
         populateLocations(events, pages);
         return events;
     }
-    
     
     private String getSearchEventsFql(List<String> searchStrings) {
         StringBuilder sb = new StringBuilder();
@@ -230,6 +229,10 @@ public class FacebookServiceImpl implements FacebookService {
             objects.add(c.convert());
         }
         return objects;
+    }
+    
+    private String preprocessCityName(String cityName) {        
+        return cityName.replace(" City", "");
     }
 
 }
