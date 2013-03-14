@@ -98,11 +98,16 @@ public final class ReflectionUtils {
         f.setAccessible(true);
         Object v = null;
         Type type = f.getGenericType();
+        Class<?> valueClass = value.getClass();
         if(type.equals(String.class)) {
             String val = value.toString();
             if(!"null".equals(val)) v = val;
-        } else if(isAtomic(f)){
+        } else if(type.equals(valueClass)) {
             v = value;
+        } else if(type.equals(Double.class) && valueClass == Integer.class) {
+            v = new Double(((Integer)value).intValue());
+        } else if(type.equals(Float.class) && valueClass == Integer.class) {
+            v = new Float(((Integer)value).intValue());
         } else {
             v = ((Class<?>)type).newInstance();
             if(value instanceof JSONObject) {
