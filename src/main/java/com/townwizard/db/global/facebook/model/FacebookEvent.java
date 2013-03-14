@@ -71,12 +71,13 @@ public class FacebookEvent implements Convertible<Event> {
         e.setEndTime(getEnd_time());
         e.setLink(Constants.FACEBOOK_EVENTS + "/" + getEid());
         
-        if(venue != null) {
-            e.setStreet(venue.getStreet());
-            e.setCity(venue.getCity());
-            e.setState(venue.getState());
-            e.setCountry(venue.getCountry());
-            e.setLocationId(venue.getId());
+        Venue v = getVenue();
+        if(v != null) {            
+            e.setStreet(v.getStreet());
+            e.setCity(v.getCity());
+            e.setState(v.getState());
+            e.setCountry(v.getCountry());
+            e.setLocationId(v.getId());
         }
         
         String picture = getPic_big();
