@@ -8,8 +8,9 @@ public class Constants {
     public static final String TWITTER_APP_ID = "b7ZXg9lYW5OhQ3InvnJQ";
     public static final String TWITTER_APP_SECRET = "DZATEfUCCel270ARGcYdHTOWD6a1NHxu74TRCGHHjHg";
     public static final String TWITTER_LOGIN_RESOURCE = "http://www.townwizardconnect.com/login/twitter";
+    public static final String MEETUP_API_KEY = "441c7748257a4416672778255838a7d";
     public static final String PHP_LOGIN_PATH = "/townwizard-db-api/fb-login.php";
-    
+        
     public static final String EMPTY_JSON = "{}";
     public static final int DEFAULT_DISTANCE_IN_METERS = 2000;
     public static final String DEFAULT_COUNTRY_CODE = "US";
