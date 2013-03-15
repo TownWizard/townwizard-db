@@ -1,7 +1,7 @@
 package com.townwizard.db.resources;
 
-import static com.townwizard.db.constants.Constants.DEFAULT_DISTANCE_IN_METERS;
 import static com.townwizard.db.constants.Constants.DEFAULT_COUNTRY_CODE;
+import static com.townwizard.db.constants.Constants.DEFAULT_DISTANCE_IN_METERS;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.global.facebook.service.FacebookService;
+import com.townwizard.db.global.google.service.GoogleService;
 import com.townwizard.db.global.model.Event;
 import com.townwizard.db.global.model.Location;
 import com.townwizard.db.util.ReflectionUtils;
@@ -28,6 +29,8 @@ public class GlobalResource extends ResourceSupport {
     
     @Autowired
     private FacebookService facebookService;
+    @Autowired
+    private GoogleService googleService;    
     
     @GET
     @Path("/events")
@@ -99,6 +102,7 @@ public class GlobalResource extends ResourceSupport {
     private List<Location> getLocations(String zip) {
         if(zip != null) {
             return facebookService.getLocations(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);
+            //return googleService.getLocations(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);
         }
         return Collections.emptyList();
     }
