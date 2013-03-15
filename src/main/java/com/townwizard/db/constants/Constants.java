@@ -9,6 +9,7 @@ public class Constants {
     public static final String TWITTER_APP_SECRET = "sYaSRr18NtUdn4bCEkr8Qq8aEvZzXEsERtkNyINj7o";
     public static final String TWITTER_LOGIN_RESOURCE = "http://www.townwizardconnect.com/login/twitter";
     public static final String GOOGLE_API_KEY = "AIzaSyCmaA_22aCH2sxkylKg7ZBZMIGRt8nGt3s";
+    public static final String YELLO_PAGES_API_KEY = "e938536c6b70c0c9c1e8d6ffaa32053b";
     public static final String MEETUP_API_KEY = "441c7748257a4416672778255838a7d";
     public static final String PHP_LOGIN_PATH = "/townwizard-db-api/fb-login.php";
         
