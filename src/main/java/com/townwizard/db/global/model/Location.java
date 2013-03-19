@@ -2,16 +2,25 @@ package com.townwizard.db.global.model;
 
 public class Location {
     
+    public static enum Source {
+        FACEBOOK, GOOGLE, YELLOW_PAGES
+    }
+    
     private String id;
     private String name;
     private String category;
+    private String categories;
     private String zip;
     private String city;
     private String state;
     private String country;
     private String countryCode;
     private Float latitude;
-    private Float longitude;    
+    private Float longitude;
+    private String url;
+    private String phone;
+    private String street;
+    private Source source;
     
     public String getId() {
         return id;
@@ -72,6 +81,36 @@ public class Location {
     }
     public void setLongitude(Float longitude) {
         this.longitude = longitude;
+    }
+    public String getUrl() {
+        return url;
+    }
+    public void setUrl(String url) {
+        this.url = url;
+    }
+    public String getPhone() {
+        return phone;
+    }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+    public String getStreet() {
+        return street;
+    }
+    public void setStreet(String street) {
+        this.street = street;
+    }
+    public String getCategories() {
+        return categories;
+    }
+    public void setCategories(String categories) {
+        this.categories = categories;
+    }
+    public Source getSource() {
+        return source;
+    }
+    public void setSource(Source source) {
+        this.source = source;
     }
     
 }

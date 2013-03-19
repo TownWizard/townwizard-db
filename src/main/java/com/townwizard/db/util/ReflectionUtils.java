@@ -2,7 +2,10 @@ package com.townwizard.db.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 public final class ReflectionUtils {
@@ -108,21 +111,32 @@ public final class ReflectionUtils {
             v = new Double(((Integer)value).intValue());
         } else if(type.equals(Float.class) && valueClass == Integer.class) {
             v = new Float(((Integer)value).intValue());
-        } else {
-            v = ((Class<?>)type).newInstance();
-            if(value instanceof JSONObject) {
-                populateFromJson(v, (JSONObject)value);
+        } else if(value instanceof JSONArray) { //only JSON arrays of strings supported
+            v = new ArrayList<String>();
+            JSONArray valueArr = (JSONArray)value;
+            @SuppressWarnings("unchecked")
+            List<String> l = (List<String>)v;
+            for (int i = 0; i < valueArr.length(); i++) {
+                String s = valueArr.optString(i);
+                if(s != null) {
+                    l.add(s);
+                }
             }
+        } else if(value instanceof JSONObject) {
+            v = ((Class<?>)type).newInstance();
+            populateFromJson(v, (JSONObject)value);            
         }
         f.set(target, v);
     }
     
     private static boolean isAtomic(Field f) {
         Type type = f.getGenericType();
-        return type.equals(String.class) ||
-               type.equals(Long.class) ||
-               type.equals(Integer.class) ||
-               type.equals(Float.class) ||
-               type.equals(Double.class);
+        Class<?> klass = (Class<?>)type;
+        return klass == String.class ||
+               klass == Long.class ||
+               klass == Integer.class ||
+               klass == Float.class ||
+               klass == Double.class ||
+               klass.isEnum();
     }
 }

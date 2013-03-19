@@ -26,6 +26,7 @@ public class FacebookLocation implements Convertible <Location> {
     
     public Location convert() {
         Location l = new Location();
+        l.setSource(Location.Source.FACEBOOK);
         l.setId(getId());
         l.setName(getName());
         l.setCategory(getCategory());

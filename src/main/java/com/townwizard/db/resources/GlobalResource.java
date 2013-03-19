@@ -18,10 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.global.facebook.service.FacebookService;
-import com.townwizard.db.global.google.service.GoogleService;
 import com.townwizard.db.global.model.Event;
 import com.townwizard.db.global.model.Location;
-import com.townwizard.db.global.yellopages.service.YellowPagesService;
+import com.townwizard.db.global.service.GlobalService;
 import com.townwizard.db.util.ReflectionUtils;
 
 @Component
@@ -31,9 +30,7 @@ public class GlobalResource extends ResourceSupport {
     @Autowired
     private FacebookService facebookService;
     @Autowired
-    private GoogleService googleService;
-    @Autowired
-    private YellowPagesService yellowPagesService;
+    private GlobalService globalService;    
     
     @GET
     @Path("/events")
@@ -104,9 +101,7 @@ public class GlobalResource extends ResourceSupport {
     
     private List<Location> getLocations(String zip) {
         if(zip != null) {
-            return facebookService.getLocations(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);
-            //return googleService.getLocations(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);
-            //return yellowPagesService.getLocations("pizza", zip, DEFAULT_DISTANCE_IN_METERS);
+            return globalService.getLocations(zip, DEFAULT_DISTANCE_IN_METERS);
         }
         return Collections.emptyList();
     }

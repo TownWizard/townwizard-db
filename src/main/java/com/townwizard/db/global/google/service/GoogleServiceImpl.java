@@ -15,6 +15,7 @@ import com.townwizard.db.global.google.model.GoogleLocation;
 import com.townwizard.db.global.location.service.LocationService;
 import com.townwizard.db.global.model.Convertible;
 import com.townwizard.db.global.model.Location;
+import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.ReflectionUtils;
 
 @Component("googleService")
@@ -34,15 +35,29 @@ public class GoogleServiceImpl implements GoogleService {
                 Location zipLocation = zipLocations.get(0);
                 Float latitude = zipLocation.getLatitude();
                 Float longitude = zipLocation.getLongitude();
-                if(latitude != null && longitude != null) {
+                if(latitude != null && longitude != null) {                    
+                    
+                    List<Location> finalList = new ArrayList<>(20);
+                    
                     String json = connector.executePlacesNearbyRequest(
                             latitude.doubleValue(), longitude.doubleValue(), distanceInMeters, null, null);
+
+                    JSONObject j = new JSONObject(json);           
+                    List<GoogleLocation> gObjects = jsonToObjects(j, GoogleLocation.class);
+                    finalList.addAll(convertList(gObjects));
                     
+                    int i = 0;
+                    while(true) {
+                        if(Log.isDebugEnabled()) Log.debug("Executing next page request request " + (++i));
+                        String nextPageToken = j.optString("next_page_token");
+                        if(nextPageToken == null || nextPageToken.isEmpty() || i > 10) break;                        
+                        json = connector.executePlacesNearbyPageTokenRequest(nextPageToken);
+                        j = new JSONObject(json);
+                        gObjects = jsonToObjects(j, GoogleLocation.class);
+                        finalList.addAll(convertList(gObjects));                        
+                    }
                     
-                    List<GoogleLocation> gObjects = jsonToObjects(json, GoogleLocation.class);
-                    List<Location> objects = convertList(gObjects);
-                    return objects;
-                    
+                    return finalList;
                 }
             }
         } catch (Exception e) {
@@ -53,10 +68,9 @@ public class GoogleServiceImpl implements GoogleService {
     }
     
     
-    private <T> List<T> jsonToObjects (String json, Class<T> objectClass) 
+    private <T> List<T> jsonToObjects (JSONObject j, Class<T> objectClass) 
             throws JSONException, IllegalAccessException, InstantiationException {
         List<T> objects = new ArrayList<>();
-        JSONObject j = new JSONObject(json);
         JSONArray data = j.getJSONArray("results");        
         for(int i = 0; i < data.length(); i++) {
             JSONObject o = data.optJSONObject(i);

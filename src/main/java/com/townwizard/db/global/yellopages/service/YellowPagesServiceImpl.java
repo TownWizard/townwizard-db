@@ -21,7 +21,6 @@ public class YellowPagesServiceImpl implements YellowPagesService {
     @Autowired
     private YellowPagesConnector connector;
 
-
     @Override
     public List<Location> getLocations(String term, String zip, Integer distanceInMeters) {
         try {
@@ -38,14 +37,19 @@ public class YellowPagesServiceImpl implements YellowPagesService {
             throws JSONException, IllegalAccessException, InstantiationException {
         List<T> objects = new ArrayList<>();
         JSONObject j = new JSONObject(json);
-        JSONArray data = j.getJSONObject("searchResult")
-                .getJSONObject("searchListings").getJSONArray("searchListing");
-        for(int i = 0; i < data.length(); i++) {
-            JSONObject o = data.optJSONObject(i);
-            @SuppressWarnings("cast")
-            T object = (T)objectClass.newInstance();
-            ReflectionUtils.populateFromJson(object, o);
-            objects.add(object);
+        JSONObject searchResult = j.optJSONObject("searchResult");
+        if(searchResult != null) {
+            JSONObject searchListings = searchResult.optJSONObject("searchListings");
+            if(searchListings != null) { 
+                JSONArray data = searchListings.getJSONArray("searchListing");        
+                for(int i = 0; i < data.length(); i++) {
+                    JSONObject o = data.optJSONObject(i);
+                    @SuppressWarnings("cast")
+                    T object = (T)objectClass.newInstance();
+                    ReflectionUtils.populateFromJson(object, o);
+                    objects.add(object);
+                }
+            }
         }
         return objects;
     }

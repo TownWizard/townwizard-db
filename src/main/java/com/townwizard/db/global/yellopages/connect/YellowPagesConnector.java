@@ -1,6 +1,7 @@
 package com.townwizard.db.global.yellopages.connect;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 
 import org.apache.http.client.ClientProtocolException;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,7 @@ public final class YellowPagesConnector {
         
         StringBuilder sb = new StringBuilder(SEARCH_URL);
         sb.append("searchloc=").append(zip)
-          .append("&term=").append(term)
+          .append("&term=").append(URLEncoder.encode(term, "UTF-8"))
           .append("&radius=").append(distanceInMeters / Constants.METERS_IN_MILE);
         
         appendMandatoryParameters(sb);
