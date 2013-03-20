@@ -112,14 +112,16 @@ public final class ReflectionUtils {
         } else if(type.equals(Float.class) && valueClass == Integer.class) {
             v = new Float(((Integer)value).intValue());
         } else if(value instanceof JSONArray) { //only JSON arrays of strings supported
-            v = new ArrayList<String>();
             JSONArray valueArr = (JSONArray)value;
-            @SuppressWarnings("unchecked")
-            List<String> l = (List<String>)v;
-            for (int i = 0; i < valueArr.length(); i++) {
-                String s = valueArr.optString(i);
-                if(s != null) {
-                    l.add(s);
+            if(valueArr.length() >0) {            
+                v = new ArrayList<String>();
+                @SuppressWarnings("unchecked")
+                List<String> l = (List<String>)v;
+                for (int i = 0; i < valueArr.length(); i++) {
+                    String s = valueArr.optString(i);
+                    if(s != null) {
+                        l.add(s);
+                    }
                 }
             }
         } else if(value instanceof JSONObject) {
