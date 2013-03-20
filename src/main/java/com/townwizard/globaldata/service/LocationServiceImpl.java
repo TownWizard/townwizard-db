@@ -2,6 +2,7 @@ package com.townwizard.globaldata.service;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -35,9 +36,34 @@ public class LocationServiceImpl implements LocationService {
         }
         
         List<Location> allLocations = data.get(zip);
-        List<Location> locations = new ArrayList<>();
-        for(Location l : allLocations) if(countryCode.equals(l.getCountryCode())) locations.add(l);
-        return locations;
+        if(allLocations != null) {
+            List<Location> locations = new ArrayList<>();
+            for(Location l : allLocations) if(countryCode.equals(l.getCountryCode())) locations.add(l);
+            return locations;
+        }
+        return Collections.emptyList();        
+    }
+    
+    @Override
+    public Location getPrimaryLocation(String zip, String countryCode) {
+        List<Location> zipLocations = getLocations(zip, countryCode);        
+        for(Location l : zipLocations) {
+            if(l.getLatitude() != null && l.getLongitude() != null) {
+                return l;
+            }
+        }
+        return null;
+    }
+    
+    @Override
+    public List<String> getCities(String zip, String countryCode) {
+        List<Location> locations = getLocations(zip, countryCode);
+        if(locations != null && !locations.isEmpty()) {
+            List<String> cities = new ArrayList<>(locations.size());                
+            for(Location l : locations) if(l.getCity() != null) cities.add(preprocessCityName(l.getCity()));
+            return cities;
+        }
+        return Collections.emptyList();
     }
     
     @Override
@@ -90,4 +116,9 @@ public class LocationServiceImpl implements LocationService {
         }
         return in;
     }
+    
+    private String preprocessCityName(String cityName) {        
+        return cityName.replace(" City", "");
+    }
+    
 }

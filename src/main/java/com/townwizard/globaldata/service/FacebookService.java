@@ -7,8 +7,7 @@ import com.townwizard.globaldata.model.Location;
 
 public interface FacebookService {
 
-    List<Event> getEvents(String searchText);
-    List<Event> getEvents(String zip, String countryCode, Integer distanceInMeters);
-    List<Location> getLocations(String zip, String countryCode, Integer distanceInMeters);
+    List<Event> getEvents(List<String> terms);
+    List<Location> getLocations(double latitude, double longitude, int distanceInMeters);
     
 }

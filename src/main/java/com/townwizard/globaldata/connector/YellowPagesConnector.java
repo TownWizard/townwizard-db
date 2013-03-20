@@ -15,13 +15,13 @@ public final class YellowPagesConnector {
     
     private static final String SEARCH_URL = "http://api2.yp.com/listings/v1/search?";
     
-    public String executePlacesRequest(String term, String zip, int distanceInMeters)
+    public String executePlacesRequest(String term, String zip, double distanceInMiles)
             throws ClientProtocolException, IOException {
         
         StringBuilder sb = new StringBuilder(SEARCH_URL);
         sb.append("searchloc=").append(zip)
           .append("&term=").append(URLEncoder.encode(term, "UTF-8"))
-          .append("&radius=").append(distanceInMeters / Constants.METERS_IN_MILE);
+          .append("&radius=").append(distanceInMiles);
         
         appendMandatoryParameters(sb);
         

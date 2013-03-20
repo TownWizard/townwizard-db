@@ -6,6 +6,6 @@ import com.townwizard.globaldata.model.Location;
 
 public interface GoogleService {
     
-    List<Location> getLocations(String zip, String countryCode, Integer distanceInMeters);
+    List<Location> getLocations(double latitude, double longitude, int distanceInMeters);
 
 }

@@ -22,9 +22,9 @@ public class YellowPagesServiceImpl implements YellowPagesService {
     private YellowPagesConnector connector;
 
     @Override
-    public List<Location> getLocations(String term, String zip, Integer distanceInMeters) {
+    public List<Location> getLocations(String term, String zip, double distanceInMiles) {
         try {
-            String json = connector.executePlacesRequest(term, zip, distanceInMeters);
+            String json = connector.executePlacesRequest(term, zip, distanceInMiles);
             List<YPLocation> gObjects = jsonToObjects(json, YPLocation.class);
             List<Location> objects = convertList(gObjects);
             return objects;

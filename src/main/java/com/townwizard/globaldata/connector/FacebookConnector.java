@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.util.HttpUtils;
-import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.service.LocationService;
 
 @Component("facebookConnector")
@@ -38,12 +37,11 @@ public final class FacebookConnector {
         return executeFBRequest(FQL_URL + URLEncoder.encode(fql, "UTF-8"));
     }
     
-    public String executeLocationsRequest(Location location, Integer distanceInMeters) 
+    public String executeLocationsRequest(double latitude, double longitude, int distanceInMeters) 
             throws ClientProtocolException, UnsupportedEncodingException, IOException {
         StringBuilder url = new StringBuilder();
         url.append("https://graph.facebook.com/search?type=place&center=")
-            .append(location.getLatitude()).append(",")
-            .append(location.getLongitude())
+            .append(latitude).append(",").append(longitude)
             .append("&distance=").append(distanceInMeters);
         return executeFBRequest(url.toString());
     }

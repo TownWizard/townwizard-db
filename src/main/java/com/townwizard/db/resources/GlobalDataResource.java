@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 import com.townwizard.db.util.ReflectionUtils;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
-import com.townwizard.globaldata.service.FacebookService;
 import com.townwizard.globaldata.service.GlobalDataService;
 
 @Component
@@ -28,18 +27,14 @@ import com.townwizard.globaldata.service.GlobalDataService;
 public class GlobalDataResource extends ResourceSupport {
     
     @Autowired
-    private FacebookService facebookService;
-    @Autowired
     private GlobalDataService globalDataService;    
     
     @GET
     @Path("/events")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response events(
-            @QueryParam ("s") String searchText,
-            @QueryParam ("zip") String zip) {
+    public Response events(@QueryParam ("zip") String zip) {
         try {
-            List<Event> events = getEvents(searchText, zip);
+            List<Event> events = getEvents(zip);
             return Response.status(Status.OK).entity(events).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -50,11 +45,9 @@ public class GlobalDataResource extends ResourceSupport {
     @GET
     @Path("/events/html")
     @Produces(MediaType.TEXT_HTML)
-    public Response eventsHtml(
-            @QueryParam ("s") String searchText,
-            @QueryParam ("zip") String zip) {
+    public Response eventsHtml(@QueryParam ("zip") String zip) {
         try {
-            List<Event> events = getEvents(searchText, zip);
+            List<Event> events = getEvents(zip);
             return Response.status(Status.OK).entity(objectsToHtml(events)).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -90,11 +83,9 @@ public class GlobalDataResource extends ResourceSupport {
         return Response.status(Status.BAD_REQUEST).build();
     }    
         
-    private List<Event> getEvents(String searchText, String zip) {
+    private List<Event> getEvents(String zip) {
         if(zip != null) {
-            return facebookService.getEvents(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);            
-        } else if(searchText != null) {            
-            return facebookService.getEvents(searchText);
+            return globalDataService.getEvents(zip, DEFAULT_COUNTRY_CODE);            
         }
         return Collections.emptyList();        
     }

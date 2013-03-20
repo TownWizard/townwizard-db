@@ -1,7 +1,6 @@
 package com.townwizard.globaldata.service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.codehaus.jettison.json.JSONArray;
@@ -22,50 +21,34 @@ public class GoogleServiceImpl implements GoogleService {
     
     @Autowired
     private GoogleConnector connector;
-    @Autowired
-    private LocationService locationService;
-
 
     @Override
-    public List<Location> getLocations(String zip, String countryCode, Integer distanceInMeters) {
+    public List<Location> getLocations(double latitude, double longitude, int distanceInMeters) {
         try {
-            List<Location> zipLocations = locationService.getLocations(zip, countryCode);
-            if(zipLocations != null && !zipLocations.isEmpty()) {
-                Location zipLocation = zipLocations.get(0);
-                Float latitude = zipLocation.getLatitude();
-                Float longitude = zipLocation.getLongitude();
-                if(latitude != null && longitude != null) {                    
-                    
-                    List<Location> finalList = new ArrayList<>(20);
-                    
-                    String json = connector.executePlacesNearbyRequest(
-                            latitude.doubleValue(), longitude.doubleValue(), distanceInMeters, null, null);
+            List<Location> finalList = new ArrayList<>(20);
 
-                    JSONObject j = new JSONObject(json);           
-                    List<Google.Location> gObjects = jsonToObjects(j, Google.Location.class);
-                    finalList.addAll(convertList(gObjects));
-                    
-                    int i = 0;
-                    while(true) {
-                        if(Log.isDebugEnabled()) Log.debug("Executing next page request request " + (++i));
-                        String nextPageToken = j.optString("next_page_token");
-                        if(nextPageToken == null || nextPageToken.isEmpty() || i > 10) break;                        
-                        json = connector.executePlacesNearbyPageTokenRequest(nextPageToken);
-                        j = new JSONObject(json);
-                        gObjects = jsonToObjects(j, Google.Location.class);
-                        finalList.addAll(convertList(gObjects));                        
-                    }
-                    
-                    return finalList;
-                }
+            String json = connector.executePlacesNearbyRequest(
+                    latitude, longitude, distanceInMeters, null, null);
+
+            JSONObject j = new JSONObject(json);
+            List<Google.Location> gObjects = jsonToObjects(j, Google.Location.class);
+            finalList.addAll(convertList(gObjects));
+
+            int i = 0;
+            while (true) {
+                if (Log.isDebugEnabled()) Log.debug("Executing next page request request " + (++i));
+                String nextPageToken = j.optString("next_page_token");
+                if (nextPageToken == null || nextPageToken.isEmpty() || i > 10) break;
+                json = connector.executePlacesNearbyPageTokenRequest(nextPageToken);
+                j = new JSONObject(json);
+                gObjects = jsonToObjects(j, Google.Location.class);
+                finalList.addAll(convertList(gObjects));
             }
+            return finalList;            
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        
-        return Collections.emptyList();        
-    }
-    
+    }    
     
     private <T> List<T> jsonToObjects (JSONObject j, Class<T> objectClass) 
             throws JSONException, IllegalAccessException, InstantiationException {
