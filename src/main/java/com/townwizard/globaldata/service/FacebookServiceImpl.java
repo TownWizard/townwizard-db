@@ -1,5 +1,6 @@
 package com.townwizard.globaldata.service;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,11 +21,8 @@ import com.townwizard.db.util.ReflectionUtils;
 import com.townwizard.globaldata.connector.FacebookConnector;
 import com.townwizard.globaldata.model.Convertible;
 import com.townwizard.globaldata.model.Event;
+import com.townwizard.globaldata.model.Facebook;
 import com.townwizard.globaldata.model.Location;
-import com.townwizard.globaldata.model.facebook.FacebookEvent;
-import com.townwizard.globaldata.model.facebook.FacebookLocation;
-import com.townwizard.globaldata.model.facebook.Page;
-import com.townwizard.globaldata.model.facebook.Venue;
 
 @Component("facebookService")
 public class FacebookServiceImpl implements FacebookService {
@@ -69,7 +67,7 @@ public class FacebookServiceImpl implements FacebookService {
             if(zipLocations != null && !zipLocations.isEmpty()) {
                 Location zipLocation = zipLocations.get(0);
                 String json = connector.executeLocationsRequest(zipLocation, distanceInMeters);
-                List<FacebookLocation> fbObjects = jsonToObjects(json, FacebookLocation.class);
+                List<Facebook.Location> fbObjects = jsonToObjects(json, Facebook.Location.class);
                 List<Location> objects = convertList(fbObjects);
                 return objects;
             }
@@ -82,10 +80,10 @@ public class FacebookServiceImpl implements FacebookService {
     private List<Event> getEvents(List<String> searchStrings) throws Exception {
         String fql = getSearchEventsFql(searchStrings);
         String json = connector.executeFQL(fql);
-        List<FacebookEvent> fbEvents = jsonToObjects(json, FacebookEvent.class);
+        List<Facebook.Event> fbEvents = jsonToObjects(json, Facebook.Event.class);
         List<Event> events = convertList(fbEvents);
         List<String> locationIds = collectEventLocationIds(events);
-        List<Page> pages = getPagesByIds(locationIds);
+        List<Facebook.Page> pages = getPagesByIds(locationIds);
         populateLocations(events, pages);
         return events;
     }
@@ -156,55 +154,36 @@ public class FacebookServiceImpl implements FacebookService {
         }
         return locationIds;
     }
-    /*
-    private Map<String, String> getZipCodesForIds(List<String> pageIds) {
-        List<Page> pages = getPagesByIds(pageIds);
-            
-        Map<String, String> result = new HashMap<>();
-        for(Page p : pages) {
-            Venue location = p.getLocation();
-            if(location != null) {
-                result.put(p.getId(), location.getZip());
-            }
-        }
-        return result;
-    }
-    */
-    private List<Page> getPagesByIds(List<String> pageIds) {
+
+    private List<Facebook.Page> getPagesByIds(List<String> pageIds) {
         try {
             String fql = 
                     "SELECT page_id, location " + 
                     "FROM page WHERE page_id in (" + CollectionUtils.join(pageIds, ",", "'") + ")";
             String json = connector.executeFQL(fql);
-            return jsonToObjects(json, Page.class);
+            return jsonToObjects(json, Facebook.Page.class);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
     }
     
-    private void populateLocations(List<Event> events, List<Page> pages) {
-        Map<String, Venue> locationsMap = new HashMap<>();
-        for(Page p : pages) {
-            Venue location = p.getLocation();
+    private void populateLocations(List<Event> events, List<Facebook.Page> pages) {
+        Map<String, Facebook.Venue> locationsMap = new HashMap<>();
+        
+        for(Facebook.Page p : pages) {
+            Facebook.Venue location = p.getLocation();
             if(location != null) {
-                locationsMap.put(p.getId(), location);
+                locationsMap.put(p.getPage_id(), location);
             }
         }
         
         for(Event e : events) {            
             String locationId = e.getLocationId();
-            Venue v = locationsMap.get(locationId);
+            Facebook.Venue v = locationsMap.get(locationId);
             if(v != null) {
-                e.setState(v.getStreet());
-                e.setCity(v.getCity());
-                e.setCountry(v.getCountry());
-                e.setState(v.getState());
-                e.setZip(v.getZip());
-                e.setLatitude(v.getLatitude());
-                e.setLongitude(v.getLongitude());
+                v.fillEvent(e);
             }            
-        }
-        
+        }        
     }
     
     private <T> List<T> jsonToObjects (String json, Class<T> objectClass) 

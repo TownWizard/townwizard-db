@@ -14,8 +14,8 @@ import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.ReflectionUtils;
 import com.townwizard.globaldata.connector.GoogleConnector;
 import com.townwizard.globaldata.model.Convertible;
+import com.townwizard.globaldata.model.Google;
 import com.townwizard.globaldata.model.Location;
-import com.townwizard.globaldata.model.google.GoogleLocation;
 
 @Component("googleService")
 public class GoogleServiceImpl implements GoogleService {
@@ -42,7 +42,7 @@ public class GoogleServiceImpl implements GoogleService {
                             latitude.doubleValue(), longitude.doubleValue(), distanceInMeters, null, null);
 
                     JSONObject j = new JSONObject(json);           
-                    List<GoogleLocation> gObjects = jsonToObjects(j, GoogleLocation.class);
+                    List<Google.Location> gObjects = jsonToObjects(j, Google.Location.class);
                     finalList.addAll(convertList(gObjects));
                     
                     int i = 0;
@@ -52,7 +52,7 @@ public class GoogleServiceImpl implements GoogleService {
                         if(nextPageToken == null || nextPageToken.isEmpty() || i > 10) break;                        
                         json = connector.executePlacesNearbyPageTokenRequest(nextPageToken);
                         j = new JSONObject(json);
-                        gObjects = jsonToObjects(j, GoogleLocation.class);
+                        gObjects = jsonToObjects(j, Google.Location.class);
                         finalList.addAll(convertList(gObjects));                        
                     }
                     

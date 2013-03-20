@@ -31,7 +31,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
                 googleService.getLocations(zip, Constants.DEFAULT_COUNTRY_CODE, distanceInMeters);
         
         List<Location> finalList = new ArrayList<>();
-        finalList.addAll(googleLocations);
+        //finalList.addAll(googleLocations);
         
                 
         List<Future<List<Location>>> results = new ArrayList<>(googleLocations.size());
