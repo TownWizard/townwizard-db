@@ -14,9 +14,6 @@ import com.townwizard.globaldata.model.Location;
 @Component("LocationService")
 public class LocationServiceImpl implements LocationService {
     
-    // source: http://federalgovernmentzipcodes.us/
-    //private static final String TEST_LOCATION_DATABASE = "free-zipcode-database-Primary.csv"; 
-    // source: http://download.geonames.org/export/zip/
     private static final String LOCATION_DATABASE = "allCountries.txt"; 
     
     private static Map<String, List<Location>> data;
@@ -86,15 +83,6 @@ public class LocationServiceImpl implements LocationService {
                 String.class, Location.class, "\t", "");
     }
     
-    /*
-    private void loadTestData() throws Exception {
-        data = DataUtils.csvToMap(
-                getDataInputStream(TEST_LOCATION_DATABASE), 1,
-                new int[]{0,2,3,5,6}, 
-                new String[] {"zip", "city", "state", "latitude", "longitude"},
-                String.class, Location.class, ",", "\"");        
-    }
-    */
     private InputStream getDataInputStream(String name) {
         InputStream in = getClass().getResourceAsStream(name);
         if(in == null) {
