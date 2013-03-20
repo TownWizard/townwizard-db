@@ -1,4 +1,4 @@
-package com.townwizard.db.global.facebook.service;
+package com.townwizard.globaldata.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,11 +14,10 @@ import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.townwizard.db.global.facebook.connect.FacebookConnector;
-import com.townwizard.db.global.location.service.LocationService;
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.ReflectionUtils;
+import com.townwizard.globaldata.connector.FacebookConnector;
 import com.townwizard.globaldata.model.Convertible;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;

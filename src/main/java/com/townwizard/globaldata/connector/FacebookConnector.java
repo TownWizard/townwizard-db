@@ -1,4 +1,4 @@
-package com.townwizard.db.global.facebook.connect;
+package com.townwizard.globaldata.connector;
 
 import static com.townwizard.db.constants.Constants.EMPTY_JSON;
 import static com.townwizard.db.constants.Constants.FB_APP_ID;
@@ -12,9 +12,9 @@ import org.apache.http.client.ClientProtocolException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.townwizard.db.global.location.service.LocationService;
 import com.townwizard.db.util.HttpUtils;
 import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.service.LocationService;
 
 @Component("facebookConnector")
 public final class FacebookConnector {

@@ -1,4 +1,4 @@
-package com.townwizard.db.global.google.service;
+package com.townwizard.globaldata.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,10 +10,9 @@ import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.townwizard.db.global.google.connect.GoogleConnector;
-import com.townwizard.db.global.location.service.LocationService;
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.ReflectionUtils;
+import com.townwizard.globaldata.connector.GoogleConnector;
 import com.townwizard.globaldata.model.Convertible;
 import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.google.GoogleLocation;

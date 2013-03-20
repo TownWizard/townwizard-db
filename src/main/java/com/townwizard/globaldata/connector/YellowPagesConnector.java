@@ -1,4 +1,4 @@
-package com.townwizard.db.global.yellopages.connect;
+package com.townwizard.globaldata.connector;
 
 import java.io.IOException;
 import java.net.URLEncoder;

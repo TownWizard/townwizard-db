@@ -1,4 +1,4 @@
-package com.townwizard.db.global.location.service;
+package com.townwizard.globaldata.service;
 
 import java.util.List;
 

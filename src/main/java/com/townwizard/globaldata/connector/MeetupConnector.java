@@ -1,4 +1,4 @@
-package com.townwizard.db.global.meetup.connect;
+package com.townwizard.globaldata.connector;
 
 import java.io.IOException;
 import java.util.Map;

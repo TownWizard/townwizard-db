@@ -1,4 +1,4 @@
-package com.townwizard.db.global.yellopages.service;
+package com.townwizard.globaldata.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +9,8 @@ import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.townwizard.db.global.yellopages.connect.YellowPagesConnector;
 import com.townwizard.db.util.ReflectionUtils;
+import com.townwizard.globaldata.connector.YellowPagesConnector;
 import com.townwizard.globaldata.model.Convertible;
 import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.yellopages.YPLocation;

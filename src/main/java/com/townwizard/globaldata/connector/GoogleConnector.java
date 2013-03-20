@@ -1,4 +1,4 @@
-package com.townwizard.db.global.google.connect;
+package com.townwizard.globaldata.connector;
 
 import java.io.IOException;
 import java.util.List;
