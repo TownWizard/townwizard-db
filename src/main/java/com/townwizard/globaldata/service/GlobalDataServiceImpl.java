@@ -1,6 +1,7 @@
 package com.townwizard.globaldata.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.townwizard.db.constants.Constants;
 import com.townwizard.db.logger.Log;
+import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Location;
 
 @Component("globalDataService")
@@ -21,11 +23,13 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     private GoogleService googleService;
     @Autowired
     private YellowPagesService yellowPagesService;
+    @Autowired
+    private LocationService locationService;
     
     private ExecutorService executors = Executors.newFixedThreadPool(60);
 
     @Override
-    public List<Location> getLocations(final String zip, final int distanceInMeters) {
+    public List<Location> getLocations(final String zip, String countryCode, final int distanceInMeters) {
         //return facebookService.getLocations(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);
         List<Location> googleLocations = 
                 googleService.getLocations(zip, Constants.DEFAULT_COUNTRY_CODE, distanceInMeters);
@@ -58,7 +62,13 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         long end = System.currentTimeMillis();
         if(Log.isDebugEnabled()) Log.debug(
                 "Executed " + googleLocations.size() + " requests and brought: " + 
-                        finalList.size()  + " locations in " + (end - start) + " ms");
+                        finalList.size()  + " locations in " + (end - start) + " ms");        
+        
+        for(Location l : finalList) {
+            l.setDistance(locationService.distance(l, zip, countryCode));
+        }
+        
+        Collections.sort(finalList, new DistanceComparator());
         
         return finalList;
     }

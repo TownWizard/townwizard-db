@@ -4,7 +4,6 @@ package com.townwizard.globaldata.service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +19,7 @@ import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.ReflectionUtils;
 import com.townwizard.globaldata.connector.FacebookConnector;
 import com.townwizard.globaldata.model.Convertible;
+import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Facebook;
 import com.townwizard.globaldata.model.Location;
@@ -51,7 +51,7 @@ public class FacebookServiceImpl implements FacebookService {
                 Location orig = locations.get(0);
                 List<Event> events = getEvents(cities);
                 populateEventDistances(orig, countryCode, events);
-                sortEventsByDistance(events);
+                Collections.sort(events, new DistanceComparator());
                 return events;
             }
         } catch(Exception e) {
@@ -119,30 +119,6 @@ public class FacebookServiceImpl implements FacebookService {
             }
         }
     }
-    
-    private void sortEventsByDistance(List<Event> events) {
-        class EventDistanceComparator implements Comparator<Event> {
-            @Override            
-            public int compare(Event e1, Event e2) {
-                Integer d1 = e1.getDistance();
-                Integer d2 = e2.getDistance();
-                if(d1 != null && d2 != null) return d1.compareTo(d2);
-                else if(d1 == null && d2 != null) return 1;
-                else if(d1 != null && d2 == null) return -1;
-                return compareNames(e1.getName(), e2.getName());
-            }
-            
-            private int compareNames(String name1, String name2) {
-                if(name1 == null) return 1;
-                else if(name2 == null) return -1;
-                return name1.compareTo(name2);
-            }
-            
-        }
-        
-        Collections.sort(events, new EventDistanceComparator());
-    }
-    
     
     private List<String> collectEventLocationIds(List<Event> events) {
         List<String> locationIds = new ArrayList<>(events.size());

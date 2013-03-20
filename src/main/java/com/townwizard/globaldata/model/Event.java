@@ -5,7 +5,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import com.townwizard.db.constants.Constants;
 
 @JsonSerialize (include = JsonSerialize.Inclusion.NON_EMPTY)
-public class Event {
+public class Event implements DistanceComparable {
 
     private String id;
     private String name;
@@ -123,6 +123,7 @@ public class Event {
     }
     public void setDistanceInMiles(Double distanceInMiles) {
         this.distanceInMiles = distanceInMiles;
+        this.distance = new Double(distanceInMiles * Constants.METERS_IN_MILE).intValue();
     }
     public String getStartTime() {
         return startTime;

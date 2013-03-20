@@ -1,6 +1,8 @@
 package com.townwizard.globaldata.model;
 
-public class Location {
+import com.townwizard.db.constants.Constants;
+
+public class Location implements DistanceComparable {
     
     public static enum Source {
         FACEBOOK, GOOGLE, YELLOW_PAGES
@@ -21,6 +23,8 @@ public class Location {
     private String phone;
     private String street;
     private Source source;
+    private Integer distance;
+    private Double distanceInMiles;
     
     public String getId() {
         return id;
@@ -112,5 +116,19 @@ public class Location {
     public void setSource(Source source) {
         this.source = source;
     }
-    
+    public Integer getDistance() {
+        return distance;
+    }
+    public void setDistance(Integer distance) {
+        this.distance = distance;
+        this.distanceInMiles = distance / Constants.METERS_IN_MILE;
+    }
+    public Double getDistanceInMiles() {
+        return distanceInMiles;
+    }
+    public void setDistanceInMiles(Double distanceInMiles) {
+        this.distanceInMiles = distanceInMiles;
+        this.distance = new Double(distanceInMiles * Constants.METERS_IN_MILE).intValue();
+    }
+
 }

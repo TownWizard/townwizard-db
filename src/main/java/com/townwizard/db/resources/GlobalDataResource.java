@@ -101,7 +101,7 @@ public class GlobalDataResource extends ResourceSupport {
     
     private List<Location> getLocations(String zip) {
         if(zip != null) {
-            return globalDataService.getLocations(zip, DEFAULT_DISTANCE_IN_METERS);
+            return globalDataService.getLocations(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);
         }
         return Collections.emptyList();
     }
