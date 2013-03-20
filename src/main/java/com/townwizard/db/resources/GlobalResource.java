@@ -20,8 +20,8 @@ import org.springframework.stereotype.Component;
 import com.townwizard.db.global.facebook.service.FacebookService;
 import com.townwizard.db.global.model.Event;
 import com.townwizard.db.global.model.Location;
-import com.townwizard.db.global.service.GlobalService;
 import com.townwizard.db.util.ReflectionUtils;
+import com.townwizard.globaldata.service.GlobalService;
 
 @Component
 @Path("/g")
