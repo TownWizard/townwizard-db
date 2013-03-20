@@ -1,7 +1,7 @@
 package com.townwizard.db.meetup.model;
 
-import com.townwizard.db.global.model.Convertible;
-import com.townwizard.db.global.model.Event;
+import com.townwizard.globaldata.model.Convertible;
+import com.townwizard.globaldata.model.Event;
 
 public class MeetupEvent implements Convertible<Event> {
     

@@ -18,9 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.global.facebook.service.FacebookService;
-import com.townwizard.db.global.model.Event;
-import com.townwizard.db.global.model.Location;
 import com.townwizard.db.util.ReflectionUtils;
+import com.townwizard.globaldata.model.Event;
+import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.service.GlobalDataService;
 
 @Component

@@ -1,8 +1,8 @@
-package com.townwizard.db.global.facebook.model;
+package com.townwizard.globaldata.model.facebook;
 
 import com.townwizard.db.constants.Constants;
-import com.townwizard.db.global.model.Convertible;
-import com.townwizard.db.global.model.Event;
+import com.townwizard.globaldata.model.Convertible;
+import com.townwizard.globaldata.model.Event;
 
 public class FacebookEvent implements Convertible<Event> {
 

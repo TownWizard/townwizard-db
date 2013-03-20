@@ -9,11 +9,11 @@ import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.townwizard.db.global.model.Convertible;
-import com.townwizard.db.global.model.Location;
 import com.townwizard.db.global.yellopages.connect.YellowPagesConnector;
-import com.townwizard.db.global.yellopages.model.YPLocation;
 import com.townwizard.db.util.ReflectionUtils;
+import com.townwizard.globaldata.model.Convertible;
+import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.model.yellopages.YPLocation;
 
 @Component("yellowPagesService")
 public class YellowPagesServiceImpl implements YellowPagesService {

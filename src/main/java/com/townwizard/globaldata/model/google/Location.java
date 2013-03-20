@@ -1,4 +1,4 @@
-package com.townwizard.db.global.google.model;
+package com.townwizard.globaldata.model.google;
 
 public class Location {
     

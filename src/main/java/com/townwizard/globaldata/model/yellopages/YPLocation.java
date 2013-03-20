@@ -1,7 +1,7 @@
-package com.townwizard.db.global.yellopages.model;
+package com.townwizard.globaldata.model.yellopages;
 
-import com.townwizard.db.global.model.Convertible;
-import com.townwizard.db.global.model.Location;
+import com.townwizard.globaldata.model.Convertible;
+import com.townwizard.globaldata.model.Location;
 
 public class YPLocation implements Convertible <Location> {
     

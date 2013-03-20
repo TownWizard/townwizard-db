@@ -2,8 +2,8 @@ package com.townwizard.db.global.facebook.service;
 
 import java.util.List;
 
-import com.townwizard.db.global.model.Event;
-import com.townwizard.db.global.model.Location;
+import com.townwizard.globaldata.model.Event;
+import com.townwizard.globaldata.model.Location;
 
 public interface FacebookService {
 

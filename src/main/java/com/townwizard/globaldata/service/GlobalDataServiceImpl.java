@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 
 import com.townwizard.db.constants.Constants;
 import com.townwizard.db.global.google.service.GoogleService;
-import com.townwizard.db.global.model.Location;
 import com.townwizard.db.global.yellopages.service.YellowPagesService;
 import com.townwizard.db.logger.Log;
+import com.townwizard.globaldata.model.Location;
 
 @Component("globalDataService")
 public class GlobalDataServiceImpl implements GlobalDataService {

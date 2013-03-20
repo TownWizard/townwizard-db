@@ -11,12 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.global.google.connect.GoogleConnector;
-import com.townwizard.db.global.google.model.GoogleLocation;
 import com.townwizard.db.global.location.service.LocationService;
-import com.townwizard.db.global.model.Convertible;
-import com.townwizard.db.global.model.Location;
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.ReflectionUtils;
+import com.townwizard.globaldata.model.Convertible;
+import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.model.google.GoogleLocation;
 
 @Component("googleService")
 public class GoogleServiceImpl implements GoogleService {

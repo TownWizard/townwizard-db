@@ -7,9 +7,9 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import com.townwizard.db.global.model.Location;
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.DataUtils;
+import com.townwizard.globaldata.model.Location;
 
 @Component("LocationService")
 public class LocationServiceImpl implements LocationService {

@@ -1,4 +1,4 @@
-package com.townwizard.db.global.model;
+package com.townwizard.globaldata.model;
 
 public class Location {
     

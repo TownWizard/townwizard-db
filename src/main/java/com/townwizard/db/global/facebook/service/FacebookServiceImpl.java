@@ -15,17 +15,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.global.facebook.connect.FacebookConnector;
-import com.townwizard.db.global.facebook.model.FacebookEvent;
-import com.townwizard.db.global.facebook.model.FacebookLocation;
-import com.townwizard.db.global.facebook.model.Page;
-import com.townwizard.db.global.facebook.model.Venue;
 import com.townwizard.db.global.location.service.LocationService;
-import com.townwizard.db.global.model.Convertible;
-import com.townwizard.db.global.model.Event;
-import com.townwizard.db.global.model.Location;
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.ReflectionUtils;
+import com.townwizard.globaldata.model.Convertible;
+import com.townwizard.globaldata.model.Event;
+import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.model.facebook.FacebookEvent;
+import com.townwizard.globaldata.model.facebook.FacebookLocation;
+import com.townwizard.globaldata.model.facebook.Page;
+import com.townwizard.globaldata.model.facebook.Venue;
 
 @Component("facebookService")
 public class FacebookServiceImpl implements FacebookService {

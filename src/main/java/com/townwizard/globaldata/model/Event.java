@@ -1,4 +1,4 @@
-package com.townwizard.db.global.model;
+package com.townwizard.globaldata.model;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 

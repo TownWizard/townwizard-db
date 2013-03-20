@@ -1,7 +1,7 @@
-package com.townwizard.db.global.facebook.model;
+package com.townwizard.globaldata.model.facebook;
 
-import com.townwizard.db.global.model.Convertible;
-import com.townwizard.db.global.model.Location;
+import com.townwizard.globaldata.model.Convertible;
+import com.townwizard.globaldata.model.Location;
 
 public class FacebookLocation implements Convertible <Location> {
 

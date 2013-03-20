@@ -1,9 +1,9 @@
-package com.townwizard.db.global.google.model;
+package com.townwizard.globaldata.model.google;
 
 import java.util.List;
 
-import com.townwizard.db.global.model.Convertible;
-import com.townwizard.db.global.model.Location;
+import com.townwizard.globaldata.model.Convertible;
+import com.townwizard.globaldata.model.Location;
 
 public class GoogleLocation implements Convertible <Location> {
     

@@ -2,7 +2,7 @@ package com.townwizard.db.global.google.service;
 
 import java.util.List;
 
-import com.townwizard.db.global.model.Location;
+import com.townwizard.globaldata.model.Location;
 
 public interface GoogleService {
     

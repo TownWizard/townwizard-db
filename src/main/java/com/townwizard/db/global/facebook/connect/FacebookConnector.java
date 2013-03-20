@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.global.location.service.LocationService;
-import com.townwizard.db.global.model.Location;
 import com.townwizard.db.util.HttpUtils;
+import com.townwizard.globaldata.model.Location;
 
 @Component("facebookConnector")
 public final class FacebookConnector {

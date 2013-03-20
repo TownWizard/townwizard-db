@@ -1,4 +1,4 @@
-package com.townwizard.db.global.facebook.model;
+package com.townwizard.globaldata.model.facebook;
 
 public class Page {
     
