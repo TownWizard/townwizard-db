@@ -55,6 +55,7 @@
   <bean id="passwordEncryptor" class="org.jasypt.util.password.StrongPasswordEncryptor" />
 
   <context:component-scan base-package="com.townwizard.db" />
+  <context:component-scan base-package="com.townwizard.globaldata" />
   
   <!--  
   <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">

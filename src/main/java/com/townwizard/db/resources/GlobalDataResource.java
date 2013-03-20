@@ -21,16 +21,16 @@ import com.townwizard.db.global.facebook.service.FacebookService;
 import com.townwizard.db.global.model.Event;
 import com.townwizard.db.global.model.Location;
 import com.townwizard.db.util.ReflectionUtils;
-import com.townwizard.globaldata.service.GlobalService;
+import com.townwizard.globaldata.service.GlobalDataService;
 
 @Component
 @Path("/g")
-public class GlobalResource extends ResourceSupport {
+public class GlobalDataResource extends ResourceSupport {
     
     @Autowired
     private FacebookService facebookService;
     @Autowired
-    private GlobalService globalService;    
+    private GlobalDataService globalDataService;    
     
     @GET
     @Path("/events")
@@ -101,7 +101,7 @@ public class GlobalResource extends ResourceSupport {
     
     private List<Location> getLocations(String zip) {
         if(zip != null) {
-            return globalService.getLocations(zip, DEFAULT_DISTANCE_IN_METERS);
+            return globalDataService.getLocations(zip, DEFAULT_DISTANCE_IN_METERS);
         }
         return Collections.emptyList();
     }

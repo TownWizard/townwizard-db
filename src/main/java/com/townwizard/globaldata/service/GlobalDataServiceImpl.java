@@ -16,8 +16,8 @@ import com.townwizard.db.global.model.Location;
 import com.townwizard.db.global.yellopages.service.YellowPagesService;
 import com.townwizard.db.logger.Log;
 
-@Component("globalService")
-public class GlobalServiceImpl implements GlobalService {
+@Component("globalDataService")
+public class GlobalDataServiceImpl implements GlobalDataService {
     
     @Autowired
     private GoogleService googleService;
