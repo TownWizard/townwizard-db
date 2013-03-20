@@ -30,25 +30,21 @@ public class GlobalDataServiceImpl implements GlobalDataService {
 
     @Override
     public List<Location> getLocations(final String zip, String countryCode, final int distanceInMeters) {
-        //return facebookService.getLocations(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);
-        List<Location> googleLocations = 
-                googleService.getLocations(zip, Constants.DEFAULT_COUNTRY_CODE, distanceInMeters);
+
+        List<String> terms = getSearchTerms(zip, countryCode, distanceInMeters);
+        List<Future<List<Location>>> results = new ArrayList<>(terms.size());
         
-        List<Location> finalList = new ArrayList<>();
-        //finalList.addAll(googleLocations);
-        
-                
-        List<Future<List<Location>>> results = new ArrayList<>(googleLocations.size());
-        
-        for(final Location gLocation : googleLocations) {
+        for(final String term : terms) {
             Callable<List<Location>> worker = new Callable<List<Location>>() {
                 @Override
                 public List<Location> call() throws Exception {
-                    return yellowPagesService.getLocations(gLocation.getName(), zip, distanceInMeters);                    
+                    return yellowPagesService.getLocations(term, zip, distanceInMeters);                    
                 }                
             };            
             results.add(executors.submit(worker));
         }
+        
+        List<Location> finalList = new ArrayList<>();
         
         long start = System.currentTimeMillis();
         try {
@@ -61,7 +57,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         }
         long end = System.currentTimeMillis();
         if(Log.isDebugEnabled()) Log.debug(
-                "Executed " + googleLocations.size() + " requests and brought: " + 
+                "Executed " + terms.size() + " requests and brought: " + 
                         finalList.size()  + " locations in " + (end - start) + " ms");        
         
         for(Location l : finalList) {
@@ -71,6 +67,18 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         Collections.sort(finalList, new DistanceComparator());
         
         return finalList;
+    }
+    
+    private List<String> getSearchTerms(String zip, String countryCode, int distanceInMeters) {
+        List<Location> googleLocations = 
+                googleService.getLocations(zip, countryCode, distanceInMeters);
+        
+        List<String> terms = new ArrayList<>(googleLocations.size());
+        for(final Location gLocation : googleLocations) {
+            terms.add(gLocation.getName());
+        }
+        
+        return terms;
     }
     
 }
