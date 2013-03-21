@@ -73,7 +73,8 @@ sudo vim /etc/hosts        #Add two lines below
 
 127.0.0.1       www.townwizardconnect.com
 127.0.0.1       townwizardconnect.com
-
+127.0.0.1       www.townwizardconnectinternal.com
+127.0.0.1       townwizardconnectinternal.com
 
 sudo vim /opt/bitnami/apache2/conf/extra/newv1-httpd-vhosts.conf #Add lines below
 
@@ -84,6 +85,12 @@ sudo vim /opt/bitnami/apache2/conf/extra/newv1-httpd-vhosts.conf #Add lines belo
    ProxyPassReverse / http://localhost:8080/tw/
 </VirtualHost>
 
+<VirtualHost *:80>
+   ServerName townwizardconnectinternal.com
+   ServerAlias www.townwizardconnectinternal.com
+   ProxyPass / http://localhost:8080/tw/
+   ProxyPassReverse / http://localhost:8080/tw/
+</VirtualHost>
 
 sudo apachectl restart
 
