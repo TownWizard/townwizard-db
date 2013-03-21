@@ -130,5 +130,10 @@ public class Location implements DistanceComparable {
         this.distanceInMiles = distanceInMiles;
         this.distance = new Double(distanceInMiles * Constants.METERS_IN_MILE).intValue();
     }
+    
+    @Override
+    public String toString() {
+        return "[" + latitude + "," + longitude + "," + zip + "," + countryCode + "] - " + city;
+    }
 
 }

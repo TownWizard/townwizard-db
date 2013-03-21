@@ -47,8 +47,32 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     }    
 
     @Override
-    public List<Location> getLocations(final String zip, String countryCode, int distanceInMeters) {
-
+    public List<Location> getLocations(String zip, String countryCode, int distanceInMeters) {
+        List<Location> locations = doGetLocations(zip, countryCode, distanceInMeters);        
+        
+        for(Location l : locations) {
+            l.setDistance(locationService.distance(l, zip, countryCode));
+        }        
+        Collections.sort(locations, new DistanceComparator());        
+        return locations;
+    }
+    
+    @Override
+    public List<Location> getLocations(double latitude, double longitude, int distanceInMeters) {
+        Location orig = locationService.getLocation(latitude, longitude);
+        if(orig != null) {
+            List<Location> locations = doGetLocations(orig.getZip(), orig.getCountryCode(), distanceInMeters);
+            
+            for(Location l : locations) {
+                l.setDistance(locationService.distance(orig, l));
+            }        
+            Collections.sort(locations, new DistanceComparator());        
+            return locations;
+        }
+        return Collections.emptyList();
+    }
+    
+    private List<Location> doGetLocations(final String zip, String countryCode, int distanceInMeters) {
         List<String> terms = getSearchTerms(zip, countryCode, distanceInMeters);
         List<Future<List<Location>>> results = new ArrayList<>(terms.size());
         
@@ -80,19 +104,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
                 "Executed " + terms.size() + " requests and brought: " + 
                         finalList.size()  + " locations in " + (end - start) + " ms");        
         
-        for(Location l : finalList) {
-            l.setDistance(locationService.distance(l, zip, countryCode));
-        }
-        
-        Collections.sort(finalList, new DistanceComparator());
-        
-        return finalList;
-    }
-    
-    @Override
-    public List<Location> getLocations(double latitude, double longitude, int distanceInMeters) {
-        // TODO Auto-generated method stub
-        return null;
+        return finalList;        
     }
     
     private List<String> getSearchTerms(String zip, String countryCode, int distanceInMeters) {

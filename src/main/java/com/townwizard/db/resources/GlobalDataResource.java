@@ -58,12 +58,12 @@ public class GlobalDataResource extends ResourceSupport {
     @GET
     @Path("/locations")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response locations(@QueryParam ("zip") String zip) {
+    public Response locations(
+            @QueryParam ("zip") String zip,
+            @QueryParam ("l") String location) {
         try {
-            if(zip != null) {
-                List<Location> locations = getLocations(zip);            
-                return Response.status(Status.OK).entity(locations).build();
-            }
+            List<Location> locations = getLocations(zip, location);
+            return Response.status(Status.OK).entity(locations).build();
         } catch(Exception e) {
             handleGenericException(e);
         }
@@ -73,9 +73,11 @@ public class GlobalDataResource extends ResourceSupport {
     @GET
     @Path("/locations/html")
     @Produces(MediaType.TEXT_HTML)
-    public Response locationsHtml(@QueryParam ("zip") String zip) {
-        try {            
-            List<Location> locations = getLocations(zip);
+    public Response locationsHtml(
+            @QueryParam ("zip") String zip,
+            @QueryParam ("l") String location) {
+        try {
+            List<Location> locations = getLocations(zip, location);
             return Response.status(Status.OK).entity(objectsToHtml(locations)).build();            
         } catch(Exception e) {
             handleGenericException(e);
@@ -90,9 +92,32 @@ public class GlobalDataResource extends ResourceSupport {
         return Collections.emptyList();        
     }
     
-    private List<Location> getLocations(String zip) {
+    private List<Location> getLocations(String zip, String location) {
+        List<Location> locations = null;
         if(zip != null) {
-            return globalDataService.getLocations(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);
+            locations = getLocationsByZip(zip);                
+        } else if (location != null) {
+            locations = getLocationsByLatitudeAndLongitude(location);                    
+        } else {
+            locations = Collections.emptyList();
+        }
+        return locations;
+    }
+    
+    private List<Location> getLocationsByZip(String zip) {
+        return globalDataService.getLocations(zip, DEFAULT_COUNTRY_CODE, DEFAULT_DISTANCE_IN_METERS);
+    }
+    
+    private List<Location> getLocationsByLatitudeAndLongitude(String location) {
+        String[] latAndLon = location.split(",");
+        if(latAndLon.length == 2) {
+            try {
+                double latitude = Double.parseDouble(latAndLon[0]);
+                double longitude = Double.parseDouble(latAndLon[1]);
+                return globalDataService.getLocations(latitude, longitude, DEFAULT_DISTANCE_IN_METERS);
+            } catch (NumberFormatException e) {
+                //nothing to do here, let's just return an empty list
+            }
         }
         return Collections.emptyList();
     }
