@@ -61,17 +61,6 @@ public class LocationServiceImpl implements LocationService {
         Set<Location> lByLongitude = findInMap(locationsByLongitude, lon);
         
         if(lByLatitude != null && lByLongitude != null) {
-            /*
-            for(Location lByLat : lByLatitude) {
-                for(Location lByLon : lByLongitude) {
-                    if(lByLat.getZip().equals(lByLon.getZip()) &&
-                       lByLat.getCountryCode().equals(lByLon.getCountryCode())) {
-                        return lByLat;
-                    }
-                }
-            }
-            */
-            
             Set<Location> allLocations = lByLatitude;
             allLocations.addAll(lByLongitude);
             

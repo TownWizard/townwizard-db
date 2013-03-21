@@ -1,39 +1,70 @@
 package com.townwizard.globaldata.model;
 
-import com.townwizard.db.constants.Constants;
+import java.util.HashSet;
+import java.util.Set;
 
-public class Location implements DistanceComparable {
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToMany;
+import javax.persistence.Transient;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import com.townwizard.db.constants.Constants;
+import com.townwizard.db.model.AbstractEntity;
+
+@Entity
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
+public class Location extends AbstractEntity implements DistanceComparable {
     
+    private static final long serialVersionUID = 3832190748475773728L;
+
     public static enum Source {
-        FACEBOOK, GOOGLE, YELLOW_PAGES
+        NONE(0), YELLOW_PAGES(1), GOOGLE(2), FACEBOOK(3);
+        
+        private int id;
+        private Source(int id) {this.id = id;}        
+        public int getId() { return id; }
     }
     
-    private String id;
+    private String externalId;
     private String name;
-    private String category;
-    private String categories;
     private String zip;
     private String city;
     private String state;
-    private String country;
     private String countryCode;
     private Float latitude;
     private Float longitude;
     private String url;
     private String phone;
     private String street;
+    private String category;
+    @Transient
+    private String categoriesStr;
+    
+    @ManyToMany (mappedBy = "locations", fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    private Set<LocationCategory> categories;
+    @Column(name="source")
+    @Enumerated(EnumType.ORDINAL)
     private Source source;
+    @Transient
     private Integer distance;
+    @Transient
     private Double distanceInMiles;
     
-    public String getId() {
-        return id;
-    }
-    public void setId(String id) {
-        this.id = id;
-    }
     public String getName() {
         return name;
+    }
+    public String getExternalId() {
+        return externalId;
+    }
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
     public void setName(String name) {
         this.name = name;
@@ -61,12 +92,6 @@ public class Location implements DistanceComparable {
     }
     public void setState(String state) {
         this.state = state;
-    }
-    public String getCountry() {
-        return country;
-    }
-    public void setCountry(String country) {
-        this.country = country;
     }
     public String getCountryCode() {
         return countryCode;
@@ -104,10 +129,16 @@ public class Location implements DistanceComparable {
     public void setStreet(String street) {
         this.street = street;
     }
-    public String getCategories() {
+    public String getCategoriesStr() {
+        return categoriesStr;
+    }
+    public void setCategoriesStr(String categoriesStr) {
+        this.categoriesStr = categoriesStr;
+    }
+    public Set<LocationCategory> getCategories() {
         return categories;
     }
-    public void setCategories(String categories) {
+    public void setCategories(Set<LocationCategory> categories) {
         this.categories = categories;
     }
     public Source getSource() {
@@ -129,6 +160,14 @@ public class Location implements DistanceComparable {
     public void setDistanceInMiles(Double distanceInMiles) {
         this.distanceInMiles = distanceInMiles;
         this.distance = new Double(distanceInMiles * Constants.METERS_IN_MILE).intValue();
+    }
+    
+    public void addCategory(LocationCategory c) {
+        if(categories == null) {
+            categories = new HashSet<>();
+        }
+        categories.add(c);
+        c.addLocation(this);
     }
     
     @Override

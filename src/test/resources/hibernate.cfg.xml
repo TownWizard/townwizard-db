@@ -20,5 +20,8 @@
     <mapping class="com.townwizard.db.model.Rating"/>
     <mapping class="com.townwizard.db.model.Event"/>
     <mapping class="com.townwizard.db.model.EventResponse"/>
+    <mapping class="com.townwizard.globaldata.model.LocationIngest"/>
+    <mapping class="com.townwizard.globaldata.model.LocationCategory"/>
+    <mapping class="com.townwizard.globaldata.model.Location"/>
   </session-factory>
 </hibernate-configuration>

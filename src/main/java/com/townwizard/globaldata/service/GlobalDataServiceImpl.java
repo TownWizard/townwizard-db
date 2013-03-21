@@ -97,13 +97,13 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         if(Log.isDebugEnabled()) Log.debug(
                 "Executed " + terms.size() + " requests and brought: " + 
                         finalList.size()  + " locations in " + (end - start) + " ms");        
-
-        if(origin != null) {
-            for(Location l : finalList) {
-                l.setDistance(locationService.distance(origin, l));
-            }        
-            Collections.sort(finalList, new DistanceComparator());
-        }
+        
+        for(Location l : finalList) {
+            l.setCountryCode(countryCode);
+            l.setDistance(locationService.distance(origin, l));
+        }        
+        Collections.sort(finalList, new DistanceComparator());
+        
         return finalList;        
     }
     

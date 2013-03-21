@@ -47,14 +47,13 @@ public class Facebook {
         public com.townwizard.globaldata.model.Location convert() {
             com.townwizard.globaldata.model.Location l = new com.townwizard.globaldata.model.Location();
             l.setSource(com.townwizard.globaldata.model.Location.Source.FACEBOOK);
-            l.setId(id);
+            l.setExternalId(id);
             l.setName(name);
             l.setCategory(category);
             if(location != null) {
                 l.setZip(location.zip);
                 l.setCity(location.city);
                 l.setState(location.state);
-                l.setCountry(location.country);
                 l.setLatitude(new Float(location.latitude));
                 l.setLongitude(new Float(location.longitude));            
             }

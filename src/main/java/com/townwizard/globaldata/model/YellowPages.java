@@ -21,9 +21,9 @@ public class YellowPages {
         public com.townwizard.globaldata.model.Location convert() {
             com.townwizard.globaldata.model.Location l = new com.townwizard.globaldata.model.Location();
             l.setSource(com.townwizard.globaldata.model.Location.Source.YELLOW_PAGES);
-            l.setId(listingId.toString());        
+            l.setExternalId(listingId.toString());        
             l.setName(businessName);
-            l.setCategories(categories);
+            l.setCategoriesStr(categories);
             l.setCity(city);
             if(latitude != null) l.setLatitude(latitude.floatValue());
             if(longitude != null) l.setLongitude(longitude.floatValue());

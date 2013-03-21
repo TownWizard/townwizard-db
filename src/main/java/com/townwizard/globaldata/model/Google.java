@@ -24,7 +24,7 @@ public class Google {
         public com.townwizard.globaldata.model.Location convert() {
             com.townwizard.globaldata.model.Location l = new com.townwizard.globaldata.model.Location();
             l.setSource(com.townwizard.globaldata.model.Location.Source.GOOGLE);
-            l.setId(id);
+            l.setExternalId(id);
             l.setName(name);
             if(geometry != null) {             
                 if(geometry.location != null) {
@@ -37,7 +37,7 @@ public class Google {
                 for(String t : types) {
                     sb.append(t).append("|");
                 }
-                l.setCategories(sb.toString());
+                l.setCategoriesStr(sb.toString());
             }
             return l;
         }
