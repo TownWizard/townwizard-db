@@ -13,7 +13,7 @@ import com.townwizard.db.util.ReflectionUtils;
 import com.townwizard.globaldata.connector.YellowPagesConnector;
 import com.townwizard.globaldata.model.Convertible;
 import com.townwizard.globaldata.model.Location;
-import com.townwizard.globaldata.model.yellopages.YPLocation;
+import com.townwizard.globaldata.model.YellowPages;
 
 @Component("yellowPagesService")
 public class YellowPagesServiceImpl implements YellowPagesService {
@@ -25,7 +25,7 @@ public class YellowPagesServiceImpl implements YellowPagesService {
     public List<Location> getLocations(String term, String zip, double distanceInMiles) {
         try {
             String json = connector.executePlacesRequest(term, zip, distanceInMiles);
-            List<YPLocation> gObjects = jsonToObjects(json, YPLocation.class);
+            List<YellowPages.Location> gObjects = jsonToObjects(json, YellowPages.Location.class);
             List<Location> objects = convertList(gObjects);
             return objects;
         } catch (Exception e) {

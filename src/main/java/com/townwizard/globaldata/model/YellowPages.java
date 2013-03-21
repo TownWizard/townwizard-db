@@ -1,8 +1,8 @@
 package com.townwizard.globaldata.model;
 
-public class YelloPages {
+public class YellowPages {
 
-    public class Location implements Convertible <com.townwizard.globaldata.model.Location> {
+    public static class Location implements Convertible <com.townwizard.globaldata.model.Location> {
 
         private Integer listingId;
         private String businessName;
