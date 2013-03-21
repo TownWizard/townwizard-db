@@ -106,15 +106,6 @@ public class LocationServiceImpl implements LocationService {
     }
     
     @Override
-    public Integer distance(Location location, String zip, String countryCode) {
-        List<Location> locations = getLocations(zip, countryCode);
-        if(locations != null && !locations.isEmpty()) {
-            return distance (location, locations.get(0));    
-        }
-        return null;
-    }
-    
-    @Override
     public Integer distance(Location location1, Location location2) {
         if(location1 != null && location2 != null) {
             Float lat1 = location1.getLatitude();

@@ -10,7 +10,6 @@ public interface LocationService {
     Location getPrimaryLocation(String zip, String countryCode);
     Location getLocation(double latitude, double longitude);
     List<String> getCities(String zip, String countryCode);
-    Integer distance(Location location, String zip, String countryCode);
     Integer distance(Location location1, Location location2);
 
 }

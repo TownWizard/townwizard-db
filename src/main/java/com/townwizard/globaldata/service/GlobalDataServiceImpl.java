@@ -33,46 +33,40 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     
     @Override
     public List<Event> getEvents(String zip, String countryCode) {
-        List<String> terms = locationService.getCities(zip, countryCode);
-        List<Event> events = facebookService.getEvents(terms);
-        Location orig = locationService.getPrimaryLocation(zip, countryCode);
-        populateEventDistances(orig, countryCode, events);
-        Collections.sort(events, new DistanceComparator());
-        return events;
+        Location origin = locationService.getPrimaryLocation(zip, countryCode);
+        return getEvents(zip, countryCode, origin);
     }
 
     @Override
     public List<Event> getEvents(double latitude, double longitude) {
-        throw new UnsupportedOperationException("Not implemented");
+        Location origin = locationService.getLocation(latitude, longitude);
+        return getEvents(origin.getZip(), origin.getCountryCode(), origin);
     }    
 
     @Override
     public List<Location> getLocations(String zip, String countryCode, int distanceInMeters) {
-        List<Location> locations = doGetLocations(zip, countryCode, distanceInMeters);        
-        
-        for(Location l : locations) {
-            l.setDistance(locationService.distance(l, zip, countryCode));
-        }        
-        Collections.sort(locations, new DistanceComparator());        
-        return locations;
+        Location origin = locationService.getPrimaryLocation(zip, countryCode);
+        return getLocations(zip, countryCode, distanceInMeters, origin);        
     }
     
     @Override
     public List<Location> getLocations(double latitude, double longitude, int distanceInMeters) {
         Location orig = locationService.getLocation(latitude, longitude);
-        if(orig != null) {
-            List<Location> locations = doGetLocations(orig.getZip(), orig.getCountryCode(), distanceInMeters);
-            
-            for(Location l : locations) {
-                l.setDistance(locationService.distance(orig, l));
-            }        
-            Collections.sort(locations, new DistanceComparator());        
-            return locations;
-        }
-        return Collections.emptyList();
+        return getLocations(orig.getZip(), orig.getCountryCode(), distanceInMeters, orig);
     }
     
-    private List<Location> doGetLocations(final String zip, String countryCode, int distanceInMeters) {
+    private List<Event> getEvents(String zip, String countryCode, Location origin) {
+        List<String> terms = locationService.getCities(zip, countryCode);
+        List<Event> events = facebookService.getEvents(terms);
+        if(origin != null) {
+            populateEventDistances(origin, countryCode, events);
+            Collections.sort(events, new DistanceComparator());
+        }
+        return events;        
+    }
+    
+    private List<Location> getLocations(
+            final String zip, String countryCode, int distanceInMeters, Location origin) {
         List<String> terms = getSearchTerms(zip, countryCode, distanceInMeters);
         List<Future<List<Location>>> results = new ArrayList<>(terms.size());
         
@@ -103,7 +97,13 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         if(Log.isDebugEnabled()) Log.debug(
                 "Executed " + terms.size() + " requests and brought: " + 
                         finalList.size()  + " locations in " + (end - start) + " ms");        
-        
+
+        if(origin != null) {
+            for(Location l : finalList) {
+                l.setDistance(locationService.distance(origin, l));
+            }        
+            Collections.sort(finalList, new DistanceComparator());
+        }
         return finalList;        
     }
     
@@ -126,14 +126,17 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             Double eLat = e.getLatitude();
             Double eLon = e.getLongitude();
             String eZip = e.getZip();
+            Location eventLocation = null;
             if(eLat != null && eLon != null) {
-                Location eventLocation = new Location();
+                eventLocation = new Location();
                 eventLocation.setLatitude(eLat.floatValue());
                 eventLocation.setLongitude(eLon.floatValue());
-                e.setDistance(locationService.distance(origLocation, eventLocation));
-            } else if(eZip != null) {
-                e.setDistance(locationService.distance(origLocation, eZip, countryCode));
+            } else if (eZip != null) {
+                eventLocation = locationService.getPrimaryLocation(eZip, countryCode);
             }
+            if(eventLocation != null) {
+                e.setDistance(locationService.distance(origLocation, eventLocation));
+            }            
         }
     }
 }

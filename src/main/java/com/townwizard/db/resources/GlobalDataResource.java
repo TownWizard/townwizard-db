@@ -32,9 +32,11 @@ public class GlobalDataResource extends ResourceSupport {
     @GET
     @Path("/events")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response events(@QueryParam ("zip") String zip) {
+    public Response events(
+            @QueryParam ("zip") String zip,
+            @QueryParam ("l") String location) {
         try {
-            List<Event> events = getEvents(zip);
+            List<Event> events = getEvents(zip, location);
             return Response.status(Status.OK).entity(events).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -45,9 +47,11 @@ public class GlobalDataResource extends ResourceSupport {
     @GET
     @Path("/events/html")
     @Produces(MediaType.TEXT_HTML)
-    public Response eventsHtml(@QueryParam ("zip") String zip) {
+    public Response eventsHtml(
+            @QueryParam ("zip") String zip,
+            @QueryParam ("l") String location) {
         try {
-            List<Event> events = getEvents(zip);
+            List<Event> events = getEvents(zip, location);
             return Response.status(Status.OK).entity(objectsToHtml(events)).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -85,17 +89,34 @@ public class GlobalDataResource extends ResourceSupport {
         return Response.status(Status.BAD_REQUEST).build();
     }    
         
-    private List<Event> getEvents(String zip) {
+    private List<Event> getEvents(String zip, String location) {
+        List<Event> events = null;
         if(zip != null) {
-            return globalDataService.getEvents(zip, DEFAULT_COUNTRY_CODE);            
+            events = getEventsByZip(zip);
+        } else if (location != null) {
+            events = getEventsByLatitudeAndLongitude(location);
+        } else {
+            events = Collections.emptyList();
         }
-        return Collections.emptyList();        
+        return events;
+    }
+    
+    private List<Event> getEventsByZip(String zip) {
+        return globalDataService.getEvents(zip, DEFAULT_COUNTRY_CODE);
+    }
+    
+    private List<Event> getEventsByLatitudeAndLongitude(String location) {
+        double[] coords = getLatitudeAndLongitudeFromParam(location);
+        if(coords != null) {
+            return globalDataService.getEvents(coords[0], coords[1]);
+        }        
+        return Collections.emptyList();
     }
     
     private List<Location> getLocations(String zip, String location) {
         List<Location> locations = null;
         if(zip != null) {
-            locations = getLocationsByZip(zip);                
+            locations = getLocationsByZip(zip);
         } else if (location != null) {
             locations = getLocationsByLatitudeAndLongitude(location);                    
         } else {
@@ -109,17 +130,25 @@ public class GlobalDataResource extends ResourceSupport {
     }
     
     private List<Location> getLocationsByLatitudeAndLongitude(String location) {
+        double[] coords = getLatitudeAndLongitudeFromParam(location);
+        if(coords != null) {
+            return globalDataService.getLocations(coords[0], coords[1], DEFAULT_DISTANCE_IN_METERS);
+        }        
+        return Collections.emptyList();
+    }
+    
+    private double[] getLatitudeAndLongitudeFromParam(String location) {
         String[] latAndLon = location.split(",");
         if(latAndLon.length == 2) {
             try {
                 double latitude = Double.parseDouble(latAndLon[0]);
                 double longitude = Double.parseDouble(latAndLon[1]);
-                return globalDataService.getLocations(latitude, longitude, DEFAULT_DISTANCE_IN_METERS);
+                return new double[]{latitude, longitude}; 
             } catch (NumberFormatException e) {
-                //nothing to do here, let's just return an empty list
+                //nothing to do here, let's just return null
             }
         }
-        return Collections.emptyList();
+        return null;
     }
         
     private String objectsToHtml(List<?> objects) {
