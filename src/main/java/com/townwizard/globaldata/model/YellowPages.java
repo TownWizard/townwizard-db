@@ -15,7 +15,7 @@ public class YellowPages {
         private String primaryCategory;
         private String state;
         private String street;
-        private Integer zip;
+        private String zip;
 
         @Override
         public com.townwizard.globaldata.model.Location convert() {

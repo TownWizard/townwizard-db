@@ -1,8 +1,11 @@
 package com.townwizard.globaldata.service;
 
+
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,12 +13,16 @@ import java.util.concurrent.Future;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.townwizard.db.constants.Constants;
 import com.townwizard.db.logger.Log;
+import com.townwizard.db.util.DateUtils;
+import com.townwizard.globaldata.dao.LocationDao;
 import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.model.LocationIngest;
 
 @Component("globalDataService")
 public class GlobalDataServiceImpl implements GlobalDataService {
@@ -28,6 +35,8 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     private YellowPagesService yellowPagesService;
     @Autowired
     private LocationService locationService;
+    @Autowired
+    private LocationDao locationDao;
     
     private ExecutorService executors = Executors.newFixedThreadPool(60);
     
@@ -44,12 +53,14 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     }    
 
     @Override
+    @Transactional
     public List<Location> getLocations(String zip, String countryCode, int distanceInMeters) {
         Location origin = locationService.getPrimaryLocation(zip, countryCode);
         return getLocations(zip, countryCode, distanceInMeters, origin);        
     }
     
     @Override
+    @Transactional
     public List<Location> getLocations(double latitude, double longitude, int distanceInMeters) {
         Location orig = locationService.getLocation(latitude, longitude);
         return getLocations(orig.getZip(), orig.getCountryCode(), distanceInMeters, orig);
@@ -65,8 +76,57 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return events;        
     }
     
-    private List<Location> getLocations(
-            final String zip, String countryCode, int distanceInMeters, Location origin) {
+    private List<Location> getLocations(String zip, String countryCode, int distanceInMeters, Location origin) {
+        List<Location> locations = null;
+        LocationIngest ingest = locationDao.getLocationIngest(zip, countryCode);
+        if(!locationIngestRequired(ingest, distanceInMeters)) {
+            Set<Location> ingestLocations = ingest.getLocations();
+            locations = new ArrayList<>(ingestLocations.size());
+            locations.addAll(ingestLocations);
+        } else {
+            locations = getLocationsFromSource(zip, countryCode, distanceInMeters);
+            if(!locations.isEmpty()) {
+                LocationIngest updatedIngest = 
+                        createOrUpdateLocationIngest(ingest, zip, countryCode, distanceInMeters);
+                locationDao.saveLocations(locations, updatedIngest);
+            }
+        }
+        
+        for(Location l : locations) {
+            l.setDistance(locationService.distance(origin, l));
+        }        
+        Collections.sort(locations, new DistanceComparator());        
+        
+        return locations;
+    }
+    
+    private boolean locationIngestRequired(LocationIngest ingest, int distanceInMeters) {
+        return ingest == null ||
+               ingest.getDistance() < distanceInMeters ||
+               DateUtils.addDays(ingest.getUpdated(), Constants.REFRESH_LOCATIONS_PERIOD_IN_DAYS).before(new Date());  
+    }
+    
+    private LocationIngest createOrUpdateLocationIngest(
+            LocationIngest ingest, String zip, String countryCode, int distanceInMeters) {
+        if(ingest != null) {
+            ingest.setDistance(distanceInMeters);
+            locationDao.update(ingest);
+            return ingest;
+        }
+        
+        LocationIngest newIngest = new LocationIngest();
+        newIngest.setZip(zip);
+        newIngest.setCountryCode(countryCode);
+        newIngest.setDistance(distanceInMeters);
+        locationDao.create(newIngest);
+        return newIngest;
+    }
+    
+    private List<Location> getLocationsFromSource(
+            final String zip, String countryCode, int distanceInMeters) {
+        
+        if(Log.isInfoEnabled()) Log.info("Getting locations from source for zip: " + zip);
+        
         List<String> terms = getSearchTerms(zip, countryCode, distanceInMeters);
         List<Future<List<Location>>> results = new ArrayList<>(terms.size());
         
@@ -94,16 +154,14 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             throw new RuntimeException(e);
         }
         long end = System.currentTimeMillis();
-        if(Log.isDebugEnabled()) Log.debug(
+        if(Log.isInfoEnabled()) Log.info(
                 "Executed " + terms.size() + " requests and brought: " + 
                         finalList.size()  + " locations in " + (end - start) + " ms");        
         
         for(Location l : finalList) {
             l.setCountryCode(countryCode);
-            l.setDistance(locationService.distance(origin, l));
-        }        
-        Collections.sort(finalList, new DistanceComparator());
-        
+        }
+
         return finalList;        
     }
     

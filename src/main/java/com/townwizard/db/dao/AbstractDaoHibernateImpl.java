@@ -37,7 +37,6 @@ public abstract class AbstractDaoHibernateImpl implements AbstractDao {
     }
     
     public <T extends AbstractEntity> void update(T entity) {
-        entity.setActive(true);
         if(entity instanceof AuditableEntity) {
             ((AuditableEntity) entity).setUpdated(new Date());
         }

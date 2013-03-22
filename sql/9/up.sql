@@ -10,6 +10,20 @@ PREPARE stmt FROM @stmt;
 EXECUTE stmt;
 -- ////////////////////////////////////////// --
 
+CREATE TABLE LocationIngest (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  created DATETIME NOT NULL,
+  updated DATETIME NOT NULL,
+  active BIT NOT NULL,
+  zip VARCHAR(10),
+  country_code CHAR(2),
+  distance INTEGER,
+  CONSTRAINT pk_location_ingest PRIMARY KEY (id),
+  CONSTRAINT unq_location_ingest UNIQUE(zip, country_code)
+) ENGINE = InnoDB;
+
+CREATE INDEX idx_location_ingest ON LocationIngest (zip, country_code, distance);
+
 CREATE TABLE LocationCategory (
   id BIGINT NOT NULL AUTO_INCREMENT,
   name VARCHAR(100),
@@ -29,36 +43,31 @@ CREATE TABLE Location (
   zip VARCHAR(10),
   country_code CHAR(2) NOT NULL,
   phone VARCHAR(20),
-  latitude FLOAT,
-  longitude FLOAT,
+  latitude DOUBLE,
+  longitude DOUBLE,
   url VARCHAR(500),
   source INTEGER NOT NULL,
-  CONSTRAINT pk_location PRIMARY KEY (id)
+  CONSTRAINT pk_location PRIMARY KEY (id),
+  CONSTRAINT unq_location UNIQUE(external_id, source)  
 ) ENGINE = InnoDB;
-
-CREATE INDEX idx_location ON Location (zip, country_code);
 
 CREATE TABLE Location_LocationCategory (
   id BIGINT NOT NULL AUTO_INCREMENT,
   location_id BIGINT NOT NULL,
   location_category_id BIGINT NOT NULL,
   CONSTRAINT pk_loc_loccat PRIMARY KEY (id),
-  CONSTRAINT fk_location FOREIGN KEY(location_id) REFERENCES Location(id),
-  CONSTRAINT fk_location_category FOREIGN KEY(location_category_id) REFERENCES LocationCategory(id)
+  CONSTRAINT fk_lc_location FOREIGN KEY(location_id) REFERENCES Location(id),
+  CONSTRAINT fk_lc_location_category FOREIGN KEY(location_category_id) REFERENCES LocationCategory(id)
 ) ENGINE = InnoDB;
 
-CREATE TABLE LocationIngest (
+CREATE TABLE Location_LocationIngest (
   id BIGINT NOT NULL AUTO_INCREMENT,
-  created DATETIME NOT NULL,
-  updated DATETIME NOT NULL,
-  active BIT NOT NULL,
-  zip VARCHAR(10),
-  country_code CHAR(2),
-  distance INTEGER,
-  CONSTRAINT pk_location_ingest PRIMARY KEY (id)
+  location_id BIGINT NOT NULL,
+  location_ingest_id BIGINT NOT NULL,
+  CONSTRAINT pk_loc_locingest PRIMARY KEY (id),
+  CONSTRAINT fk_li_location FOREIGN KEY(location_id) REFERENCES Location(id),
+  CONSTRAINT fk_li_location_ingest FOREIGN KEY(location_ingest_id) REFERENCES LocationIngest(id)
 ) ENGINE = InnoDB;
-
-CREATE INDEX idx_location_ingest ON LocationIngest (zip, country_code, distance);
 
 -- ////////////////////////////////////////// --
 -- update migration

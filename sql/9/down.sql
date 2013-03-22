@@ -10,10 +10,11 @@ PREPARE stmt FROM @stmt;
 EXECUTE stmt;
 -- ////////////////////////////////////////// --
 
-DROP TABLE LocationIngest;
+DROP TABLE Location_LocationIngest;
 DROP TABLE Location_LocationCategory;
 DROP TABLE Location;
 DROP TABLE LocationCategory;
+DROP TABLE LocationIngest;
 
 -- ////////////////////////////////////////// --
 -- update migration

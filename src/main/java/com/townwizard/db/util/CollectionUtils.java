@@ -7,6 +7,10 @@ public final class CollectionUtils {
     
     private CollectionUtils() {}
 
+    public static String join(List<?> list) {
+        return join(list, null, null);
+    }
+    
     public static String join(List<?> list, String separator, String encloser) {        
         if(list == null || list.isEmpty()) return "";
         String sep = separator != null ? separator : ",";

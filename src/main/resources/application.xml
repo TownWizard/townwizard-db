@@ -33,6 +33,7 @@
     <property name="packagesToScan">
       <list>
         <value>com.townwizard.db.model</value>
+        <value>com.townwizard.globaldata.model</value>
       </list>
     </property>
     <property name="hibernateProperties">

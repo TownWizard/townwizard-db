@@ -50,11 +50,7 @@ public class LocationTest extends TestSupport {
     @Test
     public void testLocationIngest() {
         try {
-            LocationIngest i = new LocationIngest();
-            i.setZip("10308");
-            i.setDistance(2000);
-            i.setCountryCode("US");           
-            
+            LocationIngest i = createLocationIngest();
             session.save(i);
             Long id = i.getId();
             assertNotNull("Location ingest id should not be null after save()", id);            
@@ -111,7 +107,7 @@ public class LocationTest extends TestSupport {
             assertNotNull("Location should be found in db after save() by id", fromDb);
             assertTrue("Retrieved location must match the original one after save()", locationsEqual(l, fromDb));
             
-            fromDb.setCategory("Restaurants");
+            fromDb.setCategory("Unique category name 2");
             session.save(fromDb);
             
             fromDb = getLocationById(id);            
@@ -137,7 +133,7 @@ public class LocationTest extends TestSupport {
             assertEquals("Location must reject duplicate category", 1, l.getCategories().size());
             
             LocationCategory c2 = new LocationCategory();
-            c2.setName("Pizza");
+            c2.setName("Unique category name 3");
             l.addCategory(c2);
             assertEquals("Location must accept non-duplicate category", 2, l.getCategories().size());
             
@@ -176,12 +172,20 @@ public class LocationTest extends TestSupport {
 
     private LocationCategory createLocationCategory() {
         LocationCategory c = new LocationCategory();
-        c.setName("Restaurants");
+        c.setName("Unique category name");
         return c;
     }
     
+    private LocationIngest createLocationIngest() {
+        LocationIngest i = new LocationIngest();
+        i.setZip("00000");
+        i.setDistance(2000);
+        i.setCountryCode("US"); 
+        return i;
+    }
+    
     private Location createLocation() {
-        Location l = new Location();
+        Location l = new Location();        
         l.setCity("Staten Island");
         l.setCountryCode("US");
         l.setCategory("Pizza");
@@ -194,7 +198,7 @@ public class LocationTest extends TestSupport {
         l.setState("NY");
         l.setStreet("1234 Hilan Blvd");
         l.setUrl("http://c.ypcdn.com/2/c/rtd?vrid=e938536c6b70c0c9c1e8d6ffaa32053b&rid=d73bd11c-ccc6-44e9-8a75-da8e6cf99d2d&ptid=943aw4l8qj&ypid=2816456&lid=2816456&tl=7&lsrc=MDM&dest=http%3A%2F%2Fwww.yellowpages.com%2Fstaten-island-ny%2Fmip%2Fnew-york-public-library-2816456%3Ffrom%3Dpubapi_943aw4l8qj");
-        l.setZip("10308");
+        l.setZip("00000");
         return l;
     }
     

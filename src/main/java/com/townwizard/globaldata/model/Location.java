@@ -1,6 +1,10 @@
 package com.townwizard.globaldata.model;
 
+
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -12,11 +16,13 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
 import javax.persistence.Transient;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.townwizard.db.constants.Constants;
 import com.townwizard.db.model.AbstractEntity;
+import com.townwizard.db.util.StringUtils;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
@@ -44,11 +50,14 @@ public class Location extends AbstractEntity implements DistanceComparable {
     private String phone;
     private String street;
     private String category;
-    @Transient
+    @JsonIgnore @Transient
     private String categoriesStr;
-    
+    @JsonIgnore
     @ManyToMany (mappedBy = "locations", fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     private Set<LocationCategory> categories;
+    @JsonIgnore
+    @ManyToMany (mappedBy = "locations", fetch=FetchType.LAZY)
+    private Set<LocationIngest> ingests;
     @Column(name="source")
     @Enumerated(EnumType.ORDINAL)
     private Source source;
@@ -57,14 +66,14 @@ public class Location extends AbstractEntity implements DistanceComparable {
     @Transient
     private Double distanceInMiles;
     
-    public String getName() {
-        return name;
-    }
     public String getExternalId() {
         return externalId;
     }
     public void setExternalId(String externalId) {
         this.externalId = externalId;
+    }
+    public String getName() {
+        return name;
     }
     public void setName(String name) {
         this.name = name;
@@ -141,6 +150,12 @@ public class Location extends AbstractEntity implements DistanceComparable {
     public void setCategories(Set<LocationCategory> categories) {
         this.categories = categories;
     }
+    public Set<LocationIngest> getIngests() {
+        return ingests;
+    }
+    public void setIngests(Set<LocationIngest> ingests) {
+        this.ingests = ingests;
+    }
     public Source getSource() {
         return source;
     }
@@ -162,6 +177,24 @@ public class Location extends AbstractEntity implements DistanceComparable {
         this.distance = new Double(distanceInMiles * Constants.METERS_IN_MILE).intValue();
     }
     
+    @JsonIgnore
+    public Set<String> extractCategoryNames() {
+        Set<String> cats = StringUtils.split(categoriesStr, "\\|");
+        cats.addAll(StringUtils.split(category, "\\|"));
+        return cats;
+    }
+    
+    public List<String> getCategoryNames() {
+        List<String> result = new LinkedList<>();
+        if(categories != null) {
+            for(LocationCategory c : categories) {
+                result.add(c.getName());
+            }
+        }
+        Collections.sort(result);
+        return result;
+    }
+    
     public void addCategory(LocationCategory c) {
         if(categories == null) {
             categories = new HashSet<>();
@@ -169,6 +202,14 @@ public class Location extends AbstractEntity implements DistanceComparable {
         categories.add(c);
         c.addLocation(this);
     }
+    
+    public void addIngest(LocationIngest i) {
+        if(ingests == null) {
+            ingests = new HashSet<>();
+        }
+        ingests.add(i);
+        i.addLocation(this);
+    }    
     
     @Override
     public String toString() {

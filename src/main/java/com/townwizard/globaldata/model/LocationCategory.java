@@ -79,7 +79,12 @@ public class LocationCategory implements Serializable {
         boolean idsEqual = compareWithNulls(id, other.id);
         boolean namesEqual = compareWithNulls(name, other.name);
         return idsEqual && namesEqual;
-    } 
+    }
+    
+    @Override
+    public String toString() {
+        return name;
+    }
     
     private boolean compareWithNulls(Object o1, Object o2) {
         if(o1 != null && o2 != null) return o1.equals(o2);

@@ -36,4 +36,14 @@ public final class DateUtils {
         return c.getTime();
     }
     
+    /**
+     * Add days to a date 
+     */
+    public static Date addDays(Date date, int days){
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);        
+        c.set(Calendar.DAY_OF_YEAR, c.get(Calendar.DAY_OF_YEAR) + days);
+        return c.getTime();
+    }
+    
 }
