@@ -194,6 +194,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         }
         
         List<Event> eventsFiltered = filterEventsByDate(events);
+        eventsFiltered = filterEventsByDistance(events);
         
         Collections.sort(eventsFiltered, new Comparator<Event>() {
             @Override
@@ -286,6 +287,17 @@ public class GlobalDataServiceImpl implements GlobalDataService {
                 endDate.getTime() : (startDate != null ? DateUtils.ceiling(startDate.getTime()) : null);
                 
             if(latestTime == null || now == null || latestTime.after(now)) {
+                result.add(e);
+            }
+        }
+        return result;
+    }
+    
+    private List<Event> filterEventsByDistance(List<Event> events) {
+        List<Event> result = new ArrayList<>(events.size());        
+        for(Event e : events) {
+            Integer distance = e.getDistance();
+            if(distance == null || distance <= Constants.DEFAULT_DISTANCE_IN_METERS) {
                 result.add(e);
             }
         }
