@@ -3,6 +3,7 @@ package com.townwizard.db.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import org.codehaus.jettison.json.JSONArray;
@@ -77,9 +78,12 @@ public final class ReflectionUtils {
                             } else {
                                 sb.append("<a href=\"").append(value).append("\">").append(value).append("</a><br/>");
                             }
-                        }else {
+                        } else if(value instanceof Calendar) {
                             sb.append("<span>").append(f.getName()).append(":&nbsp;")
-                              .append(value).append("</span><br/>");
+                                .append(((Calendar)value).getTime()).append("</span><br/>");
+                        } else {
+                            sb.append("<span>").append(f.getName()).append(":&nbsp;")
+                                .append(value).append("</span><br/>");
                         }
                     } else {
                         sb.append(f.getName()).append(":&nbsp;").append(toHtml(value, indent+1));
@@ -139,6 +143,7 @@ public final class ReflectionUtils {
                klass == Integer.class ||
                klass == Float.class ||
                klass == Double.class ||
+               klass == Calendar.class ||
                klass.isEnum();
     }
 }

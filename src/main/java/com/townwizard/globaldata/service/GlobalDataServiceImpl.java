@@ -1,11 +1,17 @@
 package com.townwizard.globaldata.service;
 
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.townwizard.db.constants.Constants;
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.DateUtils;
+import com.townwizard.globaldata.dao.GlobalDataDao;
 import com.townwizard.globaldata.dao.LocationDao;
 import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Event;
@@ -37,6 +44,8 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     private LocationService locationService;
     @Autowired
     private LocationDao locationDao;
+    @Autowired
+    private GlobalDataDao globalDataDao;
     
     private ExecutorService executors = Executors.newFixedThreadPool(60);
     
@@ -69,11 +78,8 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     private List<Event> getEvents(String zip, String countryCode, Location origin) {
         List<String> terms = locationService.getCities(zip, countryCode);
         List<Event> events = facebookService.getEvents(terms);
-        if(origin != null) {
-            populateEventDistances(origin, countryCode, events);
-            Collections.sort(events, new DistanceComparator());
-        }
-        return events;        
+        List<Event> processedEvents = postProcessEvents(origin, countryCode, events);
+        return processedEvents;
     }
     
     private List<Location> getLocations(String zip, String countryCode, int distanceInMeters, Location origin) {
@@ -179,22 +185,110 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return Collections.emptyList();
     }
     
-    private void populateEventDistances(Location origLocation, String countryCode, List<Event> events) {
+    private List<Event> postProcessEvents(Location origin, String countryCode, List<Event> events) {
         for(Event e : events) {
-            Double eLat = e.getLatitude();
-            Double eLon = e.getLongitude();
-            String eZip = e.getZip();
-            Location eventLocation = null;
-            if(eLat != null && eLon != null) {
-                eventLocation = new Location();
-                eventLocation.setLatitude(eLat.floatValue());
-                eventLocation.setLongitude(eLon.floatValue());
-            } else if (eZip != null) {
-                eventLocation = locationService.getPrimaryLocation(eZip, countryCode);
+            if(origin != null) {
+                setEventDistance(e, countryCode, origin);
             }
-            if(eventLocation != null) {
-                e.setDistance(locationService.distance(origLocation, eventLocation));
-            }            
+            setEventDates(e);
         }
+        
+        List<Event> eventsFiltered = filterEventsByDate(events);
+        
+        Collections.sort(eventsFiltered, new Comparator<Event>() {
+            @Override
+            public int compare(Event e1, Event e2) {
+                Calendar e1Start = e1.getStartDate();
+                Calendar e2Start = e2.getStartDate();
+                if(e1Start != null && e2Start != null) {
+                    return e1Start.compareTo(e2Start);
+                } else if(e1Start != null && e2Start == null) {
+                    return -1;
+                } else if(e1Start == null && e2Start != null) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
+        
+        return eventsFiltered;
+    }
+    
+    private void setEventDistance(Event e, String countryCode, Location origin) {
+        Double eLat = e.getLatitude();
+        Double eLon = e.getLongitude();
+        String eZip = e.getZip();
+        Location eventLocation = null;
+        if(eLat != null && eLon != null) {
+            eventLocation = new Location();
+            eventLocation.setLatitude(eLat.floatValue());
+            eventLocation.setLongitude(eLon.floatValue());
+        } else if (eZip != null) {
+            eventLocation = locationService.getPrimaryLocation(eZip, countryCode);
+        }
+        if(eventLocation != null) {
+            e.setDistance(locationService.distance(origin, eventLocation));
+        }
+    }
+    
+    
+    private static final TimeZone GMT = TimeZone.getTimeZone("GMT");
+    private static final DateFormat FB_EVENT_DATE_FORMAT_TIME = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+    static { FB_EVENT_DATE_FORMAT_TIME.setTimeZone(GMT); }    
+    private static final DateFormat FB_EVENT_DATE_FORMAT_DATE_ONLY = new SimpleDateFormat("yyyy-MM-dd");
+    private static final int FB_EVENT_DATE_FORMAT_DATE_ONLY_LENGTH = "yyyy-MM-dd".length();    
+    
+    private void setEventDates(Event e) {
+        e.setStartDate(calculateEventDate(e, e.getStartTime()));
+        e.setEndDate(calculateEventDate(e, e.getEndTime()));
+    }
+    
+    private Calendar calculateEventDate(Event e, String timeStr) {
+        if(timeStr == null) return null;
+        Calendar date = null;
+        try {
+            if(timeStr.length() > FB_EVENT_DATE_FORMAT_DATE_ONLY_LENGTH) {
+                DateFormat format = FB_EVENT_DATE_FORMAT_TIME;
+                date = Calendar.getInstance();
+                date.setTimeZone(GMT);
+                date.setTime(format.parse(timeStr));
+            } else {
+                DateFormat format = FB_EVENT_DATE_FORMAT_DATE_ONLY;
+                format.setTimeZone(GMT);
+                
+                String zip = e.getZip();
+                if(zip != null) {
+                    String timeZone = globalDataDao.getTimeZone(e.getZip());
+                    if(timeZone != null) {
+                        format.setTimeZone(TimeZone.getTimeZone(timeZone));                        
+                    }
+                }
+                date = Calendar.getInstance();
+                date.setTimeZone(format.getTimeZone());
+                date.setTime(format.parse(timeStr));            
+            }
+        } catch (ParseException ex) {
+          //nothing keep the date null
+        }
+        return date;
+    }
+        
+    private List<Event> filterEventsByDate(List<Event> events) {
+        List<Event> result = new ArrayList<>(events.size());        
+        for(Event e : events) {
+            Calendar startDate = e.getStartDate();
+            Calendar endDate = e.getEndDate();
+            
+            Date now = startDate != null ? DateUtils.now(startDate.getTimeZone()) : 
+                (endDate != null ? DateUtils.now(endDate.getTimeZone()) : null);
+            
+            Date latestTime = endDate != null ?
+                endDate.getTime() : (startDate != null ? DateUtils.ceiling(startDate.getTime()) : null);
+                
+            if(latestTime == null || now == null || latestTime.after(now)) {
+                result.add(e);
+            }
+        }
+        return result;
     }
 }

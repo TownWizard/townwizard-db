@@ -1,5 +1,9 @@
 package com.townwizard.globaldata.model;
 
+
+import java.util.Calendar;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import com.townwizard.db.constants.Constants;
@@ -26,6 +30,10 @@ public class Event implements DistanceComparable {
     private String startTime;
     private String endTime;
     private String link;
+    @JsonIgnore
+    private Calendar startDate;
+    @JsonIgnore
+    private Calendar endDate;
     
     public String getStreet() {
         return street;
@@ -143,5 +151,27 @@ public class Event implements DistanceComparable {
     public void setLink(String link) {
         this.link = link;
     }
+    public Calendar getStartDate() {
+        return startDate;
+    }
+    public void setStartDate(Calendar startDate) {
+        this.startDate = startDate;
+    }
+    public Calendar getEndDate() {
+        return endDate;
+    }
+    public void setEndDate(Calendar endDate) {
+        this.endDate = endDate;
+    }
+
+    @JsonIgnore
+    public String getStartDateStr() {
+        return (startDate != null) ? startDate.getTime().toString() : null;
+    }
+    @JsonIgnore
+    public String getEndDateStr() {
+        return (endDate != null) ? endDate.getTime().toString() : null;
+    }
+    
     
 }
