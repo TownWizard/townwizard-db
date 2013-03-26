@@ -22,7 +22,7 @@ CREATE TABLE LocationIngest (
   CONSTRAINT unq_location_ingest UNIQUE(zip, country_code)
 ) ENGINE = InnoDB;
 
-CREATE INDEX idx_location_ingest ON LocationIngest (zip, country_code, distance);
+ALTER TABLE LocationIngest ADD INDEX idx_location_ingest (zip, country_code, distance);
 
 CREATE TABLE LocationCategory (
   id BIGINT NOT NULL AUTO_INCREMENT,

@@ -17,7 +17,7 @@ CREATE TABLE Event (
   CONSTRAINT fk_event_content FOREIGN KEY(id) REFERENCES Content(id)
 ) ENGINE = InnoDB;
 
-CREATE INDEX idx_event_date ON Event(date);
+ALTER TABLE Event ADD INDEX idx_event_date (date);
 
 CREATE TABLE EventResponse (
   id BIGINT NOT NULL AUTO_INCREMENT,
