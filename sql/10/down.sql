@@ -10,7 +10,7 @@ PREPARE stmt FROM @stmt;
 EXECUTE stmt;
 -- ////////////////////////////////////////// --
 
-DROP TABLE geo.timezonebyzipcode;
+DROP TABLE geo.TimeZones;
 
 DROP DATABASE geo;
 

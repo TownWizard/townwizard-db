@@ -2,6 +2,7 @@
 
 import os
 import sys
+import zipfile
 
 def main(argv):
     if os.getcwd().find('/sql') == -1:
@@ -43,19 +44,41 @@ def getAvailableMigrations():
             if migration > max: max = migration
         except:
             pass
-    return max
+    return max    
  
 def migrate(current, to):
     if(current < to):
         for m in range(current+1, to+1):
-            os.system("mysql -uroot -pbitnami < %d/up.sql" % m)
+            extractZipFiles(str(m))             
+            os.system("mysql -uroot -pbitnami < %d/up.sql" % m)            
+            deleteALlButSQLandZipFiles(str(m))
         print "Migrated to %d" % to
     elif(current > to):
         for m in range(current, to, -1):
             os.system("mysql -uroot -pbitnami < %d/down.sql" % m)
         print "Migrated to %d" % to
     else:
-        print "Currently on migration %d" % to        
+        print "Currently on migration %d" % to
+                
+def extractZipFiles(migration):
+    zipFiles = filter (lambda s:s.find(".zip") != -1, os.listdir(migration))
+
+    if zipFiles != []:
+        for zFile in zipFiles:
+            print "Uncompressing " + zFile
+            archive = zipfile.ZipFile(migration + "/" + zFile)            
+            for name in archive.namelist():
+                print "Extracting " + name
+                f = open(migration + "/" + name, "w")
+                f.write(archive.read(name))
+                f.close()
+                
+def deleteALlButSQLandZipFiles(migration):
+    allButZipFiles = filter (lambda s:(s.find(".zip") == -1 and s.find(".sql") == -1), os.listdir(migration))
+    for f in allButZipFiles:
+        path = migration + "/" + f
+        print "Deleting " + path
+        os.remove(path) 
  
 if __name__ == '__main__':
     main(sys.argv[1:])
