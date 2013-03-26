@@ -22,7 +22,7 @@ public class GlobalDataDaoHibernateImpl implements GlobalDataDao {
         if(timeZone == null) {
             Session session = sessionFactory.openSession();
             timeZone = (String)session
-                    .createSQLQuery("SELECT timezone FROM timezonebyzipcode WHERE zip = ?")
+                    .createSQLQuery("SELECT timezone FROM geo.TimeZones WHERE zip = ?")
                     .setString(0, zip)
                     .uniqueResult();
             zipToTimeZone.put(zip, timeZone);

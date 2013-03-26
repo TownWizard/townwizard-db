@@ -10,7 +10,9 @@ PREPARE stmt FROM @stmt;
 EXECUTE stmt;
 -- ////////////////////////////////////////// --
 
-DROP TABLE timezonebyzipcode;
+DROP TABLE geo.timezonebyzipcode;
+
+DROP DATABASE geo;
 
 -- ////////////////////////////////////////// --
 -- update migration
