@@ -1,6 +1,7 @@
 package com.townwizard.db.util;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -39,10 +40,6 @@ public final class ReflectionUtils {
         return o;
     }
     
-    public static String toHtml(Object o) {
-        return toHtml(o, 0);
-    }    
-    
     public static void populateFromJson(Object o, JSONObject j) {
         try {
             Field[] fields = o.getClass().getDeclaredFields();
@@ -57,49 +54,6 @@ public final class ReflectionUtils {
         }
     }
 
-    private static String toHtml(Object o, int indent) {
-        StringBuilder sb = new StringBuilder();
-        
-        try {            
-            boolean empty = true;
-            Field[] fields = o.getClass().getDeclaredFields();
-            for (Field f : fields) {
-                f.setAccessible(true);
-                Object value = f.get(o);
-                if(value != null) {
-                    if(empty) {
-                        empty = false;
-                        sb.append("<div style=\"padding-bottom:10;padding-left:").append(indent*50).append("\">");
-                    }
-                    if(isAtomic(f)) {
-                        if(value instanceof String && ((String) value).startsWith("http")) {
-                            if(f.getName().contains("pic")) {
-                                sb.append("<img src=\"").append(value).append("\"><br/>");
-                            } else {
-                                sb.append("<a href=\"").append(value).append("\">").append(value).append("</a><br/>");
-                            }
-                        } else if(value instanceof Calendar) {
-                            sb.append("<span>").append(f.getName()).append(":&nbsp;")
-                                .append(((Calendar)value).getTime()).append("</span><br/>");
-                        } else {
-                            sb.append("<span>").append(f.getName()).append(":&nbsp;")
-                                .append(value).append("</span><br/>");
-                        }
-                    } else {
-                        sb.append(f.getName()).append(":&nbsp;").append(toHtml(value, indent+1));
-                    }
-                }
-            }
-            if(!empty) {
-                sb.append("</div>");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException (e);
-        }
-        
-        return sb.toString();        
-    }
-    
     private static void setField(Field f, Object target, Object value)
             throws IllegalAccessException, InstantiationException {
         f.setAccessible(true);
@@ -133,17 +87,5 @@ public final class ReflectionUtils {
             populateFromJson(v, (JSONObject)value);            
         }
         f.set(target, v);
-    }
-    
-    private static boolean isAtomic(Field f) {
-        Type type = f.getGenericType();
-        Class<?> klass = (Class<?>)type;
-        return klass == String.class ||
-               klass == Long.class ||
-               klass == Integer.class ||
-               klass == Float.class ||
-               klass == Double.class ||
-               klass == Calendar.class ||
-               klass.isEnum();
     }
 }

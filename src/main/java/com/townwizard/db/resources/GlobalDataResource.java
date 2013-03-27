@@ -19,7 +19,6 @@ import javax.ws.rs.core.Response.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.townwizard.db.util.ReflectionUtils;
 import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
@@ -50,22 +49,6 @@ public class GlobalDataResource extends ResourceSupport {
     }    
     
     @GET
-    @Path("/events/html")
-    @Produces(MediaType.TEXT_HTML)
-    public Response eventsHtml(
-            @QueryParam ("zip") String zip,
-            @QueryParam ("l") String location,
-            @QueryParam ("ip") String ip) {
-        try {
-            List<Event> events = getEvents(zip, location, ip);
-            return Response.status(Status.OK).entity(objectsToHtml(events)).build();
-        } catch(Exception e) {
-            handleGenericException(e);
-        }
-        return Response.status(Status.BAD_REQUEST).build();
-    }
-
-    @GET
     @Path("/locations")
     @Produces(MediaType.APPLICATION_JSON)
     public Response locations(
@@ -82,23 +65,6 @@ public class GlobalDataResource extends ResourceSupport {
         return Response.status(Status.BAD_REQUEST).build();
     }
     
-    @GET
-    @Path("/locations/html")
-    @Produces(MediaType.TEXT_HTML)
-    public Response locationsHtml(
-            @QueryParam ("zip") String zip,
-            @QueryParam ("l") String location,
-            @QueryParam ("ip") String ip,
-            @QueryParam ("c") String categories) {
-        try {
-            List<Location> locations = getLocations(zip, location, ip, categories);
-            return Response.status(Status.OK).entity(objectsToHtml(locations)).build();            
-        } catch(Exception e) {
-            handleGenericException(e);
-        }
-        return Response.status(Status.BAD_REQUEST).build();
-    }    
-        
     private List<Event> getEvents(String zip, String location, String ip) {
         if(zip != null) {
             return getEventsByZip(zip);
@@ -187,16 +153,6 @@ public class GlobalDataResource extends ResourceSupport {
             }
         }
         return null;
-    }
-        
-    private String objectsToHtml(List<?> objects) {
-        StringBuilder sb = new StringBuilder("<html><head></head><body>");
-        for(Object o : objects) {
-            sb.append(ReflectionUtils.toHtml(o));
-        }
-        sb.append("</body></html>");
-        String result = sb.toString();
-        return result;
     }
 
 }
