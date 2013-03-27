@@ -34,9 +34,10 @@ public class GlobalDataResource extends ResourceSupport {
     @Produces(MediaType.APPLICATION_JSON)
     public Response events(
             @QueryParam ("zip") String zip,
-            @QueryParam ("l") String location) {
+            @QueryParam ("l") String location,
+            @QueryParam ("ip") String ip) {
         try {
-            List<Event> events = getEvents(zip, location);
+            List<Event> events = getEvents(zip, location, ip);
             return Response.status(Status.OK).entity(events).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -49,9 +50,10 @@ public class GlobalDataResource extends ResourceSupport {
     @Produces(MediaType.TEXT_HTML)
     public Response eventsHtml(
             @QueryParam ("zip") String zip,
-            @QueryParam ("l") String location) {
+            @QueryParam ("l") String location,
+            @QueryParam ("ip") String ip) {
         try {
-            List<Event> events = getEvents(zip, location);
+            List<Event> events = getEvents(zip, location, ip);
             return Response.status(Status.OK).entity(objectsToHtml(events)).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -64,9 +66,10 @@ public class GlobalDataResource extends ResourceSupport {
     @Produces(MediaType.APPLICATION_JSON)
     public Response locations(
             @QueryParam ("zip") String zip,
-            @QueryParam ("l") String location) {
+            @QueryParam ("l") String location,
+            @QueryParam ("ip") String ip) {
         try {
-            List<Location> locations = getLocations(zip, location);
+            List<Location> locations = getLocations(zip, location, ip);
             return Response.status(Status.OK).entity(locations).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -79,9 +82,10 @@ public class GlobalDataResource extends ResourceSupport {
     @Produces(MediaType.TEXT_HTML)
     public Response locationsHtml(
             @QueryParam ("zip") String zip,
-            @QueryParam ("l") String location) {
+            @QueryParam ("l") String location,
+            @QueryParam ("ip") String ip) {
         try {
-            List<Location> locations = getLocations(zip, location);
+            List<Location> locations = getLocations(zip, location, ip);
             return Response.status(Status.OK).entity(objectsToHtml(locations)).build();            
         } catch(Exception e) {
             handleGenericException(e);
@@ -89,16 +93,15 @@ public class GlobalDataResource extends ResourceSupport {
         return Response.status(Status.BAD_REQUEST).build();
     }    
         
-    private List<Event> getEvents(String zip, String location) {
-        List<Event> events = null;
+    private List<Event> getEvents(String zip, String location, String ip) {
         if(zip != null) {
-            events = getEventsByZip(zip);
+            return getEventsByZip(zip);
         } else if (location != null) {
-            events = getEventsByLatitudeAndLongitude(location);
-        } else {
-            events = Collections.emptyList();
-        }
-        return events;
+            return getEventsByLatitudeAndLongitude(location);
+        } else if(ip != null) {
+            return getEventsByIp(ip);
+        } 
+        return Collections.emptyList();
     }
     
     private List<Event> getEventsByZip(String zip) {
@@ -113,16 +116,19 @@ public class GlobalDataResource extends ResourceSupport {
         return Collections.emptyList();
     }
     
-    private List<Location> getLocations(String zip, String location) {
-        List<Location> locations = null;
+    private List<Event> getEventsByIp(String ip) {
+        return globalDataService.getEvents(ip);
+    }
+    
+    private List<Location> getLocations(String zip, String location, String ip) {
         if(zip != null) {
-            locations = getLocationsByZip(zip);
+            return getLocationsByZip(zip);
         } else if (location != null) {
-            locations = getLocationsByLatitudeAndLongitude(location);                    
-        } else {
-            locations = Collections.emptyList();
-        }
-        return locations;
+            return getLocationsByLatitudeAndLongitude(location);
+        } else if (ip != null) {
+           return getLocationsByIp(ip);
+        } 
+        return Collections.emptyList();
     }
     
     private List<Location> getLocationsByZip(String zip) {
@@ -135,6 +141,10 @@ public class GlobalDataResource extends ResourceSupport {
             return globalDataService.getLocations(coords[0], coords[1], DEFAULT_DISTANCE_IN_METERS);
         }        
         return Collections.emptyList();
+    }
+    
+    private List<Location> getLocationsByIp(String ip) {
+        return globalDataService.getLocations(ip, DEFAULT_DISTANCE_IN_METERS);
     }
     
     private double[] getLatitudeAndLongitudeFromParam(String location) {

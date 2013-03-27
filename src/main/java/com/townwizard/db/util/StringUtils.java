@@ -24,4 +24,23 @@ public final class StringUtils {
         }
         return result;
     }
+    
+    public static String toBinaryString(int value, int numDigits) {
+        StringBuilder sb = new StringBuilder();
+        for(int i = numDigits-1; i >= 0; i--) {
+            sb.append(((value & (1 << i)) != 0) ? "1" :"0");
+        }
+        return sb.toString();
+    }
+    
+    public static int ip4ToInteger(String ip) throws NumberFormatException {
+        String[] parts = ip.split("\\.");
+        StringBuilder sb = new StringBuilder();
+        for(String part : parts) {
+            int v = Integer.parseInt(part);
+            sb.append(toBinaryString(v, 8));
+        }
+        int result = Integer.parseInt(sb.toString(), 2);
+        return result;
+    }
 }

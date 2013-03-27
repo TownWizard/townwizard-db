@@ -26,6 +26,7 @@ import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.DateUtils;
 import com.townwizard.globaldata.dao.GlobalDataDao;
 import com.townwizard.globaldata.dao.LocationDao;
+import com.townwizard.globaldata.model.CityLocation;
 import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
@@ -48,6 +49,19 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     private GlobalDataDao globalDataDao;
     
     private ExecutorService executors = Executors.newFixedThreadPool(60);
+
+    @Override
+    public List<Event> getEvents(String ip) {
+        CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
+        if(cityLocation != null) {
+            if(cityLocation.hasPostalCodeAndCountry()) {
+                return getEvents(cityLocation.getPostalCode(), cityLocation.getCountryCode());
+            } else if(cityLocation.hasLocation()) {
+                return getEvents(cityLocation.getLatitude(), cityLocation.getLongitude());
+            }
+        }
+        return Collections.emptyList();
+    }
     
     @Override
     public List<Event> getEvents(String zip, String countryCode) {
@@ -61,6 +75,20 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return getEvents(origin.getZip(), origin.getCountryCode(), origin);
     }    
 
+    @Override
+    @Transactional
+    public List<Location> getLocations(String ip, int distanceInMeters) {
+        CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
+        if(cityLocation != null) {
+            if(cityLocation.hasLocation()) {
+                return getLocations(cityLocation.getLatitude(), cityLocation.getLongitude(), distanceInMeters);
+            } else if(cityLocation.hasPostalCodeAndCountry()) {
+                return getLocations(cityLocation.getPostalCode(), cityLocation.getCountryCode(), distanceInMeters);
+            }            
+        }
+        return Collections.emptyList();
+    }
+    
     @Override
     @Transactional
     public List<Location> getLocations(String zip, String countryCode, int distanceInMeters) {
@@ -259,7 +287,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
                 
                 String zip = e.getZip();
                 if(zip != null) {
-                    String timeZone = globalDataDao.getTimeZone(e.getZip());
+                    String timeZone = globalDataDao.getTimeZoneByZip(e.getZip());
                     if(timeZone != null) {
                         format.setTimeZone(TimeZone.getTimeZone(timeZone));                        
                     }
