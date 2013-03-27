@@ -6,6 +6,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -129,7 +130,10 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         
         for(Location l : locations) {
             l.setDistance(locationService.distance(origin, l));
-        }        
+        }
+        
+        locations = filterLocationsByDistance(locations, distanceInMeters);
+        
         Collections.sort(locations, new DistanceComparator());        
         
         return locations;
@@ -331,12 +335,23 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return result;
     }
     
-    private List<Event> filterEventsByDistance(List<Event> events) {
+    private List<Event> filterEventsByDistance(Collection<Event> events) {
         List<Event> result = new ArrayList<>(events.size());        
         for(Event e : events) {
             Integer distance = e.getDistance();
             if(distance == null || distance <= Constants.DEFAULT_DISTANCE_IN_METERS) {
                 result.add(e);
+            }
+        }
+        return result;
+    }
+    
+    private List<Location> filterLocationsByDistance(Collection<Location> locations, int distanceInMeters) {
+        List<Location> result = new ArrayList<>(locations.size());        
+        for(Location l : locations) {
+            Integer distance = l.getDistance();
+            if(distance == null || distance <= distanceInMeters) {
+                result.add(l);
             }
         }
         return result;
