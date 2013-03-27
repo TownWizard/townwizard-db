@@ -8,6 +8,10 @@ public final class StringUtils {
     private StringUtils() {}
     
     public static Set<String> split(String s, String separatorRegex) {
+        return split(s, separatorRegex, false);
+    }
+    
+    public static Set<String> split(String s, String separatorRegex, boolean toLower) {
         Set<String> result = new HashSet<>();
         if(s != null) {
             String[] strings = s.split(separatorRegex);
@@ -15,8 +19,8 @@ public final class StringUtils {
                 for(String str : strings) {
                     if(str != null) {
                         String strTrimmed = str.trim();
-                        if(!strTrimmed.isEmpty()) {
-                            result.add(strTrimmed);
+                        if(!strTrimmed.isEmpty()) {                            
+                            result.add(toLower ? strTrimmed.toLowerCase() : strTrimmed);
                         }
                     }
                 }

@@ -3,8 +3,10 @@ package com.townwizard.db.resources;
 import static com.townwizard.db.constants.Constants.DEFAULT_COUNTRY_CODE;
 import static com.townwizard.db.constants.Constants.DEFAULT_DISTANCE_IN_METERS;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -18,8 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.util.ReflectionUtils;
+import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.model.LocationCategory;
 import com.townwizard.globaldata.service.GlobalDataService;
 
 @Component
@@ -67,9 +71,10 @@ public class GlobalDataResource extends ResourceSupport {
     public Response locations(
             @QueryParam ("zip") String zip,
             @QueryParam ("l") String location,
-            @QueryParam ("ip") String ip) {
+            @QueryParam ("ip") String ip,
+            @QueryParam ("c") String categories) {
         try {
-            List<Location> locations = getLocations(zip, location, ip);
+            List<Location> locations = getLocations(zip, location, ip, categories);
             return Response.status(Status.OK).entity(locations).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -83,9 +88,10 @@ public class GlobalDataResource extends ResourceSupport {
     public Response locationsHtml(
             @QueryParam ("zip") String zip,
             @QueryParam ("l") String location,
-            @QueryParam ("ip") String ip) {
+            @QueryParam ("ip") String ip,
+            @QueryParam ("c") String categories) {
         try {
-            List<Location> locations = getLocations(zip, location, ip);
+            List<Location> locations = getLocations(zip, location, ip, categories);
             return Response.status(Status.OK).entity(objectsToHtml(locations)).build();            
         } catch(Exception e) {
             handleGenericException(e);
@@ -120,15 +126,18 @@ public class GlobalDataResource extends ResourceSupport {
         return globalDataService.getEvents(ip);
     }
     
-    private List<Location> getLocations(String zip, String location, String ip) {
+    private List<Location> getLocations(String zip, String location, String ip, String categories) {
+        List<Location> locations = null;
         if(zip != null) {
-            return getLocationsByZip(zip);
+            locations = getLocationsByZip(zip);
         } else if (location != null) {
-            return getLocationsByLatitudeAndLongitude(location);
+            locations = getLocationsByLatitudeAndLongitude(location);
         } else if (ip != null) {
-           return getLocationsByIp(ip);
-        } 
-        return Collections.emptyList();
+            locations = getLocationsByIp(ip);
+        } else {
+            locations = Collections.emptyList();
+        }
+        return filterLocationsByCategories(locations, categories);
     }
     
     private List<Location> getLocationsByZip(String zip) {
@@ -146,6 +155,25 @@ public class GlobalDataResource extends ResourceSupport {
     private List<Location> getLocationsByIp(String ip) {
         return globalDataService.getLocations(ip, DEFAULT_DISTANCE_IN_METERS);
     }
+    
+    private List<Location> filterLocationsByCategories(List<Location> locations, String categories) {
+        if(categories == null || categories.isEmpty() || locations.isEmpty()) {            
+            return locations;
+        }
+        List<Location> filtered = new ArrayList<>(locations.size());
+        Set<String> cats = StringUtils.split(categories, ",", true);
+        outer: for(Location location : locations) {
+            for(LocationCategory lCategory : location.getCategories()) {
+                for(String c : cats) {
+                    if(lCategory.getName().toLowerCase().contains(c)) {
+                        filtered.add(location);
+                        continue outer;
+                    }
+                }
+            }
+        }
+        return filtered;
+    }    
     
     private double[] getLatitudeAndLongitudeFromParam(String location) {
         String[] latAndLon = location.split(",");
