@@ -45,7 +45,7 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
         
         for(Location location : locations) {
             String externalId = location.getExternalId();
-            List<Location> locationsById = locationsFromDb.get(externalId); 
+            List<Location> locationsById = locationsFromDb.get(externalId);
             if(locationsById == null) {
                 newLocations.add(location);                
             } else {
@@ -86,7 +86,7 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
     private Map<String, List<Location>> getLocationsByExternalIds(List<String> externalIds) {
         @SuppressWarnings("unchecked")
         List<Location> locations = getSession()
-            .createQuery("from Location where externalId in (" + CollectionUtils.join(externalIds) + ")")
+            .createQuery("from Location where externalId in (" + CollectionUtils.join(externalIds, ",", "'") + ")")
             .list();
         
         Map<String, List<Location>> result = new HashMap<>();

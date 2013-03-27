@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -176,13 +177,20 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             results.add(executors.submit(worker));
         }
         
-        List<Location> finalList = new ArrayList<>();
+        Set<Location> locations = new TreeSet<>(new Comparator<Location>() {
+            @Override
+            public int compare(Location l1, Location l2) {
+                int result = l1.getExternalId().compareTo(l2.getExternalId());
+                if(result == 0) result = l1.getSource().compareTo(l2.getSource());
+                return result;
+            }
+        });
         
         long start = System.currentTimeMillis();
         try {
             for(Future<List<Location>> r : results) {
                 List<Location> ypLocationsForName = r.get();
-                finalList.addAll(ypLocationsForName);
+                locations.addAll(ypLocationsForName);
             }
         } catch(Exception e) {
             throw new RuntimeException(e);
@@ -190,13 +198,15 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         long end = System.currentTimeMillis();
         if(Log.isInfoEnabled()) Log.info(
                 "Executed " + terms.size() + " requests and brought: " + 
-                        finalList.size()  + " locations in " + (end - start) + " ms");        
+                        locations.size()  + " locations in " + (end - start) + " ms");
         
-        for(Location l : finalList) {
+        
+        
+        for(Location l : locations) {
             l.setCountryCode(countryCode);
         }
 
-        return finalList;        
+        return new ArrayList<>(locations);
     }
     
     private List<String> getSearchTerms(String zip, String countryCode, int distanceInMeters) {
