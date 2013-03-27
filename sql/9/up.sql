@@ -26,7 +26,7 @@ ALTER TABLE LocationIngest ADD INDEX idx_location_ingest (zip, country_code, dis
 
 CREATE TABLE LocationCategory (
   id BIGINT NOT NULL AUTO_INCREMENT,
-  name VARCHAR(100),
+  name VARCHAR(255),
   CONSTRAINT pk_location_category PRIMARY KEY (id),
   CONSTRAINT unq_location_category_name UNIQUE(name)
 ) ENGINE = InnoDB;
@@ -36,7 +36,7 @@ CREATE TABLE Location (
   active BIT NOT NULL,  
   external_id VARCHAR(255),
   name VARCHAR(255),
-  category VARCHAR(50),
+  category VARCHAR(255),
   street VARCHAR(255),
   city VARCHAR(50),
   state CHAR(2),
