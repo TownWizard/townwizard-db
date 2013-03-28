@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -20,10 +21,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.constants.Constants;
+import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
-import com.townwizard.globaldata.model.LocationCategory;
 import com.townwizard.globaldata.service.GlobalDataService;
 
 @Component
@@ -66,6 +67,24 @@ public class GlobalDataResource extends ResourceSupport {
         }
         return Response.status(Status.BAD_REQUEST).build();
     }
+    
+    @GET
+    @Path("/lcategories")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response locations(
+            @QueryParam ("zip") String zip,
+            @QueryParam ("l") String location,
+            @QueryParam ("ip") String ip,
+            @QueryParam ("cat") String mainCategory) {
+        try {
+            List<Location> locations = getLocations(zip, location, ip, null, mainCategory);
+            Set<String> categories = collectCategories(locations);
+            return Response.status(Status.OK).entity(categories).build();
+        } catch(Exception e) {
+            handleGenericException(e);
+        }
+        return Response.status(Status.BAD_REQUEST).build();
+    }    
     
     private List<Event> getEvents(String zip, String location, String ip) {
         if(zip != null) {
@@ -110,7 +129,7 @@ public class GlobalDataResource extends ResourceSupport {
         if(mainCategory != null && !mainCategory.isEmpty()) {
             if(Constants.RESTAURANTS.equals(mainCategory)) {
                 locations = filterLocationsByCategories(locations, getRestaurantsCategories(), false);
-            } else {
+            } else if(Constants.DIRECTORY.equals(mainCategory)){
                 locations = filterLocationsByCategories(locations, getRestaurantsCategories(), true);
             }
         }
@@ -140,21 +159,28 @@ public class GlobalDataResource extends ResourceSupport {
         List<Location> filtered = new ArrayList<>(locations.size());
         Set<String> cats = StringUtils.split(categories, ",", true);
         outer: for(Location location : locations) {
-            for(LocationCategory lCategory : location.getCategories()) {
-                for(String c : cats) {
-                    boolean contains = lCategory.getName().toLowerCase().contains(c); 
-                    if(contains && !negate || !contains && negate) {
-                        filtered.add(location);
-                        continue outer;
-                    }
+            String categoriesString = CollectionUtils.join(location.getCategoryNames()).toLowerCase();
+            for(String c : cats) {
+                boolean contains = categoriesString.contains(c); 
+                if(contains && !negate || !contains && negate) {
+                    filtered.add(location);
+                    continue outer;
                 }
-            }
+            }            
         }
         return filtered;
     }
     
     private String getRestaurantsCategories() {
         return "restaurant";
+    }
+    
+    private Set<String> collectCategories(List<Location> locations) {
+        Set<String> categories = new TreeSet<>();
+        for(Location l : locations) {            
+            categories.addAll(l.getCategoryNames());
+        }
+        return categories;
     }
     
     private double[] getLatitudeAndLongitudeFromParam(String location) {

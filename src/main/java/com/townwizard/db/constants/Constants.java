@@ -21,5 +21,6 @@ public class Constants {
     
     public static final String FACEBOOK_EVENTS = "http://www.facebook.com/events";
     public static final String RESTAURANTS = "restaurants";
+    public static final String DIRECTORY = "directory";
 
 }

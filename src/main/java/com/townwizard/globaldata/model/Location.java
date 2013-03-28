@@ -1,7 +1,6 @@
 package com.townwizard.globaldata.model;
 
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -191,7 +190,6 @@ public class Location extends AbstractEntity implements DistanceComparable {
                 result.add(c.getName());
             }
         }
-        Collections.sort(result);
         return result;
     }
     
