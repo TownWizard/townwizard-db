@@ -71,7 +71,7 @@ public class GlobalDataResource extends ResourceSupport {
     @GET
     @Path("/lcategories")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response locations(
+    public Response locationCategories(
             @QueryParam ("zip") String zip,
             @QueryParam ("l") String location,
             @QueryParam ("ip") String ip,
