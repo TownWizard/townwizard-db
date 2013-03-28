@@ -1,10 +1,8 @@
 package com.townwizard.db.util;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import org.codehaus.jettison.json.JSONArray;

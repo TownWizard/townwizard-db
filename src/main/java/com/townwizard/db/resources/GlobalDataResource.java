@@ -19,6 +19,7 @@ import javax.ws.rs.core.Response.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.townwizard.db.constants.Constants;
 import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
@@ -55,9 +56,10 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("zip") String zip,
             @QueryParam ("l") String location,
             @QueryParam ("ip") String ip,
-            @QueryParam ("c") String categories) {
+            @QueryParam ("s") String categories,
+            @QueryParam ("cat") String mainCategory) {
         try {
-            List<Location> locations = getLocations(zip, location, ip, categories);
+            List<Location> locations = getLocations(zip, location, ip, categories, mainCategory);
             return Response.status(Status.OK).entity(locations).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -92,18 +94,27 @@ public class GlobalDataResource extends ResourceSupport {
         return globalDataService.getEvents(ip);
     }
     
-    private List<Location> getLocations(String zip, String location, String ip, String categories) {
+    private List<Location> getLocations(String zip, String location, String ip, String categories, String mainCategory) {
         List<Location> locations = null;
-        if(zip != null) {
+        if(zip != null && !zip.isEmpty()) {
             locations = getLocationsByZip(zip);
-        } else if (location != null) {
+        } else if (location != null && !location.isEmpty()) {
             locations = getLocationsByLatitudeAndLongitude(location);
-        } else if (ip != null) {
+        } else if (ip != null && !ip.isEmpty()) {
             locations = getLocationsByIp(ip);
         } else {
             locations = Collections.emptyList();
         }
-        return filterLocationsByCategories(locations, categories);
+        locations = filterLocationsByCategories(locations, categories, false);
+        
+        if(mainCategory != null && !mainCategory.isEmpty()) {
+            if(Constants.RESTAURANTS.equals(mainCategory)) {
+                locations = filterLocationsByCategories(locations, getRestaurantsCategories(), false);
+            } else {
+                locations = filterLocationsByCategories(locations, getRestaurantsCategories(), true);
+            }
+        }
+        return locations;
     }
     
     private List<Location> getLocationsByZip(String zip) {
@@ -122,7 +133,7 @@ public class GlobalDataResource extends ResourceSupport {
         return globalDataService.getLocations(ip, DEFAULT_DISTANCE_IN_METERS);
     }
     
-    private List<Location> filterLocationsByCategories(List<Location> locations, String categories) {
+    private List<Location> filterLocationsByCategories(List<Location> locations, String categories, boolean negate) {
         if(categories == null || categories.isEmpty() || locations.isEmpty()) {            
             return locations;
         }
@@ -131,7 +142,8 @@ public class GlobalDataResource extends ResourceSupport {
         outer: for(Location location : locations) {
             for(LocationCategory lCategory : location.getCategories()) {
                 for(String c : cats) {
-                    if(lCategory.getName().toLowerCase().contains(c)) {
+                    boolean contains = lCategory.getName().toLowerCase().contains(c); 
+                    if(contains && !negate || !contains && negate) {
                         filtered.add(location);
                         continue outer;
                     }
@@ -139,7 +151,11 @@ public class GlobalDataResource extends ResourceSupport {
             }
         }
         return filtered;
-    }    
+    }
+    
+    private String getRestaurantsCategories() {
+        return "restaurant";
+    }
     
     private double[] getLatitudeAndLongitudeFromParam(String location) {
         String[] latAndLon = location.split(",");

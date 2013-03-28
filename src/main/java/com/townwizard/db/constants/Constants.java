@@ -20,5 +20,6 @@ public class Constants {
     public static final int REFRESH_LOCATIONS_PERIOD_IN_DAYS = 30;
     
     public static final String FACEBOOK_EVENTS = "http://www.facebook.com/events";
+    public static final String RESTAURANTS = "restaurants";
 
 }
