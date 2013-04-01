@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
@@ -25,7 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.townwizard.db.constants.Constants;
 import com.townwizard.db.logger.Log;
+import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.DateUtils;
+import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.dao.GlobalDataDao;
 import com.townwizard.globaldata.dao.LocationDao;
 import com.townwizard.globaldata.model.CityLocation;
@@ -53,66 +56,82 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     private ExecutorService executors = Executors.newFixedThreadPool(60);
 
     @Override
-    public List<Event> getEvents(String ip) {
-        CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
-        if(cityLocation != null) {
-            if(cityLocation.hasPostalCodeAndCountry()) {
-                return getEvents(cityLocation.getPostalCode(), cityLocation.getCountryCode());
-            } else if(cityLocation.hasLocation()) {
-                return getEvents(cityLocation.getLatitude(), cityLocation.getLongitude());
-            }
+    public List<Event> getEvents(LocationParams params) {
+        if(params.isZipInfoSet()) {
+            return getEventsByZipInfo(params.getZip(), params.getCountryCode());
+        } else if(params.isLocationSet()) {
+            return getEventsByLocation(params.getLatitude(), params.getLongitude());
+        } else if(params.isIpSet()) {
+            return getEventsByIp(params.getIp());
         }
         return Collections.emptyList();
     }
     
     @Override
-    public List<Event> getEvents(String zip, String countryCode) {
-        Location origin = locationService.getPrimaryLocation(zip, countryCode);
-        return getEvents(zip, countryCode, origin);
+    @Transactional
+    public List<Location> getLocations(
+            LocationParams params, int distanceInMeters, String mainCategory, String categories) {
+        if(params.isZipInfoSet()) {
+            return getLocationsByZipInfo(params.getZip(), params.getCountryCode(),
+                    mainCategory, categories, distanceInMeters);
+        } else if(params.isLocationSet()) {
+            return getLocationsByLocation(params.getLatitude(), params.getLongitude(),
+                    mainCategory, categories, distanceInMeters);
+        } else if(params.isIpSet()) {
+            return getLocationsByIp(params.getIp(),
+                    mainCategory, categories, distanceInMeters);
+        }
+        return Collections.emptyList();        
     }
-
-    @Override
-    public List<Event> getEvents(double latitude, double longitude) {
-        Location origin = locationService.getLocation(latitude, longitude);
-        return getEvents(origin.getZip(), origin.getCountryCode(), origin);
-    }    
-
+    
     @Override
     @Transactional
-    public List<Location> getLocations(String ip, int distanceInMeters) {
+    public SortedSet<String> getLocationCategories(LocationParams params, 
+            int distanceInMeters, String mainCategory) {
+        List<Location> locations = getLocations(params, distanceInMeters, mainCategory, null);
+        SortedSet<String> categories = new TreeSet<>();
+        for(Location l : locations) {            
+            categories.addAll(l.getCategoryNames());
+        }
+        return categories;
+    }
+
+    
+    ///////////// Locations private methods /////////////////////////////
+    
+    private List<Location> getLocationsByZipInfo(String zip, String countryCode,
+            String mainCategory, String categories, int distanceInMeters) {
+        Location origin = locationService.getPrimaryLocation(zip, countryCode);
+        return getLocations(zip, countryCode, mainCategory, categories, distanceInMeters, origin);        
+    }
+
+    private List<Location> getLocationsByLocation(double latitude, double longitude,
+            String mainCategory, String categories, int distanceInMeters) {
+        Location orig = locationService.getLocation(latitude, longitude);
+        return getLocations(orig.getZip(), orig.getCountryCode(),
+                mainCategory, categories, distanceInMeters, orig);
+    }
+    
+    private List<Location> getLocationsByIp(
+            String ip, String mainCategory, String categories, int distanceInMeters) {
         CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
         if(cityLocation != null) {
             if(cityLocation.hasLocation()) {
-                return getLocations(cityLocation.getLatitude(), cityLocation.getLongitude(), distanceInMeters);
+                return getLocationsByLocation(cityLocation.getLatitude(), cityLocation.getLongitude(),
+                        mainCategory, categories, distanceInMeters);
             } else if(cityLocation.hasPostalCodeAndCountry()) {
-                return getLocations(cityLocation.getPostalCode(), cityLocation.getCountryCode(), distanceInMeters);
+                return getLocationsByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode(),
+                        mainCategory, categories, distanceInMeters);
             }            
         }
         return Collections.emptyList();
     }
-    
-    @Override
-    @Transactional
-    public List<Location> getLocations(String zip, String countryCode, int distanceInMeters) {
-        Location origin = locationService.getPrimaryLocation(zip, countryCode);
-        return getLocations(zip, countryCode, distanceInMeters, origin);        
-    }
-    
-    @Override
-    @Transactional
-    public List<Location> getLocations(double latitude, double longitude, int distanceInMeters) {
-        Location orig = locationService.getLocation(latitude, longitude);
-        return getLocations(orig.getZip(), orig.getCountryCode(), distanceInMeters, orig);
-    }
-    
-    private List<Event> getEvents(String zip, String countryCode, Location origin) {
-        List<String> terms = locationService.getCities(zip, countryCode);
-        List<Event> events = facebookService.getEvents(terms);
-        List<Event> processedEvents = postProcessEvents(origin, countryCode, events);
-        return processedEvents;
-    }
-    
-    private List<Location> getLocations(String zip, String countryCode, int distanceInMeters, Location origin) {
+
+    private List<Location> getLocations(
+            String zip, String countryCode,
+            String mainCategory, String categories, 
+            int distanceInMeters, Location origin) {
+        
         List<Location> locations = null;
         LocationIngest ingest = locationDao.getLocationIngest(zip, countryCode);
         if(!locationIngestRequired(ingest, distanceInMeters)) {
@@ -133,6 +152,16 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         }
         
         locations = filterLocationsByDistance(locations, distanceInMeters);
+        
+        locations = filterLocationsByCategories(locations, categories, false);
+        
+        if(mainCategory != null && !mainCategory.isEmpty()) {
+            if(Constants.RESTAURANTS.equals(mainCategory)) {
+                locations = filterLocationsByCategories(locations, getRestaurantsCategories(), false);
+            } else if(Constants.DIRECTORY.equals(mainCategory)){
+                locations = filterLocationsByCategories(locations, getRestaurantsCategories(), true);
+            }
+        }        
         
         Collections.sort(locations, new DistanceComparator());        
         
@@ -227,6 +256,73 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return Collections.emptyList();
     }
     
+    private List<Location> filterLocationsByDistance(Collection<Location> locations, int distanceInMeters) {
+        List<Location> result = new ArrayList<>(locations.size());        
+        for(Location l : locations) {
+            Integer distance = l.getDistance();
+            if(distance == null || distance <= distanceInMeters) {
+                result.add(l);
+            }
+        }
+        return result;
+    }
+    
+    private List<Location> filterLocationsByCategories(
+            List<Location> locations, String categories, boolean negate) {
+        if(categories == null || categories.isEmpty() || locations.isEmpty()) {            
+            return locations;
+        }
+        
+        List<Location> filtered = new ArrayList<>(locations.size());
+        Set<String> cats = StringUtils.split(categories, ",", true);
+        outer: for(Location location : locations) {
+            String categoriesString = CollectionUtils.join(location.getCategoryNames()).toLowerCase();
+            for(String c : cats) {
+                boolean contains = categoriesString.contains(c); 
+                if(contains && !negate || !contains && negate) {
+                    filtered.add(location);
+                    continue outer;
+                }
+            }            
+        }
+        return filtered;
+    }
+    
+    private String getRestaurantsCategories() {
+        return "restaurant";
+    }    
+
+    ///////////// Events private methods /////////////////////////////
+    
+    private List<Event> getEventsByZipInfo(String zip, String countryCode) {
+        Location origin = locationService.getPrimaryLocation(zip, countryCode);
+        return getEvents(zip, countryCode, origin);
+    }
+    
+    private List<Event> getEventsByLocation(double latitude, double longitude) {
+        Location origin = locationService.getLocation(latitude, longitude);
+        return getEvents(origin.getZip(), origin.getCountryCode(), origin);
+    }
+    
+    private List<Event> getEventsByIp(String ip) {
+        CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
+        if(cityLocation != null) {
+            if(cityLocation.hasPostalCodeAndCountry()) {
+                return getEventsByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode());
+            } else if(cityLocation.hasLocation()) {
+                return getEventsByLocation(cityLocation.getLatitude(), cityLocation.getLongitude());
+            }
+        }
+        return Collections.emptyList();
+    }    
+    
+    private List<Event> getEvents(String zip, String countryCode, Location origin) {
+        List<String> terms = locationService.getCities(zip, countryCode);
+        List<Event> events = facebookService.getEvents(terms);
+        List<Event> processedEvents = postProcessEvents(origin, countryCode, events);
+        return processedEvents;
+    }
+    
     private List<Event> postProcessEvents(Location origin, String countryCode, List<Event> events) {
         for(Event e : events) {
             if(origin != null) {
@@ -272,8 +368,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         if(eventLocation != null) {
             e.setDistance(locationService.distance(origin, eventLocation));
         }
-    }
-    
+    }    
     
     private static final TimeZone GMT = TimeZone.getTimeZone("GMT");
     private static final DateFormat FB_EVENT_DATE_FORMAT_TIME = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
@@ -346,14 +441,4 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return result;
     }
     
-    private List<Location> filterLocationsByDistance(Collection<Location> locations, int distanceInMeters) {
-        List<Location> result = new ArrayList<>(locations.size());        
-        for(Location l : locations) {
-            Integer distance = l.getDistance();
-            if(distance == null || distance <= distanceInMeters) {
-                result.add(l);
-            }
-        }
-        return result;
-    }
 }
