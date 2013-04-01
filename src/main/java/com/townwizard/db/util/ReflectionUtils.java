@@ -8,10 +8,25 @@ import java.util.List;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
+/**
+ * Different helper methods using reflection.
+ */
 public final class ReflectionUtils {
     
     private ReflectionUtils() {}
     
+    /**
+     * Create a Java object of type O, and populate it from the list of values.
+     * Only simple Java objects with String or number fields are supported. 
+     * 
+     * @param objectClass                Object Java class
+     * @param fieldNames                 Java class field name array
+     * @param values                     Values for fields. Numbers should be represented as strings here.
+     * @return                           An object instance
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws NoSuchFieldException
+     */
     public static <O> O createAndPopulate(Class<O> objectClass, String[] fieldNames, String[] values) 
         throws IllegalAccessException, InstantiationException, NoSuchFieldException {
         
@@ -38,6 +53,10 @@ public final class ReflectionUtils {
         return o;
     }
     
+    /**
+     * Populate a given Java object from a JSON object.
+     * The json keys should match java object's field names
+     */
     public static void populateFromJson(Object o, JSONObject j) {
         try {
             Field[] fields = o.getClass().getDeclaredFields();

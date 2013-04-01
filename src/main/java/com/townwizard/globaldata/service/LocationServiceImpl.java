@@ -137,7 +137,7 @@ public class LocationServiceImpl implements LocationService {
     }    
     
     private void loadData() throws Exception {
-        locationsByZip = DataUtils.csvToMap(
+        locationsByZip = DataUtils.dataFileToMap(
                 getDataInputStream(LOCATION_DATABASE), 0,
                 new int[]{1, 0, 2, 4, 9, 10}, 
                 new String[] {"zip", "countryCode", "city", "state", "latitude", "longitude"},
