@@ -13,26 +13,36 @@ import org.springframework.stereotype.Component;
 
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.CollectionUtils;
-import com.townwizard.db.util.ReflectionUtils;
 import com.townwizard.globaldata.connector.FacebookConnector;
-import com.townwizard.globaldata.model.Convertible;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Facebook;
 import com.townwizard.globaldata.model.Location;
 
+/**
+ * Implementation for FacebookService.
+ * Methods of this class delegate calls to facebook connector, and convert FB JSON into domain
+ * objects.
+ */
 @Component("facebookService")
 public class FacebookServiceImpl implements FacebookService {
     
     @Autowired
     private FacebookConnector connector;
 
+    /**
+     * Executes two FB queries.
+     * 
+     * 1) Gets a list of FB events by running FQL request
+     * 2) Since events are coming witn locations not populated properly, it collect event ids, and
+     * executes pages request by ids to get proper populated locations.
+     */
     @Override
     public List<Event> getEvents(List<String> terms) {
         try {
             String fql = getSearchEventsFql(terms);
             String json = connector.executeFQL(fql);
             List<Facebook.Event> fbEvents = jsonToObjects(json, Facebook.Event.class);
-            List<Event> events = convertList(fbEvents);
+            List<Event> events = ServiceUtils.convertList(fbEvents);
             List<String> locationIds = collectEventLocationIds(events);
             List<Facebook.Page> pages = getPagesByIds(locationIds);
             populateLocations(events, pages);
@@ -42,12 +52,15 @@ public class FacebookServiceImpl implements FacebookService {
         }
     }
     
+    /**
+     * Executes one search request and converts FB JSON to the list of locations
+     */
     @Override
     public List<Location> getLocations(double latitude, double longitude, int distanceInMeters) {
         try {
             String json = connector.executeLocationsRequest(latitude, longitude, distanceInMeters);
             List<Facebook.Location> fbObjects = jsonToObjects(json, Facebook.Location.class);
-            List<Location> objects = convertList(fbObjects);
+            List<Location> objects = ServiceUtils.convertList(fbObjects);
             return objects;
         } catch(Exception e) {
             throw new RuntimeException(e);
@@ -114,25 +127,9 @@ public class FacebookServiceImpl implements FacebookService {
     
     private <T> List<T> jsonToObjects (String json, Class<T> objectClass) 
             throws JSONException, IllegalAccessException, InstantiationException {
-        List<T> objects = new ArrayList<>();
-        JSONObject j = new JSONObject(json);
-        JSONArray data = j.getJSONArray("data");        
-        for(int i = 0; i < data.length(); i++) {
-            JSONObject o = data.optJSONObject(i);
-            @SuppressWarnings("cast")
-            T object = (T)objectClass.newInstance();
-            ReflectionUtils.populateFromJson(object, o);
-            objects.add(object);
-        }
-        return objects;
-    }
-    
-    private <T> List<T> convertList(List<? extends Convertible<T>> fbObjects) {
-        List<T> objects = new ArrayList<>(fbObjects.size());
-        for(Convertible<T> c : fbObjects) {
-            objects.add(c.convert());
-        }
-        return objects;
+        JSONObject j = new JSONObject(json);        
+        JSONArray data = j.getJSONArray("data");
+        return ServiceUtils.jsonToObjects(data, objectClass);
     }
 
 }

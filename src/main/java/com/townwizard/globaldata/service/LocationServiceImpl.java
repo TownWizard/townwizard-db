@@ -19,6 +19,10 @@ import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.DataUtils;
 import com.townwizard.globaldata.model.Location;
 
+/**
+ * LocationService implementation, which uses allCountries.txt data file.
+ * The data is loaded on the first request and kept in the memory.
+ */
 @Component("LocationService")
 public class LocationServiceImpl implements LocationService {
     
@@ -27,7 +31,7 @@ public class LocationServiceImpl implements LocationService {
     private static Map<String, List<Location>> locationsByZip;
     private static SortedMap<Float, SortedSet<Location>> locationsByLatitude;
     private static SortedMap<Float, SortedSet<Location>> locationsByLongitude;
-    
+        
     @Override
     public List<Location> getLocations(String zip, String countryCode) {
         checkDataLoaded();
@@ -40,6 +44,10 @@ public class LocationServiceImpl implements LocationService {
         return Collections.emptyList();        
     }
     
+    /**
+     * Gets all locations by zip info, and from the returned list takes the first location
+     * which has latitude and longitude.
+     */
     @Override
     public Location getPrimaryLocation(String zip, String countryCode) {
         List<Location> zipLocations = getLocations(zip, countryCode);        
@@ -51,6 +59,13 @@ public class LocationServiceImpl implements LocationService {
         return null;
     }
     
+    /**
+     * Load all locations for the latitude.
+     * Load all locations for the longitude.
+     * Put them all in one list.
+     * For each location calculate the distance from it to the requested latitude/longitude.
+     * Return the location with the smaller distance.
+     */
     @Override
     public Location getLocation(double latitude, double longitude) {
         checkDataLoaded();
@@ -94,6 +109,10 @@ public class LocationServiceImpl implements LocationService {
         return Collections.emptyList();
     }
     
+    /**
+     * Get the distance between two location by formula, described here:
+     * http://www.movable-type.co.uk/scripts/latlong.html
+     */
     @Override
     public Integer distance(Location location1, Location location2) {
         if(location1 != null && location2 != null) {
@@ -102,7 +121,6 @@ public class LocationServiceImpl implements LocationService {
             Float lon1 = location1.getLongitude();
             Float lon2 = location2.getLongitude();
             
-            //formula source: http://www.movable-type.co.uk/scripts/latlong.html
             if(lat1 != null && lat2 != null && lon1 != null && lon2 != null) {
                 double lat1Rad = StrictMath.toRadians(lat1);
                 double lat2Rad = StrictMath.toRadians(lat2);
@@ -163,6 +181,10 @@ public class LocationServiceImpl implements LocationService {
         }
     }
 
+    //finds locations by latitude or longitude in a map
+    //the logic here is to round the given key to two decimal places,
+    //then go through hash map keys and find a key which is between the candidate key and candidate key + 0.01.
+    //Then retrieve the locations for the found key
     private Set<Location> findInMap(SortedMap<Float, SortedSet<Location>> map, float candidateKey) {
         // if key is 40.552544 or -74.15088
         int k1Int = (int)(candidateKey * 100);                  //-> 4055 or -7415

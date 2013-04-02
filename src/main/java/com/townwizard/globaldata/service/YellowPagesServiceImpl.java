@@ -1,6 +1,6 @@
 package com.townwizard.globaldata.service;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.codehaus.jettison.json.JSONArray;
@@ -9,24 +9,28 @@ import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.townwizard.db.util.ReflectionUtils;
 import com.townwizard.globaldata.connector.YellowPagesConnector;
-import com.townwizard.globaldata.model.Convertible;
 import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.YellowPages;
 
+/**
+ * Yellow Pages service implementation
+ */
 @Component("yellowPagesService")
 public class YellowPagesServiceImpl implements YellowPagesService {
     
     @Autowired
     private YellowPagesConnector connector;
 
+    /**
+     * Executes one HTTP request to get locations
+     */
     @Override
     public List<Location> getLocations(String term, String zip, double distanceInMiles) {
         try {
             String json = connector.executePlacesRequest(term, zip, distanceInMiles);
             List<YellowPages.Location> gObjects = jsonToObjects(json, YellowPages.Location.class);
-            List<Location> objects = convertList(gObjects);
+            List<Location> objects = ServiceUtils.convertList(gObjects);
             return objects;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -34,32 +38,17 @@ public class YellowPagesServiceImpl implements YellowPagesService {
     }
     
     private <T> List<T> jsonToObjects (String json, Class<T> objectClass) 
-            throws JSONException, IllegalAccessException, InstantiationException {
-        List<T> objects = new ArrayList<>();
+            throws JSONException, IllegalAccessException, InstantiationException {        
         JSONObject j = new JSONObject(json);
         JSONObject searchResult = j.optJSONObject("searchResult");
         if(searchResult != null) {
             JSONObject searchListings = searchResult.optJSONObject("searchListings");
             if(searchListings != null) { 
-                JSONArray data = searchListings.getJSONArray("searchListing");        
-                for(int i = 0; i < data.length(); i++) {
-                    JSONObject o = data.optJSONObject(i);
-                    @SuppressWarnings("cast")
-                    T object = (T)objectClass.newInstance();
-                    ReflectionUtils.populateFromJson(object, o);
-                    objects.add(object);
-                }
+                JSONArray data = searchListings.getJSONArray("searchListing");
+                return ServiceUtils.jsonToObjects(data, objectClass);
             }
         }
-        return objects;
-    }
-    
-    private <T> List<T> convertList(List<? extends Convertible<T>> gObjects) {
-        List<T> objects = new ArrayList<>(gObjects.size());
-        for(Convertible<T> c : gObjects) {
-            objects.add(c.convert());
-        }
-        return objects;
+        return Collections.emptyList();
     }
 
 }

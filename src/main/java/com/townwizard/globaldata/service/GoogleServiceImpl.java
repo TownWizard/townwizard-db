@@ -10,18 +10,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.logger.Log;
-import com.townwizard.db.util.ReflectionUtils;
 import com.townwizard.globaldata.connector.GoogleConnector;
-import com.townwizard.globaldata.model.Convertible;
 import com.townwizard.globaldata.model.Google;
 import com.townwizard.globaldata.model.Location;
 
+/**
+ * GoogleService implementation
+ */
 @Component("googleService")
 public class GoogleServiceImpl implements GoogleService {
     
     @Autowired
     private GoogleConnector connector;
 
+    /**
+     * May execute from one to three http requests to Google.
+     * First request goes to the location url; if the json returned has next page token,
+     * one or two more requests will be executed to get more locations.
+     */
     @Override
     public List<Location> getLocations(double latitude, double longitude, int distanceInMeters) {
         try {
@@ -32,7 +38,7 @@ public class GoogleServiceImpl implements GoogleService {
 
             JSONObject j = new JSONObject(json);
             List<Google.Location> gObjects = jsonToObjects(j, Google.Location.class);
-            finalList.addAll(convertList(gObjects));
+            finalList.addAll(ServiceUtils.convertList(gObjects));
 
             int i = 0;
             while (true) {
@@ -42,7 +48,7 @@ public class GoogleServiceImpl implements GoogleService {
                 json = connector.executePlacesNearbyPageTokenRequest(nextPageToken);
                 j = new JSONObject(json);
                 gObjects = jsonToObjects(j, Google.Location.class);
-                finalList.addAll(convertList(gObjects));
+                finalList.addAll(ServiceUtils.convertList(gObjects));
             }
             return finalList;            
         } catch (Exception e) {
@@ -52,23 +58,8 @@ public class GoogleServiceImpl implements GoogleService {
     
     private <T> List<T> jsonToObjects (JSONObject j, Class<T> objectClass) 
             throws JSONException, IllegalAccessException, InstantiationException {
-        List<T> objects = new ArrayList<>();
-        JSONArray data = j.getJSONArray("results");        
-        for(int i = 0; i < data.length(); i++) {
-            JSONObject o = data.optJSONObject(i);
-            @SuppressWarnings("cast")
-            T object = (T)objectClass.newInstance();
-            ReflectionUtils.populateFromJson(object, o);
-            objects.add(object);
-        }
-        return objects;
+        JSONArray data = j.getJSONArray("results");
+        return ServiceUtils.jsonToObjects(data, objectClass);
     }
-    
-    private <T> List<T> convertList(List<? extends Convertible<T>> gObjects) {
-        List<T> objects = new ArrayList<>(gObjects.size());
-        for(Convertible<T> c : gObjects) {
-            objects.add(c.convert());
-        }
-        return objects;
-    }
+
 }

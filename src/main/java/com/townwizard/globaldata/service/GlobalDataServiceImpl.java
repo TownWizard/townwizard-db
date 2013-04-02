@@ -37,6 +37,9 @@ import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.LocationIngest;
 
+/**
+ * GlobalDataService implementation
+ */
 @Component("globalDataService")
 public class GlobalDataServiceImpl implements GlobalDataService {
     
@@ -55,6 +58,9 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     
     private ExecutorService executors = Executors.newFixedThreadPool(60);
 
+    /**
+     * Currently events are retrieved from Facebook 
+     */
     @Override
     public List<Event> getEvents(LocationParams params) {
         if(params.isZipInfoSet()) {
@@ -67,6 +73,18 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return Collections.emptyList();
     }
     
+    /**
+     * Having location params and distance, the local DB first is checked.  If no location ingest
+     * exist for the params and distance, or the location ingest is expired, then locations are
+     * brought from the source, otherwise local DB is used
+     * 
+     * Currently the logic of retrieving location from source is this:
+     * 1) Go to Google and get locations by location parameters.
+     * 2) Collect location names
+     * 3) Retrieve locations from Yellow Pages using collected names as search terms
+     * 
+     * Retrieval of locations from Yellow Pages is done in separate threads. 
+     */
     @Override
     @Transactional
     public List<Location> getLocations(
@@ -84,6 +102,9 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return Collections.emptyList();        
     }
     
+    /**
+     * Get locations as in the method above, and collect categories from them.
+     */
     @Override
     @Transactional
     public SortedSet<String> getLocationCategories(LocationParams params, 
@@ -127,6 +148,9 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return Collections.emptyList();
     }
 
+    //main location retrieval method
+    //it tries to get locations from the local DB first,
+    //and if no ingest exists or ingest expired, gets the locations from the source
     private List<Location> getLocations(
             String zip, String countryCode,
             String mainCategory, String categories, 
@@ -151,8 +175,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             l.setDistance(locationService.distance(origin, l));
         }
         
-        locations = filterLocationsByDistance(locations, distanceInMeters);
-        
+        locations = filterLocationsByDistance(locations, distanceInMeters);        
         locations = filterLocationsByCategories(locations, categories, false);
         
         if(mainCategory != null && !mainCategory.isEmpty()) {
@@ -163,8 +186,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             }
         }        
         
-        Collections.sort(locations, new DistanceComparator());        
-        
+        Collections.sort(locations, new DistanceComparator());
         return locations;
     }
     
@@ -190,6 +212,8 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return newIngest;
     }
     
+    // get location search terms from Google
+    // get locations by terms from Yellow Pages
     private List<Location> getLocationsFromSource(
             final String zip, String countryCode, int distanceInMeters) {
         
@@ -242,6 +266,9 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return new ArrayList<>(locations);
     }
     
+    //the logic of getting the search terms is encapsulated in this method
+    //currently the search terms are location names retrieved from Google, but it may change
+    //to some predefined list of strings in the future
     private List<String> getSearchTerms(String zip, String countryCode, int distanceInMeters) {
         Location origin = locationService.getPrimaryLocation(zip, countryCode);
         if(origin != null) {
@@ -323,6 +350,9 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return processedEvents;
     }
     
+    //this calculates and sets event distances as well as
+    //properly set events date and time (with time zone) 
+    //removes events in the past and sorts the remaining events by time/date
     private List<Event> postProcessEvents(Location origin, String countryCode, List<Event> events) {
         for(Event e : events) {
             if(origin != null) {
