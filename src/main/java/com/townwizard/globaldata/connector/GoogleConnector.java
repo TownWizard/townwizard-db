@@ -11,6 +11,9 @@ import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.HttpUtils;
 
+/**
+ * This class is responsible for executing Google HTTP queries
+ */
 @Component("googleConnector")
 public final class GoogleConnector {
     
@@ -20,6 +23,9 @@ public final class GoogleConnector {
     private static final String PLACE_DETAILS_URL = 
             "https://maps.googleapis.com/maps/api/place/details/json?";
     
+    /**
+     * Execute request to get nearby places
+     */
     public String executePlacesNearbyRequest(
             double latitude, double longitude, int distance, String name, List<String> types) 
         throws ClientProtocolException, IOException {
@@ -41,7 +47,11 @@ public final class GoogleConnector {
         String response = HttpUtils.executeGetRequest(url);
         return response;
     }
-    
+
+    /**
+     * Execute request to get next page of places.
+     * It can be execute no more the twice per places request.
+     */
     public String executePlacesNearbyPageTokenRequest(String pageToken) 
         throws ClientProtocolException, IOException {
         StringBuilder sb = new StringBuilder(PLACES_NEARBY_SEARCH_URL);
@@ -51,6 +61,10 @@ public final class GoogleConnector {
         return response;
     }
     
+    /**
+     * Execute request to get a particular place details by reference obtained from the previous
+     * places request.
+     */
     public String executePlaceDetailRequest(String reference) 
         throws ClientProtocolException, IOException {
         StringBuilder sb = new StringBuilder(PLACE_DETAILS_URL);

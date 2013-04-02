@@ -10,6 +10,9 @@ import com.townwizard.db.constants.Constants;
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.HttpUtils;
 
+/**
+ * This class is responsible for execution of Yellow Pages HTTP queries
+ */
 @Component("yellowPagesConnector")
 public final class YellowPagesConnector {
     

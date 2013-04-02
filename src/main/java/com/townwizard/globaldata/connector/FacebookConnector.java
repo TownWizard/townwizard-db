@@ -15,6 +15,10 @@ import org.springframework.stereotype.Component;
 import com.townwizard.db.util.HttpUtils;
 import com.townwizard.globaldata.service.LocationService;
 
+/**
+ * This class is responsible for execution of Facebook HTTP queries.
+ * To execute public search of FQL queries it obtains a Facebook public access token
+ */
 @Component("facebookConnector")
 public final class FacebookConnector {
     
@@ -37,6 +41,9 @@ public final class FacebookConnector {
         return executeFBRequest(FQL_URL + URLEncoder.encode(fql, "UTF-8"));
     }
     
+    /**
+     * Execute a search request to get Facebook locations (places).  Returns JSON string.
+     */
     public String executeLocationsRequest(double latitude, double longitude, int distanceInMeters) 
             throws ClientProtocolException, UnsupportedEncodingException, IOException {
         StringBuilder url = new StringBuilder();
@@ -45,6 +52,7 @@ public final class FacebookConnector {
             .append("&distance=").append(distanceInMeters);
         return executeFBRequest(url.toString());
     }
+    
     
     private String executeFBRequest(String url)
             throws ClientProtocolException, UnsupportedEncodingException, IOException {

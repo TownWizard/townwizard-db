@@ -7,10 +7,16 @@ import org.apache.http.client.ClientProtocolException;
 
 import com.townwizard.db.util.HttpUtils;
 
+/**
+ * This class is responsible for Meetup HTTP queries
+ */
 public final class MeetupConnector {
     
     private static final String OPEN_EVENTS_URL = "https://api.meetup.com/2/open_events?";
     
+    /**
+     * Get meetup events as JSON
+     */
     public String executeEventsRequest(Map<String, String> params) 
             throws ClientProtocolException, IOException {
         return HttpUtils.executeGetRequest(appendParams(OPEN_EVENTS_URL, params));
