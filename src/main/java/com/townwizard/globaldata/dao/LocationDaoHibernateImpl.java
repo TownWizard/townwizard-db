@@ -18,6 +18,9 @@ import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.LocationCategory;
 import com.townwizard.globaldata.model.LocationIngest;
 
+/**
+ * Hibernate implementation of LocationDao
+ */
 @Component("locationDao")
 public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implements LocationDao {
 

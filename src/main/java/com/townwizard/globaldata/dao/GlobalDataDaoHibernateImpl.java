@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.model.CityLocation;
 
+/**
+ * Hibernate implementation of GlobalDataDao
+ */
 @Component("globalDataDao")
 public class GlobalDataDaoHibernateImpl implements GlobalDataDao {
     
@@ -20,6 +23,9 @@ public class GlobalDataDaoHibernateImpl implements GlobalDataDao {
     
     private static final Map<String, String> zipToTimeZone = new HashMap<>();
 
+    /**
+     * This method caches time zones for zip codes in a local cache
+     */
     @Override
     public String getTimeZoneByZip(String zip) {
         String timeZone = zipToTimeZone.get(zip);
@@ -34,6 +40,10 @@ public class GlobalDataDaoHibernateImpl implements GlobalDataDao {
         return timeZone;
     }
 
+    /**
+     * Parses ip, and if ip is valid gets the city location for it, otherwise
+     * returns null
+     */
     @Override
     public CityLocation getCityLocationByIp(String ip) {
         int ipAsInt = -1;
