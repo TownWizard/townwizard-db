@@ -2,6 +2,11 @@ package com.townwizard.globaldata.model;
 
 import java.util.Comparator;
 
+/**
+ * Comparator which compares objects by their respective distances from some origin.
+ * Object will be sorted by their distance from some origin.  If the distance is the same,
+ * then objects are sorted by their names. 
+ */
 public class DistanceComparator  implements Comparator<DistanceComparable> {
  
     @Override            

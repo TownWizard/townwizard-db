@@ -22,6 +22,9 @@ import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.service.GlobalDataService;
 import com.townwizard.globaldata.service.GlobalDataService.LocationParams;
 
+/**
+ * Web services related to global data (events, locations, etc)
+ */
 @Component
 @Path("/g")
 public class GlobalDataResource extends ResourceSupport {

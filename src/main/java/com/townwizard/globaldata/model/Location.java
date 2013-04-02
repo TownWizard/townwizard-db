@@ -23,12 +23,23 @@ import com.townwizard.db.constants.Constants;
 import com.townwizard.db.model.AbstractEntity;
 import com.townwizard.db.util.StringUtils;
 
+/**
+ * Represents a generic (that is not provider specific) location (place) object.
+ * Location objects from different providers (YP, Google) may be converted to instance of this class.
+ * The class imlements DistanceComparable so the instances of this class can be sorted by distance/name.
+ * 
+ * Instances of this class are saved in our local DB (so an object of this class is a Hibernate entity)
+ */
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
 public class Location extends AbstractEntity implements DistanceComparable {
     
     private static final long serialVersionUID = 3832190748475773728L;
 
+    /**
+     * Enum representing possible location sources.  The ordinals of this enum
+     * are used as location source valies in the DB
+     */
     public static enum Source {
         NONE(0), YELLOW_PAGES(1), GOOGLE(2), FACEBOOK(3);
         
@@ -48,9 +59,10 @@ public class Location extends AbstractEntity implements DistanceComparable {
     private String url;
     private String phone;
     private String street;
-    private String category;
+    private String category;           //location category (which is the only or primary category,
+                                       //depending on the source
     @JsonIgnore @Transient
-    private String categoriesStr;
+    private String categoriesStr;      //categories concatenated in pipe-separated string, not saved in DB
     @JsonIgnore
     @ManyToMany (mappedBy = "locations", fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     private Set<LocationCategory> categories;
@@ -61,9 +73,9 @@ public class Location extends AbstractEntity implements DistanceComparable {
     @Enumerated(EnumType.ORDINAL)
     private Source source;
     @Transient
-    private Integer distance;
+    private Integer distance;          //calculated on our side on the fly, and not saved in the DB
     @Transient
-    private Double distanceInMiles;
+    private Double distanceInMiles;    //calculated on our side on the fly, and not saved in the DB
     
     public String getExternalId() {
         return externalId;
@@ -176,6 +188,10 @@ public class Location extends AbstractEntity implements DistanceComparable {
         this.distance = new Double(distanceInMiles * Constants.METERS_IN_MILE).intValue();
     }
     
+    /**
+     * Parse category and categoriesStr values into a set of categories.
+     * This is used to populate categories in the DB
+     */
     @JsonIgnore
     public Set<String> extractCategoryNames() {
         Set<String> cats = StringUtils.split(categoriesStr, "\\|");
@@ -183,6 +199,10 @@ public class Location extends AbstractEntity implements DistanceComparable {
         return cats;
     }
     
+    /**
+     * Converts categories (as list of LocationCategory objects) to list of strings,
+     * which only contain category names.
+     */
     public List<String> getCategoryNames() {
         List<String> result = new LinkedList<>();
         if(categories != null) {
@@ -193,6 +213,10 @@ public class Location extends AbstractEntity implements DistanceComparable {
         return result;
     }
     
+    /**
+     * Convenience method to add location category to the location, which will set both sides of
+     * the Location <-> LocationCategory relationships
+     */
     public void addCategory(LocationCategory c) {
         if(categories == null) {
             categories = new HashSet<>();
@@ -200,7 +224,11 @@ public class Location extends AbstractEntity implements DistanceComparable {
         categories.add(c);
         c.addLocation(this);
     }
-    
+
+    /**
+     * Convenience method to add location ingest to the location, which will set both sides of
+     * the Location <-> LocationIngest relationships
+     */
     public void addIngest(LocationIngest i) {
         if(ingests == null) {
             ingests = new HashSet<>();

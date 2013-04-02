@@ -17,6 +17,10 @@ import javax.persistence.ManyToMany;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+/**
+ * Location category objects are Hibernate entities and relat to Location objects in many-to-many
+ * fashion.
+ */
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
 public class LocationCategory implements Serializable {
@@ -54,6 +58,10 @@ public class LocationCategory implements Serializable {
         this.locations = locations;
     }
     
+    /**
+     * Convenience method to add location to location category.  This method will not set
+     * both sides of the relationships.  This is done on the Location side.
+     */
     public void addLocation(Location l) {
         if(locations == null) {
             locations = new HashSet<>();
@@ -61,6 +69,7 @@ public class LocationCategory implements Serializable {
         locations.add(l);        
     }
     
+    // since this class does not extend AbstractEntity, it needs hashCode() and equals()
     @Override
     public int hashCode() {
         int prime = 31;

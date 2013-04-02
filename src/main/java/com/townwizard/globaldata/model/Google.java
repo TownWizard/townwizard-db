@@ -2,17 +2,32 @@ package com.townwizard.globaldata.model;
 
 import java.util.List;
 
+/**
+ * Wrapper class for all Google specific classes (location, event, venue, etc)
+ * 
+ * This classes are populated from JSON returned from Google using reflection, that's why
+ * there are no setters in them.
+ */
 public class Google {
     
+    /**
+     * Populated from loc JSON
+     */
     public static class Loc {
         private Double lat;
         private Double lng;
     }    
     
+    /**
+     * Populated from geometry JSON
+     */
     public static class Geometry {
         private Loc location;
     }
     
+    /**
+     * Populated from location JSON and can be converted into generic Location object
+     */
     public static class Location implements Convertible <com.townwizard.globaldata.model.Location> {
         private String id;
         private String name;

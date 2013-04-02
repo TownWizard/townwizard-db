@@ -1,7 +1,16 @@
 package com.townwizard.globaldata.model;
 
+/**
+ * Wrapper class for all Yellow Pages specific classes (location, event, venue, etc)
+ * 
+ * This classes are populated from JSON returned from Yellow Pages using reflection, that's why
+ * there are no setters in them.
+ */
 public class YellowPages {
 
+    /**
+     * Populated from Yellow Pages location JSON and can be converted into generic Location object
+     */
     public static class Location implements Convertible <com.townwizard.globaldata.model.Location> {
 
         private Integer listingId;

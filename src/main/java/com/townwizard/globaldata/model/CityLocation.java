@@ -1,5 +1,8 @@
 package com.townwizard.globaldata.model;
 
+/**
+ * A java bean to map geo.CityLocations database table
+ */
 public class CityLocation {
 
     private String city;

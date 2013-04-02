@@ -2,8 +2,17 @@ package com.townwizard.globaldata.model;
 
 import com.townwizard.db.constants.Constants;
 
+/**
+ * Wrapper class for all Facebook specific classes (location, event, venue, etc)
+ * 
+ * This classes are populated from JSON returned from Facebook using reflection, that's why
+ * there are no setters in them.
+ */
 public class Facebook {
 
+    /**
+     * Populated from FB page JSON
+     */
     public static class Page {
         private String page_id;
         private Venue location;
@@ -16,6 +25,9 @@ public class Facebook {
         }   
     }
     
+    /**
+     * Populated from FB venue JSON
+     */
     public static class Venue {
         private String id;
         @SuppressWarnings("unused") private String name;
@@ -38,6 +50,9 @@ public class Facebook {
         }
     }
     
+    /**
+     * Populated from FB location JSON, and is converted into generic Location object
+     */
     public static class Location implements Convertible <com.townwizard.globaldata.model.Location> {
         private String id;
         private String name;
@@ -61,6 +76,9 @@ public class Facebook {
         }        
     }
     
+    /**
+     * Populated from FB event JSON, and is converted into generic Event object
+     */
     public static class Event implements Convertible<com.townwizard.globaldata.model.Event> {
         private String eid;
         private String name;

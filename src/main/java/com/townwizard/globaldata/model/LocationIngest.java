@@ -14,6 +14,19 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.townwizard.db.model.AuditableEntity;
 
+/**
+ * Location ingest is an object which is related to locations collected at particular time,
+ * by a particular zip code, and a particular distance.
+ * 
+ * Location and LocationIngest classes have many-to-many relationships.
+ * 
+ * The notion of location ingest is necessary in order to cache in the DB and keep track of the locations
+ * already downloaded from the provider.
+ * 
+ * Whenever a request for locations is made, the application first checks if such a request has
+ * been already made (by comparing last request time, distance, and zip code)
+ * and if yes, the locations are loaded from the DB rather than from the source.
+ */
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
 public class LocationIngest extends AuditableEntity {
@@ -57,6 +70,10 @@ public class LocationIngest extends AuditableEntity {
         this.locations = locations;
     }
     
+    /**
+     * Convenience method to add location to this object.  This method will not set both
+     * sides of the relationship, this is done on the Location side.
+     */
     public void addLocation(Location l) {
         if(locations == null) {
             locations = new HashSet<>();

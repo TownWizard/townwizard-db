@@ -8,33 +8,40 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import com.townwizard.db.constants.Constants;
 
+/**
+ * Generic (that is not provider specific) event class. Implements DistanceComparable, so instances
+ * can be sorted by distance/name.
+ * 
+ * Event objects from different sources will be converted to objects of this class, and depending
+ * on the source not all the fields of this class will be necessarily populated.
+ */
 @JsonSerialize (include = JsonSerialize.Inclusion.NON_EMPTY)
 public class Event implements DistanceComparable {
 
     private String id;
     private String name;
-    private String location;
+    private String location;        //location name, not latitude and longitude
     private String description;
     private String street;
     private String city;
     private String state;
     private String country;
     private String zip;
-    private String locationId;
+    private String locationId;      //vendor specific location (venue) id
     private String picture;
     private String privacy;
     private Double latitude;
     private Double longitude;
-    private Integer distance;
-    private Double distanceInMiles;
-    private String startTime;
-    private String endTime;
+    private Integer distance;       //distance is populated on our side 
+    private Double distanceInMiles; //this is set together with distance
+    private String startTime;       //event start time string passed as is from the provider
+    private String endTime;         //event end time string passed as is from the provider
     private String link;
     @JsonIgnore
-    private Calendar startDate;
+    private Calendar startDate;     //this is calculated from startDate on our side, and is time zone specific
     @JsonIgnore
-    private Calendar endDate;
-    
+    private Calendar endDate;       //this is calculated from endDate on our side, and is time zone specific
+                                    //startDate and endDate are used to sort events by dates
     public String getStreet() {
         return street;
     }
@@ -163,15 +170,5 @@ public class Event implements DistanceComparable {
     public void setEndDate(Calendar endDate) {
         this.endDate = endDate;
     }
-
-    @JsonIgnore
-    public String getStartDateStr() {
-        return (startDate != null) ? startDate.getTime().toString() : null;
-    }
-    @JsonIgnore
-    public String getEndDateStr() {
-        return (endDate != null) ? endDate.getTime().toString() : null;
-    }
-    
     
 }
