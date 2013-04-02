@@ -18,6 +18,9 @@ public final class YellowPagesConnector {
     
     private static final String SEARCH_URL = "http://api2.yp.com/listings/v1/search?";
     
+    /**
+     * Get locations (places) as JSON
+     */
     public String executePlacesRequest(String term, String zip, double distanceInMiles)
             throws ClientProtocolException, IOException {
         
