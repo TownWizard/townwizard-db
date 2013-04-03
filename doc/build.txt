@@ -1,0 +1,47 @@
+########################
+## get project from git
+cd ~
+
+git clone https://github.com/TownWizard/townwizard-db.git
+cd townwizard-db
+## or
+cd townwizard-db
+git pull
+
+git checkout release #or other branch
+
+
+
+########################
+# install (just to create a war, not deploy)
+mvn clean install
+
+
+
+#########################
+## deploy
+
+
+########## stop tomcat on the server ##########
+sudo /etc/init.d/tomcat stop
+#check if still running, if it is kill
+ps -eaf | grep tomcat 
+
+########## remove installation on the server ##########
+sudo rm -Rf /opt/bitnami/tomcat7/webapps/tw
+sudo rm -Rf /opt/bitnami/tomcat7/work
+
+########### run on the build machine ##########
+mvn -Pstage -Dmaven.test.skip=true -Ddeploy.server=[server_ip] -Ddeploy.user=townwiz -Ddeploy.password=[password here] clean install
+
+########## start tomcat on the server ##########
+sudo /etc/init.d/tomcat stop
+
+########## check tomcat log ##############
+tail -f /opt/bitnami/tomcat7/logs/catalina.out
+
+########## check urls ###############
+cd /tmp
+wget http://townwizardconnectinternal.com/users/1
+wget http://townwizardconnectinternal.com/g/lcategories?zip=10308&cat=restaurants
+wget http://townwizardconnectinternal.com/g/locations?zip=10308

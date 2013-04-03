@@ -1,0 +1,31 @@
+########################
+## install maven and ant
+
+mkdir ~/java_installables
+cd ~/java_installables
+
+wget http://mirrors.sonic.net/apache//ant/binaries/apache-ant-1.9.0-bin.tar.gz
+wget http://apache.petsads.us/maven/maven-3/3.0.5/binaries/apache-maven-3.0.5-bin.tar.gz
+
+tar xvzf apache-ant-1.9.0-bin.tar.gz
+tar xvzf apache-maven-3.0.5-bin.tar.gz
+
+sudo mv apache-ant-1.9.0 /opt/bitnami/apache-ant-1.9.0
+sudo mv apache-maven-3.0.5 /opt/bitnami/apache-maven-3.0.5
+
+cd /opt/bitnami
+
+sudo ln -s apache-ant-1.9.0/ ant
+sudo ln -s apache-maven-3.0.5/ maven
+
+cd /opt/bitnami/common/bin
+
+sudo ln -s /opt/bitnami/ant/bin/ant ant
+sudo ln -s /opt/bitnami/maven/bin/mvn mvn
+
+########################
+## upgrade git
+
+sudo add-apt-repository ppa:git-core/ppa
+sudo apt-get update
+sudo apt-get install git
