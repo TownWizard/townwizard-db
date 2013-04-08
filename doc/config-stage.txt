@@ -14,6 +14,11 @@ wget http://apache.petsads.us/tomcat/tomcat-7/v7.0.34/bin/apache-tomcat-7.0.34.t
 sudo tar xvzf apache-tomcat-7.0.34.tar.gz
 sudo mv apache-tomcat-7.0.34 /opt/bitnami/tomcat7
 
+sudo vim /opt/bitnami/tomcat7/bin/setenv.sh
+-- add line and save
+export CATALINA_OPTS="-Xms256m -Xmx512m"
+sudo chmod +x setenv.sh
+
 # Make Tomcat start on system start
 #######################################
 
