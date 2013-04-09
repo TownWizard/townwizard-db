@@ -88,9 +88,12 @@ sudo vim /opt/bitnami/apache2/conf/extra/newv1-httpd-vhosts.conf #Add lines belo
    ServerAlias www.townwizardconnect.com
    ProxyPass / http://localhost:8080/tw/
    ProxyPassReverse / http://localhost:8080/tw/
+   # do not allow any other API than login
+   RewriteEngine on
+   RewriteRule !^/login /forbidden
 </VirtualHost>
 
-<VirtualHost *:80>
+<VirtualHost 127.0.0.1:80>
    ServerName townwizardconnectinternal.com
    ServerAlias www.townwizardconnectinternal.com
    ProxyPass / http://localhost:8080/tw/
