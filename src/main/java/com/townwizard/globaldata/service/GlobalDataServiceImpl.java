@@ -2,7 +2,6 @@ package com.townwizard.globaldata.service;
 
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -435,7 +434,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
                 date.setTimeZone(format.getTimeZone());
                 date.setTime(format.parse(timeStr));            
             }
-        } catch (ParseException ex) {
+        } catch (Exception ex) {
           //nothing keep the date null
         }
         return date;
