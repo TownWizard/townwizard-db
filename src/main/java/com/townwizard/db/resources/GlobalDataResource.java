@@ -103,6 +103,23 @@ public class GlobalDataResource extends ResourceSupport {
             handleGenericException(e);
         }
         return Response.status(Status.BAD_REQUEST).build();
-    }    
+    }
+    
+    
+    @GET
+    @Path("/zip")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response zipCode(
+            @QueryParam ("l") String location,
+            @QueryParam ("ip") String ip) {
+        try {
+            String zipCode = globalDataService.getZipCode(
+                    new LocationParams(null, null, location, ip));
+            return Response.status(Status.OK).entity(zipCode).build();
+        } catch(Exception e) {
+            handleGenericException(e);
+        }
+        return Response.status(Status.BAD_REQUEST).build();
+    }
     
 }

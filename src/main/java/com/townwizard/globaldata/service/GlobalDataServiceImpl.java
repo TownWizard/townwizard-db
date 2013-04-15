@@ -37,6 +37,7 @@ import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.LocationCategory;
 import com.townwizard.globaldata.model.LocationIngest;
+import com.townwizard.globaldata.service.GlobalDataService.LocationParams;
 
 /**
  * GlobalDataService implementation
@@ -121,6 +122,20 @@ public class GlobalDataServiceImpl implements GlobalDataService {
                     mainCategory, distanceInMeters);
         }
         return Collections.emptyList();
+    }
+    
+    @Override
+    public String getZipCode(LocationParams params) {
+        if(params.isZipInfoSet()) {
+            return params.getZip();
+        } else if(params.isLocationSet()) {
+            Location orig = locationService.getLocation(params.getLatitude(), params.getLongitude());
+            return orig.getZip();
+        } else if(params.isIpSet()) {
+            CityLocation cityLocation = globalDataDao.getCityLocationByIp(params.getIp());
+            return cityLocation.getPostalCode();
+        }
+        return null;
     }
 
     

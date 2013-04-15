@@ -34,6 +34,12 @@ public interface GlobalDataService {
      */
     List<String> getLocationCategories(LocationParams params, 
             int distanceInMeters, String mainCategory);
+    
+    /**
+     * Get zip code by either location (latitude and longitude) or IP
+     * @param params The location params object which should have ether location or IP parts populated
+     */
+    String getZipCode(LocationParams params);
 
     /**
      * A helper class to encapuslate location parameters.
