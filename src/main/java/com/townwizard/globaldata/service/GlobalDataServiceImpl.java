@@ -18,6 +18,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,6 +35,7 @@ import com.townwizard.globaldata.model.CityLocation;
 import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.model.LocationCategory;
 import com.townwizard.globaldata.model.LocationIngest;
 
 /**
@@ -106,14 +108,19 @@ public class GlobalDataServiceImpl implements GlobalDataService {
      */
     @Override
     @Transactional
-    public SortedSet<String> getLocationCategories(LocationParams params, 
+    public List<String> getLocationCategories(LocationParams params, 
             int distanceInMeters, String mainCategory) {
-        List<Location> locations = getLocations(params, distanceInMeters, mainCategory, null);
-        SortedSet<String> categories = new TreeSet<>();
-        for(Location l : locations) {            
-            categories.addAll(l.getCategoryNames());
+        if(params.isZipInfoSet()) {
+            return getLocationCategoriesByZipInfo(params.getZip(), params.getCountryCode(),
+                    mainCategory, distanceInMeters);
+        } else if(params.isLocationSet()) {
+            return getLocationCategoriesByLocation(params.getLatitude(), params.getLongitude(),
+                    mainCategory, distanceInMeters);
+        } else if(params.isIpSet()) {
+            return getLocationCategoriesByIp(params.getIp(),
+                    mainCategory, distanceInMeters);
         }
-        return categories;
+        return Collections.emptyList();
     }
 
     
@@ -136,17 +143,74 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             String ip, String mainCategory, String categories, int distanceInMeters) {
         CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
         if(cityLocation != null) {
+            if(cityLocation.hasPostalCodeAndCountry()) {
+                return getLocationsByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode(),
+                        mainCategory, categories, distanceInMeters);
+            }
             if(cityLocation.hasLocation()) {
                 return getLocationsByLocation(cityLocation.getLatitude(), cityLocation.getLongitude(),
                         mainCategory, categories, distanceInMeters);
-            } else if(cityLocation.hasPostalCodeAndCountry()) {
-                return getLocationsByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode(),
-                        mainCategory, categories, distanceInMeters);
-            }            
+            }             
         }
         return Collections.emptyList();
     }
+    
+    private List<String> getLocationCategoriesByZipInfo(String zip, String countryCode,
+            String mainCategory, int distanceInMeters) {        
+        return getLocationCategories(zip, countryCode, mainCategory, distanceInMeters);        
+    }
 
+    private List<String> getLocationCategoriesByLocation(double latitude, double longitude,
+            String mainCategory, int distanceInMeters) {
+        Location orig = locationService.getLocation(latitude, longitude);
+        return getLocationCategories(orig.getZip(), orig.getCountryCode(), mainCategory, distanceInMeters);
+    }
+    
+    private List<String> getLocationCategoriesByIp(
+            String ip, String mainCategory, int distanceInMeters) {
+        CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
+        if(cityLocation != null) {
+            if(cityLocation.hasPostalCodeAndCountry()) {
+                return getLocationCategoriesByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode(),
+                        mainCategory, distanceInMeters);
+            }
+            if(cityLocation.hasLocation()) {
+                return getLocationCategoriesByLocation(cityLocation.getLatitude(), cityLocation.getLongitude(),
+                        mainCategory, distanceInMeters);
+            }             
+        }
+        return Collections.emptyList();
+    }
+    
+    //main location categories retrieval method
+    private List<String> getLocationCategories(
+            String zip, String countryCode, String mainCategory, int distanceInMeters) {
+        LocationIngest ingest = locationDao.getLocationIngest(zip, countryCode);
+        if(locationIngestRequired(ingest, distanceInMeters)) {
+            List<Location> locations = getLocationsFromSource(zip, countryCode, distanceInMeters);
+            if(!locations.isEmpty()) {
+                LocationIngest updatedIngest = 
+                        createOrUpdateLocationIngest(ingest, zip, countryCode, distanceInMeters);
+                locationDao.saveLocations(locations, updatedIngest);
+                ingest = updatedIngest;
+            }
+        }
+        
+        if(ingest != null) {
+            List<String> categories = locationDao.getLocationCategories(ingest.getId());
+            if(mainCategory != null && !mainCategory.isEmpty()) {
+                if(Constants.RESTAURANTS.equals(mainCategory)) {
+                    categories = filterLocationCategories(categories, getRestaurantsCategories(), false);
+                } else if(Constants.DIRECTORY.equals(mainCategory)){
+                    categories = filterLocationCategories(categories, getRestaurantsCategories(), true);
+                }
+            }
+            return categories;
+        }
+        return Collections.emptyList();
+    }
+    
+    
     //main location retrieval method
     //it tries to get locations from the local DB first,
     //and if no ingest exists or ingest expired, gets the locations from the source
@@ -174,8 +238,9 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             l.setDistance(locationService.distance(origin, l));
         }
         
-        locations = filterLocationsByDistance(locations, distanceInMeters);        
+        locations = filterLocationsByDistance(locations, distanceInMeters);   
         locations = filterLocationsByCategories(locations, categories, false);
+        
         
         if(mainCategory != null && !mainCategory.isEmpty()) {
             if(Constants.RESTAURANTS.equals(mainCategory)) {
@@ -183,7 +248,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             } else if(Constants.DIRECTORY.equals(mainCategory)){
                 locations = filterLocationsByCategories(locations, getRestaurantsCategories(), true);
             }
-        }        
+        }
         
         Collections.sort(locations, new DistanceComparator());
         return locations;
@@ -219,6 +284,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         if(Log.isInfoEnabled()) Log.info("Getting locations from source for zip: " + zip);
         
         List<String> terms = getSearchTerms(zip, countryCode, distanceInMeters);
+        //List<String> terms = getSearchTerms();
         List<Future<List<Location>>> results = new ArrayList<>(terms.size());
         
         final double distanceInMiles = distanceInMeters / Constants.METERS_IN_MILE;
@@ -233,7 +299,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             results.add(executors.submit(worker));
         }
         
-        Set<Location> locations = new TreeSet<>(new Comparator<Location>() {
+        SortedSet<Location> locations = new TreeSet<>(new Comparator<Location>() {
             @Override
             public int compare(Location l1, Location l2) {
                 int result = l1.getExternalId().compareTo(l2.getExternalId());
@@ -245,8 +311,17 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         long start = System.currentTimeMillis();
         try {
             for(Future<List<Location>> r : results) {
-                List<Location> ypLocationsForName = r.get();
-                locations.addAll(ypLocationsForName);
+                Log.debug("Getting...");
+                List<Location> ypLocationsForTerm = null;
+                try {
+                    ypLocationsForTerm = r.get(5, TimeUnit.SECONDS);
+                    Log.debug("Got");
+                } catch(Exception e) {
+                    Log.debug(e.getMessage());
+                }
+                if(ypLocationsForTerm != null) {
+                    locations.addAll(ypLocationsForTerm);
+                }
             }
         } catch(Exception e) {
             throw new RuntimeException(e);
@@ -268,6 +343,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     //the logic of getting the search terms is encapsulated in this method
     //currently the search terms are location names retrieved from Google, but it may change
     //to some predefined list of strings in the future
+    
     private List<String> getSearchTerms(String zip, String countryCode, int distanceInMeters) {
         Location origin = locationService.getPrimaryLocation(zip, countryCode);
         if(origin != null) {
@@ -281,6 +357,15 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         }
         return Collections.emptyList();
     }
+    
+    private List<String> getSearchTerms() {        
+        List<LocationCategory> categories = locationDao.getAllLocationCategories();
+        List<String> terms = new ArrayList<>(categories.size());
+        for(LocationCategory c : categories) {
+            terms.add(c.getName());
+        }
+        return terms;
+    }    
     
     private List<Location> filterLocationsByDistance(Collection<Location> locations, int distanceInMeters) {
         List<Location> result = new ArrayList<>(locations.size());        
@@ -314,8 +399,27 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return filtered;
     }
     
+    private List<String> filterLocationCategories(
+            List<String> locationCategories, String categories, boolean negate) {
+        if(categories == null || categories.isEmpty()) return locationCategories;
+        List<String> filtered = new ArrayList<>(locationCategories.size());
+
+        Set<String> cats = StringUtils.split(categories, ",", true);
+        outer: for(String c : locationCategories) {
+            String categoriesString = c.toLowerCase();
+            for(String cat : cats) {
+                boolean contains = categoriesString.contains(cat); 
+                if(contains && !negate || !contains && negate) {
+                    filtered.add(c);
+                    continue outer;
+                }
+            }            
+        }
+        return filtered;
+    }
+    
     private String getRestaurantsCategories() {
-        return "restaurant";
+        return "restaurants";
     }    
 
     ///////////// Events private methods /////////////////////////////

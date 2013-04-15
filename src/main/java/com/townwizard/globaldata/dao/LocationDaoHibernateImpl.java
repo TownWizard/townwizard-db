@@ -2,6 +2,7 @@ package com.townwizard.globaldata.dao;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -32,7 +33,32 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
                 .setString("countryCode", countryCode)
                 .uniqueResult();
     }
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<LocationCategory> getAllLocationCategories() {
+        return getSession().createQuery("from LocationCategory").list();
+    }
+    
+    @Override
+    public List<String> getLocationCategories(Long ingestId) {
+        String sql = 
+                "SELECT DISTINCT c.name FROM LocationCategory c " + 
+                "JOIN Location_LocationCategory llc ON c.id = llc.location_category_id " +  
+                "JOIN Location l ON llc.location_id = l.id " + 
+                "JOIN Location_LocationIngest lli ON l.id = lli.location_id " + 
+                "JOIN LocationIngest li ON lli.location_ingest_id = li.id " + 
+                "WHERE li.id = ?";
 
+        Session session = getSession();
+        session.flush();
+        
+        @SuppressWarnings("unchecked")
+        List<String> result = session.createSQLQuery(sql).setLong(0, ingestId).list();
+        Collections.sort(result);        
+        return result;
+    }
+    
     @Override
     public void saveLocations(List<Location> locations, LocationIngest ingest) {
 
@@ -73,7 +99,7 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
         
         if(!newLocations.isEmpty()) {
             createMissingCategories(newLocations);
-            Map<String, LocationCategory> allCategories = getAllLocationCategories();
+            Map<String, LocationCategory> allCategories = getLocationCategoriesMap();
             
             for(Location location : newLocations) {
                 for(String categoryName : location.extractCategoryNames()) {
@@ -113,7 +139,7 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
         return result;
     }
     
-    private Map<String, LocationCategory> getAllLocationCategories() {
+    private Map<String, LocationCategory> getLocationCategoriesMap() {
         Map<String, LocationCategory> result = new HashMap<>();
         @SuppressWarnings("unchecked")
         List<LocationCategory> allCategories = getSession().createQuery("from LocationCategory").list();
@@ -125,7 +151,7 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
     
     private void createMissingCategories(List<Location> locations) {
         Set<String> allCategoryNames = collectCategoryNames(locations);
-        Map<String, LocationCategory> allCategories = getAllLocationCategories();
+        Map<String, LocationCategory> allCategories = getLocationCategoriesMap();
         Session session = getSession();
         
         for(String categoryName : allCategoryNames) {

@@ -1,7 +1,6 @@
 package com.townwizard.globaldata.service;
 
 import java.util.List;
-import java.util.SortedSet;
 
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
@@ -29,11 +28,11 @@ public interface GlobalDataService {
             int distanceInMeters, String mainCategory, String categories);
     
     /**
-     * Get location categories (such as restaurants, dental, pizza, etc) from locations
+     * Get sorted location categories (such as restaurants, dental, pizza, etc) from locations
      * retrieved by zip/location/ip and distance for some optional main category.
      * If main category is null location categories for all locations are retrieved
      */
-    SortedSet<String> getLocationCategories(LocationParams params, 
+    List<String> getLocationCategories(LocationParams params, 
             int distanceInMeters, String mainCategory);
 
     /**

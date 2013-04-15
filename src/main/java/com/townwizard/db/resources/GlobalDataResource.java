@@ -4,7 +4,6 @@ import static com.townwizard.db.constants.Constants.DEFAULT_COUNTRY_CODE;
 import static com.townwizard.db.constants.Constants.DEFAULT_DISTANCE_IN_METERS;
 
 import java.util.List;
-import java.util.SortedSet;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -74,7 +73,8 @@ public class GlobalDataResource extends ResourceSupport {
         try {
             List<Location> locations = globalDataService.getLocations(
                     new LocationParams(zip, DEFAULT_COUNTRY_CODE, location, ip),
-                    DEFAULT_DISTANCE_IN_METERS, mainCategory, categories);
+                    DEFAULT_DISTANCE_IN_METERS, mainCategory, categories);            
+            
             return Response.status(Status.OK).entity(locations).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -95,7 +95,7 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("ip") String ip,
             @QueryParam ("cat") String mainCategory) {
         try {
-            SortedSet<String> categories = globalDataService.getLocationCategories(
+            List<String> categories = globalDataService.getLocationCategories(
                     new LocationParams(zip, DEFAULT_COUNTRY_CODE, location, ip),
                     DEFAULT_DISTANCE_IN_METERS, mainCategory);
             return Response.status(Status.OK).entity(categories).build();

@@ -31,7 +31,7 @@ public class LocationCategory implements Serializable {
     private Long id;
     private String name;
     
-    @ManyToMany (fetch=FetchType.EAGER, cascade=CascadeType.ALL)    
+    @ManyToMany (fetch=FetchType.LAZY, cascade=CascadeType.ALL)    
     @JoinTable (
             name = "Location_LocationCategory",
             joinColumns= {@JoinColumn (name="location_category_id")},

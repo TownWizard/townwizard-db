@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.townwizard.db.dao.AbstractDao;
 import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.model.LocationCategory;
 import com.townwizard.globaldata.model.LocationIngest;
 
 /**
@@ -17,6 +18,16 @@ public interface LocationDao extends AbstractDao {
      * should be treated as "get locations" method. 
      */
     LocationIngest getLocationIngest(String zip, String countryCode);
+    
+    /**
+     * Return the list of all location categories
+     */
+    List<LocationCategory> getAllLocationCategories();
+    
+    /**
+     * Get sorted list of category names for an ingest 
+     */
+    List<String> getLocationCategories(Long ingestId);
     
     /** 
      * The list of locations given to this method can be a mix of old (associated with some
