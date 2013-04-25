@@ -1,6 +1,7 @@
 package com.townwizard.globaldata.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ public class FacebookServiceImpl implements FacebookService {
      */
     @Override
     public List<Event> getEvents(List<String> terms) {
+        if(terms.isEmpty()) return Collections.emptyList();
         try {
             String fql = getSearchEventsFql(terms);
             String json = connector.executeFQL(fql);
@@ -95,6 +97,7 @@ public class FacebookServiceImpl implements FacebookService {
     }
 
     private List<Facebook.Page> getPagesByIds(List<String> pageIds) {
+        if(pageIds.isEmpty()) return Collections.emptyList();
         try {
             String fql = 
                     "SELECT page_id, location " + 
