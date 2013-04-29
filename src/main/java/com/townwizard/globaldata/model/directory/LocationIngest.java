@@ -1,4 +1,4 @@
-package com.townwizard.globaldata.model;
+package com.townwizard.globaldata.model.directory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,6 +8,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.Table;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -28,6 +29,7 @@ import com.townwizard.db.model.AuditableEntity;
  * and if yes, the locations are loaded from the DB rather than from the source.
  */
 @Entity
+@Table(name = "Ingest")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
 public class LocationIngest extends AuditableEntity {
 
@@ -35,12 +37,13 @@ public class LocationIngest extends AuditableEntity {
     
     private String zip;
     private String countryCode;
+    private String term;
     private Integer distance;
     
     @ManyToMany (fetch=FetchType.LAZY)    
     @JoinTable (
-            name = "Location_LocationIngest",
-            joinColumns= {@JoinColumn (name="location_ingest_id")},
+            name = "Location_Ingest",
+            joinColumns= {@JoinColumn (name="ingest_id")},
             inverseJoinColumns = {@JoinColumn(name="location_id")}
     )    
     private Set<Location> locations;    
@@ -56,6 +59,12 @@ public class LocationIngest extends AuditableEntity {
     }
     public void setCountryCode(String countryCode) {
         this.countryCode = countryCode;
+    }
+    public String getTerm() {
+        return term;
+    }
+    public void setTerm(String term) {
+        this.term = term;
     }
     public Integer getDistance() {
         return distance;

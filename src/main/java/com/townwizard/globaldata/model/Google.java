@@ -28,7 +28,7 @@ public class Google {
     /**
      * Populated from location JSON and can be converted into generic Location object
      */
-    public static class Location implements Convertible <com.townwizard.globaldata.model.Location> {
+    public static class Location implements Convertible <com.townwizard.globaldata.model.directory.Location> {
         private String id;
         private String name;
         private Geometry geometry;
@@ -36,9 +36,9 @@ public class Google {
         private List<String> types;
         
         @Override
-        public com.townwizard.globaldata.model.Location convert() {
-            com.townwizard.globaldata.model.Location l = new com.townwizard.globaldata.model.Location();
-            l.setSource(com.townwizard.globaldata.model.Location.Source.GOOGLE);
+        public com.townwizard.globaldata.model.directory.Location convert() {
+            com.townwizard.globaldata.model.directory.Location l = new com.townwizard.globaldata.model.directory.Location();
+            l.setSource(com.townwizard.globaldata.model.directory.Location.Source.GOOGLE);
             l.setExternalId(id);
             l.setName(name);
             if(geometry != null) {             

@@ -3,9 +3,9 @@ package com.townwizard.globaldata.dao;
 import java.util.List;
 
 import com.townwizard.db.dao.AbstractDao;
-import com.townwizard.globaldata.model.Location;
-import com.townwizard.globaldata.model.LocationCategory;
-import com.townwizard.globaldata.model.LocationIngest;
+import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.model.directory.LocationCategory;
+import com.townwizard.globaldata.model.directory.LocationIngest;
 
 /**
  * Contains methods to get/save locations (places) in our local DB

@@ -17,9 +17,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.townwizard.db.test.TestSupport;
-import com.townwizard.globaldata.model.Location;
-import com.townwizard.globaldata.model.LocationCategory;
-import com.townwizard.globaldata.model.LocationIngest;
+import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.model.directory.LocationCategory;
+import com.townwizard.globaldata.model.directory.LocationIngest;
 
 /**
  * Tests global location hibernate object mappings
@@ -30,7 +30,7 @@ public class LocationTest extends TestSupport {
     
     @Before
     public void beginTransaction() {
-        session = getSessionFactory().openSession();        
+        session = getDirectorySessionFactory().openSession();        
         session.beginTransaction();        
     }
     

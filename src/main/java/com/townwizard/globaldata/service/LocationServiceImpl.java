@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.DataUtils;
-import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.model.directory.Location;
 
 /**
  * LocationService implementation, which uses allCountries.txt data file.

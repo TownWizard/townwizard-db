@@ -1,4 +1,4 @@
-package com.townwizard.globaldata.model;
+package com.townwizard.globaldata.model.directory;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -13,6 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.Table;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -22,6 +23,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  * fashion.
  */
 @Entity
+@Table(name = "Category")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
 public class LocationCategory implements Serializable {
 
@@ -33,8 +35,8 @@ public class LocationCategory implements Serializable {
     
     @ManyToMany (fetch=FetchType.LAZY, cascade=CascadeType.ALL)    
     @JoinTable (
-            name = "Location_LocationCategory",
-            joinColumns= {@JoinColumn (name="location_category_id")},
+            name = "Location_Category",
+            joinColumns= {@JoinColumn (name="category_id")},
             inverseJoinColumns = {@JoinColumn(name="location_id")}
     )    
     private Set<Location> locations;

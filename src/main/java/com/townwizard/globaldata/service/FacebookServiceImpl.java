@@ -17,7 +17,7 @@ import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.globaldata.connector.FacebookConnector;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Facebook;
-import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.model.directory.Location;
 
 /**
  * Implementation for FacebookService.

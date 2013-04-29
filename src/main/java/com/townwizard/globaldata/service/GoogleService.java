@@ -2,7 +2,7 @@ package com.townwizard.globaldata.service;
 
 import java.util.List;
 
-import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.model.directory.Location;
 
 /**
  * Contains methods to retrieve data from Google

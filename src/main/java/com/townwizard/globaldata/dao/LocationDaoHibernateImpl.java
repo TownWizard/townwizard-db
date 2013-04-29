@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 
 import com.townwizard.db.dao.AbstractDaoHibernateImpl;
 import com.townwizard.db.util.CollectionUtils;
-import com.townwizard.globaldata.model.Location;
-import com.townwizard.globaldata.model.LocationCategory;
-import com.townwizard.globaldata.model.LocationIngest;
+import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.model.directory.LocationCategory;
+import com.townwizard.globaldata.model.directory.LocationIngest;
 
 /**
  * Hibernate implementation of LocationDao
@@ -43,11 +43,11 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
     @Override
     public List<String> getLocationCategories(Long ingestId) {
         String sql = 
-                "SELECT DISTINCT c.name FROM LocationCategory c " + 
-                "JOIN Location_LocationCategory llc ON c.id = llc.location_category_id " +  
+                "SELECT DISTINCT c.name FROM Category c " + 
+                "JOIN Location_Category llc ON c.id = llc.category_id " +  
                 "JOIN Location l ON llc.location_id = l.id " + 
-                "JOIN Location_LocationIngest lli ON l.id = lli.location_id " + 
-                "JOIN LocationIngest li ON lli.location_ingest_id = li.id " + 
+                "JOIN Location_Ingest lli ON l.id = lli.location_id " + 
+                "JOIN Ingest li ON lli.ingest_id = li.id " + 
                 "WHERE li.id = ?";
 
         Session session = getSession();

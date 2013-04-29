@@ -20,19 +20,24 @@ import com.townwizard.db.model.TwNamingStrategy;
 public abstract class TestSupport {
     
     private static Properties properties;
-    private static SessionFactory sessionFactory;    
+    private static SessionFactory masterSessionFactory;
+    private static SessionFactory directorySessionFactory;
     
     @BeforeClass
     public static void beforeTestsRun() throws Exception {
         properties = new Properties();
         properties.load(ClassLoader.getSystemResourceAsStream("test.properties"));
-        sessionFactory = initSessionFactory();
+        masterSessionFactory = initSessionFactory("/hibernate.cfg.master.xml");
+        directorySessionFactory = initSessionFactory("/hibernate.cfg.directory.xml");
     }
     
     @AfterClass
     public static void afterTestsRun() throws Exception {
-        if(sessionFactory != null) {
-            sessionFactory.close();
+        if(masterSessionFactory != null) {
+            masterSessionFactory.close();
+        }
+        if(directorySessionFactory != null) {
+            directorySessionFactory.close();
         }
     }
     
@@ -40,13 +45,17 @@ public abstract class TestSupport {
         return properties.getProperty("web_services_url_base");
     }
     
-    protected SessionFactory getSessionFactory() {
-        return sessionFactory;
+    protected SessionFactory getMasterSessionFactory() {
+        return masterSessionFactory;
+    }
+    
+    protected SessionFactory getDirectorySessionFactory() {
+        return directorySessionFactory;
     }
 
-    private static SessionFactory initSessionFactory() {
+    private static SessionFactory initSessionFactory(String resource) {
         Configuration configuration = new Configuration();
-        configuration.configure();
+        configuration.configure(resource);
         configuration.setNamingStrategy(new TwNamingStrategy());
         configuration.setInterceptor(new EntityInterceptor());
         ServiceRegistry serviceRegistry = new ServiceRegistryBuilder().

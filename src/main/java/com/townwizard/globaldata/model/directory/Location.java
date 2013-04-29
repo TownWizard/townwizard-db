@@ -1,4 +1,4 @@
-package com.townwizard.globaldata.model;
+package com.townwizard.globaldata.model.directory;
 
 
 import java.util.HashSet;
@@ -22,6 +22,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import com.townwizard.db.constants.Constants;
 import com.townwizard.db.model.AbstractEntity;
 import com.townwizard.db.util.StringUtils;
+import com.townwizard.globaldata.model.DistanceComparable;
 
 /**
  * Represents a generic (that is not provider specific) location (place) object.

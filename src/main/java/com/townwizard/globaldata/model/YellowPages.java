@@ -11,7 +11,7 @@ public class YellowPages {
     /**
      * Populated from Yellow Pages location JSON and can be converted into generic Location object
      */
-    public static class Location implements Convertible <com.townwizard.globaldata.model.Location> {
+    public static class Location implements Convertible <com.townwizard.globaldata.model.directory.Location> {
 
         private Integer listingId;
         private String businessName;
@@ -27,9 +27,9 @@ public class YellowPages {
         private String zip;
 
         @Override
-        public com.townwizard.globaldata.model.Location convert() {
-            com.townwizard.globaldata.model.Location l = new com.townwizard.globaldata.model.Location();
-            l.setSource(com.townwizard.globaldata.model.Location.Source.YELLOW_PAGES);
+        public com.townwizard.globaldata.model.directory.Location convert() {
+            com.townwizard.globaldata.model.directory.Location l = new com.townwizard.globaldata.model.directory.Location();
+            l.setSource(com.townwizard.globaldata.model.directory.Location.Source.YELLOW_PAGES);
             l.setExternalId(listingId.toString());        
             l.setName(businessName);
             l.setCategoriesStr(categories);

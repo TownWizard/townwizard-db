@@ -5,7 +5,7 @@
 <hibernate-configuration>
   <session-factory>
     <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
-    <property name="connection.url">jdbc:mysql://localhost:3306/master</property>
+    <property name="connection.url">jdbc:mysql://localhost:3306/directory</property>
     <property name="connection.username">root</property>
     <property name="connection.password">bitnami</property>
     <property name="connection.pool_size">1</property>
@@ -14,14 +14,8 @@
     <property name="cache.use_second_level_cache">false</property>
     <property name="cache.use_query_cache">false</property>
     <property name="cache.region.factory_class">org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory</property>
-    <mapping class="com.townwizard.db.model.User"/>
-    <mapping class="com.townwizard.db.model.Address"/>
-    <mapping class="com.townwizard.db.model.Content"/>
-    <mapping class="com.townwizard.db.model.Rating"/>
-    <mapping class="com.townwizard.db.model.Event"/>
-    <mapping class="com.townwizard.db.model.EventResponse"/>
-    <mapping class="com.townwizard.globaldata.model.LocationIngest"/>
-    <mapping class="com.townwizard.globaldata.model.LocationCategory"/>
-    <mapping class="com.townwizard.globaldata.model.Location"/>
+    <mapping class="com.townwizard.globaldata.model.directory.LocationIngest"/>
+    <mapping class="com.townwizard.globaldata.model.directory.LocationCategory"/>
+    <mapping class="com.townwizard.globaldata.model.directory.Location"/>
   </session-factory>
 </hibernate-configuration>

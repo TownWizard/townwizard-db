@@ -4,7 +4,7 @@ import java.util.Date;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
 
 import com.townwizard.db.model.AbstractEntity;
 import com.townwizard.db.model.AuditableEntity;
@@ -14,8 +14,7 @@ import com.townwizard.db.model.AuditableEntity;
  * This class also makes hibernate session available to all subclasses.
  */
 public abstract class AbstractDaoHibernateImpl implements AbstractDao {
-
-    @Autowired
+    
     private SessionFactory sessionFactory;
 
     /**
@@ -56,4 +55,8 @@ public abstract class AbstractDaoHibernateImpl implements AbstractDao {
         return null;
     }
     
+    @Required
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
 }

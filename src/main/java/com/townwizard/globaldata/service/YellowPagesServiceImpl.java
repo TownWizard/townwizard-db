@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.globaldata.connector.YellowPagesConnector;
-import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.YellowPages;
+import com.townwizard.globaldata.model.directory.Location;
 
 /**
  * Yellow Pages service implementation

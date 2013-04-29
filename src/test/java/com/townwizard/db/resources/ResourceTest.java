@@ -142,7 +142,7 @@ public abstract class ResourceTest extends TestSupport {
     protected User getUserByEmailFromTheDb(String email) {
         Session session = null;
         try {
-            session = getSessionFactory().openSession();
+            session = getMasterSessionFactory().openSession();
             session.beginTransaction();
             Query q = session.createQuery("from User where email = :email").setString("email", email);
             session.getTransaction().commit();
@@ -169,7 +169,7 @@ public abstract class ResourceTest extends TestSupport {
     protected void deleteUserByEmail(String email) {
         Session session = null;
         try {
-            session = getSessionFactory().openSession();
+            session = getMasterSessionFactory().openSession();
             session.beginTransaction();
             Query q = session.createQuery("from User where email = :email").setString("email", email);
             @SuppressWarnings("unchecked")

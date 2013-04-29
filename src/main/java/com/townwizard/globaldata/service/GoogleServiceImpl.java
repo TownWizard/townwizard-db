@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import com.townwizard.db.logger.Log;
 import com.townwizard.globaldata.connector.GoogleConnector;
 import com.townwizard.globaldata.model.Google;
-import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.model.directory.Location;
 
 /**
  * GoogleService implementation

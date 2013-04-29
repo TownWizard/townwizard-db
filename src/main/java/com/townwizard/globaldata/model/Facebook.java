@@ -53,15 +53,15 @@ public class Facebook {
     /**
      * Populated from FB location JSON, and is converted into generic Location object
      */
-    public static class Location implements Convertible <com.townwizard.globaldata.model.Location> {
+    public static class Location implements Convertible <com.townwizard.globaldata.model.directory.Location> {
         private String id;
         private String name;
         private String category;    
         private Venue location;
         
-        public com.townwizard.globaldata.model.Location convert() {
-            com.townwizard.globaldata.model.Location l = new com.townwizard.globaldata.model.Location();
-            l.setSource(com.townwizard.globaldata.model.Location.Source.FACEBOOK);
+        public com.townwizard.globaldata.model.directory.Location convert() {
+            com.townwizard.globaldata.model.directory.Location l = new com.townwizard.globaldata.model.directory.Location();
+            l.setSource(com.townwizard.globaldata.model.directory.Location.Source.FACEBOOK);
             l.setExternalId(id);
             l.setName(name);
             l.setCategory(category);

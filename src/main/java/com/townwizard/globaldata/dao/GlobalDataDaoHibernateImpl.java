@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.util.StringUtils;
@@ -18,7 +18,6 @@ import com.townwizard.globaldata.model.CityLocation;
 @Component("globalDataDao")
 public class GlobalDataDaoHibernateImpl implements GlobalDataDao {
     
-    @Autowired
     private SessionFactory sessionFactory;
     
     private static final Map<String, String> zipToTimeZone = new HashMap<>();
@@ -70,6 +69,10 @@ public class GlobalDataDaoHibernateImpl implements GlobalDataDao {
         return null;
     }
     
+    @Required
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }    
     
     private static final String TIME_ZONE_BY_ZIP_SQL = "SELECT timezone FROM geo.TimeZones WHERE zip = ?"; 
     private static final String ZIP_BY_IP_SQL =     

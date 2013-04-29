@@ -34,9 +34,9 @@ import com.townwizard.globaldata.dao.LocationDao;
 import com.townwizard.globaldata.model.CityLocation;
 import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Event;
-import com.townwizard.globaldata.model.Location;
-import com.townwizard.globaldata.model.LocationCategory;
-import com.townwizard.globaldata.model.LocationIngest;
+import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.model.directory.LocationCategory;
+import com.townwizard.globaldata.model.directory.LocationIngest;
 import com.townwizard.globaldata.service.GlobalDataService.LocationParams;
 
 /**
@@ -88,7 +88,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
      * Retrieval of locations from Yellow Pages is done in separate threads. 
      */
     @Override
-    @Transactional
+    @Transactional("directoryTransactionManager")
     public List<Location> getLocations(
             LocationParams params, int distanceInMeters, String mainCategory, String categories) {
         if(params.isZipInfoSet()) {
@@ -108,7 +108,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
      * Get locations as in the method above, and collect categories from them.
      */
     @Override
-    @Transactional
+    @Transactional("directoryTransactionManager")
     public List<String> getLocationCategories(LocationParams params, 
             int distanceInMeters, String mainCategory) {
         if(params.isZipInfoSet()) {
@@ -326,11 +326,9 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         long start = System.currentTimeMillis();
         try {
             for(Future<List<Location>> r : results) {
-                Log.debug("Getting...");
                 List<Location> ypLocationsForTerm = null;
                 try {
                     ypLocationsForTerm = r.get(5, TimeUnit.SECONDS);
-                    Log.debug("Got");
                 } catch(Exception e) {
                     Log.debug(e.getMessage());
                 }
