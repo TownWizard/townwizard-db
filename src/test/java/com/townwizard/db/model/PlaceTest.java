@@ -24,7 +24,7 @@ import com.townwizard.globaldata.model.directory.PlaceIngest;
 /**
  * Tests global location hibernate object mappings
  */
-public class LocationTest extends TestSupport {
+public class PlaceTest extends TestSupport {
 
     private Session session;
     
@@ -52,8 +52,9 @@ public class LocationTest extends TestSupport {
         try {
             PlaceIngest i = createLocationIngest();
             session.save(i);
-            Long id = i.getId();
-            assertNotNull("Place ingest id should not be null after save()", id);            
+            Long id = i.getId();            
+            assertNotNull("Place ingest id should not be null after save()", id);
+            assertNotNull("Place ingest term should not be null after save()", i.getTerm());
             
             PlaceIngest fromDb = getLocationIngestById(id);
             assertNotNull("Place ingest should be found in db after save() by id", fromDb);
@@ -65,9 +66,23 @@ public class LocationTest extends TestSupport {
             fromDb = getLocationIngestById(id);
             assertNotSame("Place ingest updated should change after update()", updated, fromDb.getUpdated());
             
+            PlaceCategory c = createLocationCategory();
+            session.save(c);
+            fromDb.setPlaceCategory(c);
+            fromDb.setTerm(null);
+            session.save(fromDb);
+            session.flush();
+            
+            fromDb = getLocationIngestById(id);
+            assertNotNull("Place ingest category should not be null after updating category and term",
+                    fromDb.getPlaceCategory());
+            assertNull("Place ingest term must be null after updating category and term", fromDb.getTerm());            
+
             session.delete(fromDb);
             fromDb = getLocationIngestById(id);
             assertNull("Place ingest should not be found after delete()", fromDb);
+            
+            session.delete(c);
         } catch(Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -180,7 +195,8 @@ public class LocationTest extends TestSupport {
         PlaceIngest i = new PlaceIngest();
         i.setZip("00000");
         i.setDistance(2000);
-        i.setCountryCode("US"); 
+        i.setCountryCode("US");
+        i.setTerm("Test term");
         return i;
     }
     

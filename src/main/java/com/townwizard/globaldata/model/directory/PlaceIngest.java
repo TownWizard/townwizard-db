@@ -8,6 +8,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Cache;
@@ -39,6 +40,9 @@ public class PlaceIngest extends AuditableEntity {
     private String countryCode;
     private String term;
     private Integer distance;
+    
+    @OneToOne(fetch = FetchType.EAGER) @JoinColumn(name = "categoryId")
+    private PlaceCategory placeCategory;
     
     @ManyToMany (fetch=FetchType.LAZY)    
     @JoinTable (
@@ -78,7 +82,12 @@ public class PlaceIngest extends AuditableEntity {
     public void setPlaces(Set<Place> places) {
         this.places = places;
     }
-    
+    public PlaceCategory getPlaceCategory() {
+        return placeCategory;
+    }
+    public void setPlaceCategory(PlaceCategory placeCategory) {
+        this.placeCategory = placeCategory;
+    }
     /**
      * Convenience method to add place to this object.  This method will not set both
      * sides of the relationship, this is done on the Place side.
