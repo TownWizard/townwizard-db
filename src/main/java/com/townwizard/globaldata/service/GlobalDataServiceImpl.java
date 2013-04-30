@@ -12,6 +12,7 @@ import com.townwizard.globaldata.model.CityLocation;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.directory.Place;
+import com.townwizard.globaldata.service.geo.LocationService;
 
 /**
  * GlobalDataService implementation

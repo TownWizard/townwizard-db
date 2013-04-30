@@ -1,4 +1,4 @@
-package com.townwizard.globaldata.service;
+package com.townwizard.globaldata.service.geo;
 
 import java.io.InputStream;
 import java.util.ArrayList;

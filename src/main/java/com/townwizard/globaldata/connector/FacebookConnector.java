@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.util.HttpUtils;
-import com.townwizard.globaldata.service.LocationService;
+import com.townwizard.globaldata.service.geo.LocationService;
 
 /**
  * This class is responsible for execution of Facebook HTTP queries.

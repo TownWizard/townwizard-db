@@ -20,6 +20,7 @@ import com.townwizard.globaldata.dao.GlobalDataDao;
 import com.townwizard.globaldata.model.CityLocation;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
+import com.townwizard.globaldata.service.geo.LocationService;
 import com.townwizard.globaldata.service.provider.FacebookService;
 
 @Component("eventHelper")

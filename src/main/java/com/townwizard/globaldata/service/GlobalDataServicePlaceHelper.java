@@ -31,6 +31,7 @@ import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.directory.Place;
 import com.townwizard.globaldata.model.directory.PlaceCategory;
 import com.townwizard.globaldata.model.directory.PlaceIngest;
+import com.townwizard.globaldata.service.geo.LocationService;
 import com.townwizard.globaldata.service.provider.GoogleService;
 import com.townwizard.globaldata.service.provider.YellowPagesService;
 
