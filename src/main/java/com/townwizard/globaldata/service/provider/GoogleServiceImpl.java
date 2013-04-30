@@ -13,7 +13,7 @@ import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.JSONUtils;
 import com.townwizard.globaldata.connector.GoogleConnector;
 import com.townwizard.globaldata.model.Google;
-import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.model.directory.Place;
 
 /**
  * GoogleService implementation
@@ -30,9 +30,9 @@ public class GoogleServiceImpl implements GoogleService {
      * one or two more requests will be executed to get more locations.
      */
     @Override
-    public List<Location> getLocations(double latitude, double longitude, int distanceInMeters) {
+    public List<Place> getLocations(double latitude, double longitude, int distanceInMeters) {
         try {
-            List<Location> finalList = new ArrayList<>(20);
+            List<Place> finalList = new ArrayList<>(20);
 
             String json = connector.executePlacesNearbyRequest(
                     latitude, longitude, distanceInMeters, null, null);

@@ -2,7 +2,7 @@ package com.townwizard.globaldata.service.provider;
 
 import java.util.List;
 
-import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.model.directory.Place;
 
 /**
  * Contains methods to retrieve data from Google
@@ -12,6 +12,6 @@ public interface GoogleService {
     /**
      * Get Google locations (places) by latitude, longitude, and distance
      */
-    List<Location> getLocations(double latitude, double longitude, int distanceInMeters);
+    List<Place> getLocations(double latitude, double longitude, int distanceInMeters);
 
 }

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.DataUtils;
-import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.model.directory.Place;
 
 /**
  * LocationService implementation, which uses allCountries.txt data file.
@@ -28,17 +28,17 @@ public class LocationServiceImpl implements LocationService {
     
     private static final String LOCATION_DATABASE = "allCountries.txt"; 
     
-    private static Map<String, List<Location>> locationsByZip;
-    private static SortedMap<Float, SortedSet<Location>> locationsByLatitude;
-    private static SortedMap<Float, SortedSet<Location>> locationsByLongitude;
+    private static Map<String, List<Place>> locationsByZip;
+    private static SortedMap<Float, SortedSet<Place>> locationsByLatitude;
+    private static SortedMap<Float, SortedSet<Place>> locationsByLongitude;
         
     @Override
-    public List<Location> getLocations(String zip, String countryCode) {
+    public List<Place> getLocations(String zip, String countryCode) {
         checkDataLoaded();
-        List<Location> allLocations = locationsByZip.get(zip);
+        List<Place> allLocations = locationsByZip.get(zip);
         if(allLocations != null) {
-            List<Location> locations = new ArrayList<>();
-            for(Location l : allLocations) if(countryCode.equals(l.getCountryCode())) locations.add(l);
+            List<Place> locations = new ArrayList<>();
+            for(Place l : allLocations) if(countryCode.equals(l.getCountryCode())) locations.add(l);
             return locations;
         }
         return Collections.emptyList();        
@@ -49,9 +49,9 @@ public class LocationServiceImpl implements LocationService {
      * which has latitude and longitude.
      */
     @Override
-    public Location getPrimaryLocation(String zip, String countryCode) {
-        List<Location> zipLocations = getLocations(zip, countryCode);        
-        for(Location l : zipLocations) {
+    public Place getPrimaryLocation(String zip, String countryCode) {
+        List<Place> zipLocations = getLocations(zip, countryCode);        
+        for(Place l : zipLocations) {
             if(l.getLatitude() != null && l.getLongitude() != null) {
                 return l;
             }
@@ -67,25 +67,25 @@ public class LocationServiceImpl implements LocationService {
      * Return the location with the smaller distance.
      */
     @Override
-    public Location getLocation(double latitude, double longitude) {
+    public Place getLocation(double latitude, double longitude) {
         checkDataLoaded();
         
         float lat = (float)latitude;
         float lon = (float)longitude;
-        Set<Location> lByLatitude = findInMap(locationsByLatitude, lat);
-        Set<Location> lByLongitude = findInMap(locationsByLongitude, lon);
+        Set<Place> lByLatitude = findInMap(locationsByLatitude, lat);
+        Set<Place> lByLongitude = findInMap(locationsByLongitude, lon);
         
         if(lByLatitude != null && lByLongitude != null) {
-            Set<Location> allLocations = lByLatitude;
+            Set<Place> allLocations = lByLatitude;
             allLocations.addAll(lByLongitude);
             
-            Location orig = new Location();
+            Place orig = new Place();
             orig.setLatitude(lat);
             orig.setLongitude(lon);
             
             int minDistance = Integer.MAX_VALUE;
-            Location selected = null;
-            for(Location l : allLocations) {
+            Place selected = null;
+            for(Place l : allLocations) {
                int distance = distance(orig, l);
                if(distance < minDistance) {
                    minDistance = distance;
@@ -100,10 +100,10 @@ public class LocationServiceImpl implements LocationService {
     
     @Override
     public List<String> getCities(String zip, String countryCode) {
-        List<Location> locations = getLocations(zip, countryCode);
+        List<Place> locations = getLocations(zip, countryCode);
         if(locations != null && !locations.isEmpty()) {
             List<String> cities = new ArrayList<>(locations.size());                
-            for(Location l : locations) if(l.getCity() != null) cities.add(preprocessCityName(l.getCity()));
+            for(Place l : locations) if(l.getCity() != null) cities.add(preprocessCityName(l.getCity()));
             return cities;
         }
         return Collections.emptyList();
@@ -114,7 +114,7 @@ public class LocationServiceImpl implements LocationService {
      * http://www.movable-type.co.uk/scripts/latlong.html
      */
     @Override
-    public Integer distance(Location location1, Location location2) {
+    public Integer distance(Place location1, Place location2) {
         if(location1 != null && location2 != null) {
             Float lat1 = location1.getLatitude();
             Float lat2 = location2.getLatitude();
@@ -159,15 +159,15 @@ public class LocationServiceImpl implements LocationService {
                 getDataInputStream(LOCATION_DATABASE), 0,
                 new int[]{1, 0, 2, 4, 9, 10}, 
                 new String[] {"zip", "countryCode", "city", "state", "latitude", "longitude"},
-                String.class, Location.class, "\t", "");
+                String.class, Place.class, "\t", "");
         
         locationsByLatitude = new TreeMap<>();
         locationsByLongitude = new TreeMap<>();
         
-        for(Map.Entry<String, List<Location>> e : locationsByZip.entrySet()) {            
-            List<Location> locations = e.getValue();
+        for(Map.Entry<String, List<Place>> e : locationsByZip.entrySet()) {            
+            List<Place> locations = e.getValue();
             if(locations != null) {
-                for(Location l : locations) {
+                for(Place l : locations) {
                     Float lat = l.getLatitude();
                     Float lon = l.getLongitude();
                     String zip = l.getZip();
@@ -185,7 +185,7 @@ public class LocationServiceImpl implements LocationService {
     //the logic here is to round the given key to two decimal places,
     //then go through hash map keys and find a key which is between the candidate key and candidate key + 0.01.
     //Then retrieve the locations for the found key
-    private Set<Location> findInMap(SortedMap<Float, SortedSet<Location>> map, float candidateKey) {
+    private Set<Place> findInMap(SortedMap<Float, SortedSet<Place>> map, float candidateKey) {
         // if key is 40.552544 or -74.15088
         int k1Int = (int)(candidateKey * 100);                  //-> 4055 or -7415
         int k2Int = (candidateKey > 0) ? k1Int + 1 : k1Int - 1; //-> 4056 or -7416
@@ -195,7 +195,7 @@ public class LocationServiceImpl implements LocationService {
         float loKey = Math.min(k1, k2);    //-> 40.5500 or -74.1600
         
         SortedSet<Float> keys = (SortedSet<Float>)map.keySet();
-        Set<Location> locations = new TreeSet<>(new ZipCodeComparator());
+        Set<Place> locations = new TreeSet<>(new ZipCodeComparator());
         Iterator<Float> i = keys.iterator();
         while(i.hasNext()) {
             Float next = i.next();
@@ -207,8 +207,8 @@ public class LocationServiceImpl implements LocationService {
         return locations;
     }
     
-    private void addToMap(Map<Float, SortedSet<Location>> map, Float key, Location l) {        
-        SortedSet<Location> value = map.get(key);
+    private void addToMap(Map<Float, SortedSet<Place>> map, Float key, Place l) {        
+        SortedSet<Place> value = map.get(key);
         if(value == null) {
             value = new TreeSet<>(new ZipCodeComparator());
             map.put(key, value);
@@ -216,9 +216,9 @@ public class LocationServiceImpl implements LocationService {
         value.add(l);
     }
     
-    private static class ZipCodeComparator implements Comparator<Location> {
+    private static class ZipCodeComparator implements Comparator<Place> {
         @Override
-        public int compare(Location l1, Location l2) {
+        public int compare(Place l1, Place l2) {
             return l1.getZip().compareTo(l2.getZip());
         }
     }

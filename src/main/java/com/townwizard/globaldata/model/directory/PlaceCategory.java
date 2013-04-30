@@ -25,7 +25,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Entity
 @Table(name = "Category")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
-public class LocationCategory implements Serializable {
+public class PlaceCategory implements Serializable {
 
     private static final long serialVersionUID = -6790493186121169497L;
 
@@ -39,7 +39,7 @@ public class LocationCategory implements Serializable {
             joinColumns= {@JoinColumn (name="category_id")},
             inverseJoinColumns = {@JoinColumn(name="location_id")}
     )    
-    private Set<Location> locations;
+    private Set<Place> locations;
 
     public Long getId() {
         return id;
@@ -53,10 +53,10 @@ public class LocationCategory implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
-    public Set<Location> getLocations() {
+    public Set<Place> getLocations() {
         return locations;
     }
-    public void setLocations(Set<Location> locations) {
+    public void setLocations(Set<Place> locations) {
         this.locations = locations;
     }
     
@@ -64,7 +64,7 @@ public class LocationCategory implements Serializable {
      * Convenience method to add location to location category.  This method will not set
      * both sides of the relationships.  This is done on the Location side.
      */
-    public void addLocation(Location l) {
+    public void addLocation(Place l) {
         if(locations == null) {
             locations = new HashSet<>();
         }
@@ -86,7 +86,7 @@ public class LocationCategory implements Serializable {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        LocationCategory other = (LocationCategory) obj;
+        PlaceCategory other = (PlaceCategory) obj;
         boolean idsEqual = compareWithNulls(id, other.id);
         boolean namesEqual = compareWithNulls(name, other.name);
         return idsEqual && namesEqual;

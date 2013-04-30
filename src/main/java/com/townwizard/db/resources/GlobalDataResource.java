@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.globaldata.model.Event;
-import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.model.directory.Place;
 import com.townwizard.globaldata.service.GlobalDataService;
 import com.townwizard.globaldata.service.GlobalDataService.LocationParams;
 
@@ -71,7 +71,7 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("s") String categories,
             @QueryParam ("cat") String mainCategory) {
         try {
-            List<Location> locations = globalDataService.getLocations(
+            List<Place> locations = globalDataService.getLocations(
                     new LocationParams(zip, DEFAULT_COUNTRY_CODE, location, ip),
                     DEFAULT_DISTANCE_IN_METERS, mainCategory, categories);            
             

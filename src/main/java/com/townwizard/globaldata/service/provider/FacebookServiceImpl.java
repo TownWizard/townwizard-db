@@ -18,7 +18,7 @@ import com.townwizard.db.util.JSONUtils;
 import com.townwizard.globaldata.connector.FacebookConnector;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Facebook;
-import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.model.directory.Place;
 
 /**
  * Implementation for FacebookService.
@@ -59,11 +59,11 @@ public class FacebookServiceImpl implements FacebookService {
      * Executes one search request and converts FB JSON to the list of locations
      */
     @Override
-    public List<Location> getLocations(double latitude, double longitude, int distanceInMeters) {
+    public List<Place> getLocations(double latitude, double longitude, int distanceInMeters) {
         try {
             String json = connector.executeLocationsRequest(latitude, longitude, distanceInMeters);
             List<Facebook.Location> fbObjects = jsonToObjects(json, Facebook.Location.class);
-            List<Location> objects = ServiceUtils.convertList(fbObjects);
+            List<Place> objects = ServiceUtils.convertList(fbObjects);
             return objects;
         } catch(Exception e) {
             throw new RuntimeException(e);

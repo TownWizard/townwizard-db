@@ -3,9 +3,9 @@ package com.townwizard.globaldata.dao;
 import java.util.List;
 
 import com.townwizard.db.dao.AbstractDao;
-import com.townwizard.globaldata.model.directory.Location;
-import com.townwizard.globaldata.model.directory.LocationCategory;
-import com.townwizard.globaldata.model.directory.LocationIngest;
+import com.townwizard.globaldata.model.directory.Place;
+import com.townwizard.globaldata.model.directory.PlaceCategory;
+import com.townwizard.globaldata.model.directory.PlaceIngest;
 
 /**
  * Contains methods to get/save locations (places) in our local DB
@@ -17,12 +17,12 @@ public interface LocationDao extends AbstractDao {
      * This method actually brings all the locations associated with this location ingest, so
      * should be treated as "get locations" method. 
      */
-    LocationIngest getLocationIngest(String zip, String countryCode);
+    PlaceIngest getLocationIngest(String zip, String countryCode);
     
     /**
      * Return the list of all location categories
      */
-    List<LocationCategory> getAllLocationCategories();
+    List<PlaceCategory> getAllLocationCategories();
     
     /**
      * Get sorted list of category names for an ingest 
@@ -36,6 +36,6 @@ public interface LocationDao extends AbstractDao {
      *  The method will save the new locations and will associate both old and new locations 
      *  with the passed location ingest.
      */
-    void saveLocations(List<Location> locations, LocationIngest ingest);
+    void saveLocations(List<Place> locations, PlaceIngest ingest);
 
 }

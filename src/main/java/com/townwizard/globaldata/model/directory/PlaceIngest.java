@@ -31,7 +31,7 @@ import com.townwizard.db.model.AuditableEntity;
 @Entity
 @Table(name = "Ingest")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
-public class LocationIngest extends AuditableEntity {
+public class PlaceIngest extends AuditableEntity {
 
     private static final long serialVersionUID = -5910483030029302936L;
     
@@ -46,7 +46,7 @@ public class LocationIngest extends AuditableEntity {
             joinColumns= {@JoinColumn (name="ingest_id")},
             inverseJoinColumns = {@JoinColumn(name="location_id")}
     )    
-    private Set<Location> locations;    
+    private Set<Place> locations;    
     
     public String getZip() {
         return zip;
@@ -72,10 +72,10 @@ public class LocationIngest extends AuditableEntity {
     public void setDistance(Integer distance) {
         this.distance = distance;
     }
-    public Set<Location> getLocations() {
+    public Set<Place> getLocations() {
         return locations;
     }
-    public void setLocations(Set<Location> locations) {
+    public void setLocations(Set<Place> locations) {
         this.locations = locations;
     }
     
@@ -83,7 +83,7 @@ public class LocationIngest extends AuditableEntity {
      * Convenience method to add location to this object.  This method will not set both
      * sides of the relationship, this is done on the Location side.
      */
-    public void addLocation(Location l) {
+    public void addLocation(Place l) {
         if(locations == null) {
             locations = new HashSet<>();
         }

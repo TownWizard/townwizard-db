@@ -3,7 +3,7 @@ package com.townwizard.globaldata.service;
 import java.util.List;
 
 import com.townwizard.globaldata.model.Event;
-import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.model.directory.Place;
 
 /**
  * Service which contains method global data retrieval.
@@ -24,7 +24,7 @@ public interface GlobalDataService {
      * distance, optional main category, and optional comma-separated list of categories.
      * If main category and/or categories is null locations of all categories are retrieved
      */    
-    List<Location> getLocations(LocationParams params,
+    List<Place> getLocations(LocationParams params,
             int distanceInMeters, String mainCategory, String categories);
     
     /**

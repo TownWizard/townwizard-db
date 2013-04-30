@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 
 import com.townwizard.db.dao.AbstractDaoHibernateImpl;
 import com.townwizard.db.util.CollectionUtils;
-import com.townwizard.globaldata.model.directory.Location;
-import com.townwizard.globaldata.model.directory.LocationCategory;
-import com.townwizard.globaldata.model.directory.LocationIngest;
+import com.townwizard.globaldata.model.directory.Place;
+import com.townwizard.globaldata.model.directory.PlaceCategory;
+import com.townwizard.globaldata.model.directory.PlaceIngest;
 
 /**
  * Hibernate implementation of LocationDao
@@ -26,9 +26,9 @@ import com.townwizard.globaldata.model.directory.LocationIngest;
 public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implements LocationDao {
 
     @Override
-    public LocationIngest getLocationIngest(String zip, String countryCode) {
-        return (LocationIngest)getSession()
-                .createQuery("from LocationIngest where zip = :zip and countryCode = :countryCode")
+    public PlaceIngest getLocationIngest(String zip, String countryCode) {
+        return (PlaceIngest)getSession()
+                .createQuery("from PlaceIngest where zip = :zip and countryCode = :countryCode")
                 .setString("zip", zip)
                 .setString("countryCode", countryCode)
                 .uniqueResult();
@@ -36,7 +36,7 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
     
     @Override
     @SuppressWarnings("unchecked")
-    public List<LocationCategory> getAllLocationCategories() {
+    public List<PlaceCategory> getAllLocationCategories() {
         return getSession().createQuery("from LocationCategory").list();
     }
     
@@ -60,26 +60,26 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
     }
     
     @Override
-    public void saveLocations(List<Location> locations, LocationIngest ingest) {
+    public void saveLocations(List<Place> locations, PlaceIngest ingest) {
 
         List<String> externalIds = new ArrayList<>(locations.size());
-        for(Location location : locations) {
+        for(Place location : locations) {
             externalIds.add(location.getExternalId());
         }
         
-        Map<String, List<Location>> locationsFromDb = getLocationsByExternalIds(externalIds);
+        Map<String, List<Place>> locationsFromDb = getLocationsByExternalIds(externalIds);
         
-        List<Location> oldLocations = new ArrayList<>();
-        List<Location> newLocations = new ArrayList<>();
+        List<Place> oldLocations = new ArrayList<>();
+        List<Place> newLocations = new ArrayList<>();
         
-        for(Location location : locations) {
+        for(Place location : locations) {
             String externalId = location.getExternalId();
-            List<Location> locationsById = locationsFromDb.get(externalId);
+            List<Place> locationsById = locationsFromDb.get(externalId);
             if(locationsById == null) {
                 newLocations.add(location);                
             } else {
                 boolean exists = false;
-                for(Location fromDb : locationsById) {
+                for(Place fromDb : locationsById) {
                     if(fromDb.getSource().equals(location.getSource())) {
                         exists = true;
                         oldLocations.add(fromDb);
@@ -92,18 +92,18 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
             }
         }
         
-        for(Location l : oldLocations) {
+        for(Place l : oldLocations) {
             l.addIngest(ingest);
             update(l);
         }
         
         if(!newLocations.isEmpty()) {
             createMissingCategories(newLocations);
-            Map<String, LocationCategory> allCategories = getLocationCategoriesMap();
+            Map<String, PlaceCategory> allCategories = getLocationCategoriesMap();
             
-            for(Location location : newLocations) {
+            for(Place location : newLocations) {
                 for(String categoryName : location.extractCategoryNames()) {
-                    LocationCategory c = allCategories.get(categoryName);
+                    PlaceCategory c = allCategories.get(categoryName);
                     location.addCategory(c);
                 }
                 location.addIngest(ingest);
@@ -112,16 +112,16 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
         }
     }
     
-    private Map<String, List<Location>> getLocationsByExternalIds(List<String> externalIds) {
+    private Map<String, List<Place>> getLocationsByExternalIds(List<String> externalIds) {
         @SuppressWarnings("unchecked")
-        List<Location> locations = getSession()
-            .createQuery("from Location where externalId in (" + CollectionUtils.join(externalIds, ",", "'") + ")")
+        List<Place> locations = getSession()
+            .createQuery("from Place where externalId in (" + CollectionUtils.join(externalIds, ",", "'") + ")")
             .list();
         
-        Map<String, List<Location>> result = new HashMap<>();
-        for(Location l : locations) {
+        Map<String, List<Place>> result = new HashMap<>();
+        for(Place l : locations) {
             String externalId = l.getExternalId();
-            List<Location> locationsById = result.get(externalId);
+            List<Place> locationsById = result.get(externalId);
             if(locationsById == null) {
                 locationsById = new LinkedList<>();
                 result.put(externalId, locationsById);
@@ -131,33 +131,33 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
         return result;
     }
     
-    private Set<String> collectCategoryNames(List<Location> locations) {
+    private Set<String> collectCategoryNames(List<Place> locations) {
         Set<String> result = new HashSet<>();
-        for(Location l : locations) {
+        for(Place l : locations) {
             result.addAll(l.extractCategoryNames());
         }
         return result;
     }
     
-    private Map<String, LocationCategory> getLocationCategoriesMap() {
-        Map<String, LocationCategory> result = new HashMap<>();
+    private Map<String, PlaceCategory> getLocationCategoriesMap() {
+        Map<String, PlaceCategory> result = new HashMap<>();
         @SuppressWarnings("unchecked")
-        List<LocationCategory> allCategories = getSession().createQuery("from LocationCategory").list();
-        for(LocationCategory c : allCategories) {
+        List<PlaceCategory> allCategories = getSession().createQuery("from PlaceCategory").list();
+        for(PlaceCategory c : allCategories) {
             result.put(c.getName(), c);
         }
         return result;
     }
     
-    private void createMissingCategories(List<Location> locations) {
+    private void createMissingCategories(List<Place> locations) {
         Set<String> allCategoryNames = collectCategoryNames(locations);
-        Map<String, LocationCategory> allCategories = getLocationCategoriesMap();
+        Map<String, PlaceCategory> allCategories = getLocationCategoriesMap();
         Session session = getSession();
         
         for(String categoryName : allCategoryNames) {
-            LocationCategory c = allCategories.get(categoryName);
+            PlaceCategory c = allCategories.get(categoryName);
             if(c == null) {
-                c = new LocationCategory();
+                c = new PlaceCategory();
                 c.setName(categoryName);
                 session.save(c);
             }

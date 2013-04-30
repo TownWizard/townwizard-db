@@ -13,6 +13,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToMany;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -32,8 +33,9 @@ import com.townwizard.globaldata.model.DistanceComparable;
  * Instances of this class are saved in our local DB (so an object of this class is a Hibernate entity)
  */
 @Entity
+@Table(name = "Location")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
-public class Location extends AbstractEntity implements DistanceComparable {
+public class Place extends AbstractEntity implements DistanceComparable {
     
     private static final long serialVersionUID = 3832190748475773728L;
 
@@ -66,10 +68,10 @@ public class Location extends AbstractEntity implements DistanceComparable {
     private String categoriesStr;      //categories concatenated in pipe-separated string, not saved in DB
     @JsonIgnore
     @ManyToMany (mappedBy = "locations", fetch=FetchType.EAGER, cascade=CascadeType.ALL)
-    private Set<LocationCategory> categories;
+    private Set<PlaceCategory> categories;
     @JsonIgnore
     @ManyToMany (mappedBy = "locations", fetch=FetchType.LAZY)
-    private Set<LocationIngest> ingests;
+    private Set<PlaceIngest> ingests;
     @Column(name="source")
     @Enumerated(EnumType.ORDINAL)
     private Source source;
@@ -156,16 +158,16 @@ public class Location extends AbstractEntity implements DistanceComparable {
     public void setCategoriesStr(String categoriesStr) {
         this.categoriesStr = categoriesStr;
     }
-    public Set<LocationCategory> getCategories() {
+    public Set<PlaceCategory> getCategories() {
         return categories;
     }
-    public void setCategories(Set<LocationCategory> categories) {
+    public void setCategories(Set<PlaceCategory> categories) {
         this.categories = categories;
     }
-    public Set<LocationIngest> getIngests() {
+    public Set<PlaceIngest> getIngests() {
         return ingests;
     }
-    public void setIngests(Set<LocationIngest> ingests) {
+    public void setIngests(Set<PlaceIngest> ingests) {
         this.ingests = ingests;
     }
     public Source getSource() {
@@ -207,7 +209,7 @@ public class Location extends AbstractEntity implements DistanceComparable {
     public List<String> getCategoryNames() {
         List<String> result = new LinkedList<>();
         if(categories != null) {
-            for(LocationCategory c : categories) {
+            for(PlaceCategory c : categories) {
                 result.add(c.getName());
             }
         }
@@ -218,7 +220,7 @@ public class Location extends AbstractEntity implements DistanceComparable {
      * Convenience method to add location category to the location, which will set both sides of
      * the Location <-> LocationCategory relationships
      */
-    public void addCategory(LocationCategory c) {
+    public void addCategory(PlaceCategory c) {
         if(categories == null) {
             categories = new HashSet<>();
         }
@@ -230,7 +232,7 @@ public class Location extends AbstractEntity implements DistanceComparable {
      * Convenience method to add location ingest to the location, which will set both sides of
      * the Location <-> LocationIngest relationships
      */
-    public void addIngest(LocationIngest i) {
+    public void addIngest(PlaceIngest i) {
         if(ingests == null) {
             ingests = new HashSet<>();
         }

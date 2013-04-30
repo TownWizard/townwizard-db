@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import com.townwizard.db.util.JSONUtils;
 import com.townwizard.globaldata.connector.YellowPagesConnector;
 import com.townwizard.globaldata.model.YellowPages;
-import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.model.directory.Place;
 
 /**
  * Yellow Pages service implementation
@@ -27,11 +27,11 @@ public class YellowPagesServiceImpl implements YellowPagesService {
      * Executes one HTTP request to get locations
      */
     @Override
-    public List<Location> getLocations(String term, String zip, double distanceInMiles) {
+    public List<Place> getLocations(String term, String zip, double distanceInMiles) {
         try {
             String json = connector.executePlacesRequest(term, zip, distanceInMiles);
             List<YellowPages.Location> gObjects = jsonToObjects(json, YellowPages.Location.class);
-            List<Location> objects = ServiceUtils.convertList(gObjects);
+            List<Place> objects = ServiceUtils.convertList(gObjects);
             return objects;
         } catch (Exception e) {
             throw new RuntimeException(e);
