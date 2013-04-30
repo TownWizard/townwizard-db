@@ -17,6 +17,7 @@ public interface PlaceDao extends AbstractDao {
      * This method actually brings all the locations associated with this location ingest, so
      * should be treated as "get locations" method. 
      */
+    @Deprecated
     PlaceIngest getPlaceIngest(String zip, String countryCode);
     
     /**
@@ -27,6 +28,7 @@ public interface PlaceDao extends AbstractDao {
     /**
      * Get sorted list of category names for an ingest 
      */
+    @Deprecated
     List<String> getPlaceCategories(Long ingestId);
     
     /** 
@@ -36,6 +38,7 @@ public interface PlaceDao extends AbstractDao {
      *  The method will save the new places and will associate both old and new places 
      *  with the passed place ingest.
      */
+    @Deprecated
     void savePlaces(List<Place> places, PlaceIngest ingest);
 
 }

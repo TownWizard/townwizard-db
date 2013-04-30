@@ -37,7 +37,7 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
     @Override
     @SuppressWarnings("unchecked")
     public List<PlaceCategory> getAllPlaceCategories() {
-        return getSession().createQuery("from LocationCategory").list();
+        return getSession().createQuery("from PlaceCategory").list();
     }
     
     @Override

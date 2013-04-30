@@ -48,104 +48,65 @@ public final class GlobalDataServicePlaceHelper {
     private YellowPagesService yellowPagesService;
     @Autowired
     private GoogleService googleService;
+    @Autowired
+    private PlaceService placeService;
     
     private ExecutorService executors = Executors.newFixedThreadPool(60);    
     
     public List<Place> getPlacesByZipInfo(String zip, String countryCode,
-            String mainCategory, String categories, int distanceInMeters) {
+            String categoryOrTerm, int distanceInMeters) {
         Location origin = locationService.getPrimaryLocation(zip, countryCode);
-        return getPlaces(zip, countryCode, mainCategory, categories, distanceInMeters, origin);        
+        return getPlaces(zip, countryCode, categoryOrTerm, distanceInMeters, origin);        
     }
 
     public List<Place> getPlacesByLocation(double latitude, double longitude,
-            String mainCategory, String categories, int distanceInMeters) {
+            String categoryOrTerm, int distanceInMeters) {
         Location orig = locationService.getLocation(latitude, longitude);
         return getPlaces(orig.getZip(), orig.getCountryCode(),
-                mainCategory, categories, distanceInMeters, orig);
+                categoryOrTerm, distanceInMeters, orig);
     }
     
-    public List<Place> getPlacesByIp(
-            String ip, String mainCategory, String categories, int distanceInMeters) {
+    public List<Place> getPlacesByIp(String ip, String categoryOrTerm, int distanceInMeters) {
         CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
         if(cityLocation != null) {
             if(cityLocation.hasPostalCodeAndCountry()) {
                 return getPlacesByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode(),
-                        mainCategory, categories, distanceInMeters);
+                        categoryOrTerm, distanceInMeters);
             }
             if(cityLocation.hasLocation()) {
                 return getPlacesByLocation(cityLocation.getLatitude(), cityLocation.getLongitude(),
-                        mainCategory, categories, distanceInMeters);
+                        categoryOrTerm, distanceInMeters);
             }             
         }
         return Collections.emptyList();
     }
     
-    public List<String> getLocationCategoriesByZipInfo(String zip, String countryCode,
-            String mainCategory, int distanceInMeters) {        
-        return getLocationCategories(zip, countryCode, mainCategory, distanceInMeters);        
+    public List<String> getPlaceCategories(String mainCategory) {
+        List<PlaceCategory> cats = placeService.getAllPlaceCategories();
+        List<String> categories = new ArrayList<>(cats.size());
+        for(PlaceCategory c : cats) categories.add(c.getName());
+        
+        if(mainCategory != null && !mainCategory.isEmpty()) {
+            if(Constants.RESTAURANTS.equals(mainCategory)) {
+                categories = filterLocationCategories(categories, getRestaurantsCategories(), false);
+            } else if(Constants.DIRECTORY.equals(mainCategory)){
+                categories = filterLocationCategories(categories, getRestaurantsCategories(), true);
+            }
+        }
+        
+        Collections.sort(categories);
+        return categories;
     }
 
-    public List<String> getLocationCategoriesByLocation(double latitude, double longitude,
-            String mainCategory, int distanceInMeters) {
-        Location orig = locationService.getLocation(latitude, longitude);
-        return getLocationCategories(orig.getZip(), orig.getCountryCode(), mainCategory, distanceInMeters);
-    }
-    
-    public List<String> getLocationCategoriesByIp(
-            String ip, String mainCategory, int distanceInMeters) {
-        CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
-        if(cityLocation != null) {
-            if(cityLocation.hasPostalCodeAndCountry()) {
-                return getLocationCategoriesByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode(),
-                        mainCategory, distanceInMeters);
-            }
-            if(cityLocation.hasLocation()) {
-                return getLocationCategoriesByLocation(cityLocation.getLatitude(), cityLocation.getLongitude(),
-                        mainCategory, distanceInMeters);
-            }             
-        }
-       return Collections.emptyList();
-    }
 
     ///////////////////////// private methods //////////////////////////
     
-    //main location categories retrieval method
-    private List<String> getLocationCategories(
-            String zip, String countryCode, String mainCategory, int distanceInMeters) {
-        PlaceIngest ingest = placeDao.getPlaceIngest(zip, countryCode);
-        if(locationIngestRequired(ingest, distanceInMeters)) {
-            List<Place> places = getPlacesFromSource(zip, countryCode, distanceInMeters);
-            if(!places.isEmpty()) {
-                PlaceIngest updatedIngest = 
-                        createOrUpdateLocationIngest(ingest, zip, countryCode, distanceInMeters);
-                placeDao.savePlaces(places, updatedIngest);
-                ingest = updatedIngest;
-            }
-        }
-        
-        if(ingest != null) {
-            List<String> categories = placeDao.getPlaceCategories(ingest.getId());
-            if(mainCategory != null && !mainCategory.isEmpty()) {
-                if(Constants.RESTAURANTS.equals(mainCategory)) {
-                    categories = filterLocationCategories(categories, getRestaurantsCategories(), false);
-                } else if(Constants.DIRECTORY.equals(mainCategory)){
-                    categories = filterLocationCategories(categories, getRestaurantsCategories(), true);
-                }
-            }
-            return categories;
-        }
-        return Collections.emptyList();
-    }
-    
-    
     //main location retrieval method
-    //it tries to get locations from the local DB first,
-    //and if no ingest exists or ingest expired, gets the locations from the source
     private List<Place> getPlaces(
             String zip, String countryCode,
-            String mainCategory, String categories, 
+            String categoryOrTerm, 
             int distanceInMeters, Location origin) {
-        
+        /*
         List<Place> places = null;
         PlaceIngest ingest = placeDao.getPlaceIngest(zip, countryCode);
         if(!locationIngestRequired(ingest, distanceInMeters)) {
@@ -160,23 +121,28 @@ public final class GlobalDataServicePlaceHelper {
                 placeDao.savePlaces(places, updatedIngest);
             }
         }
+        */
+
+        List<Place> places = Collections.emptyList();
+
+        PlaceIngest ingest = placeService.getIngest(zip, countryCode, distanceInMeters, categoryOrTerm);
+        PlaceIngest.Status status = ingest.getStatus();
+        
+        if(PlaceIngest.Status.DONE == status) {
+            places = placeService.getPlaces(ingest);
+        } else {
+            double distanceInMiles = distanceInMeters / Constants.METERS_IN_MILE;
+            places = yellowPagesService.getPlaces(zip, distanceInMiles, categoryOrTerm);
+            if(PlaceIngest.Status.NEW == status) {
+                placeService.completeIngest(ingest, places);
+            }
+        }
         
         for(Place p : places) {
             Location l = new Location(p.getLatitude(), p.getLongitude());
             p.setDistance(locationService.distance(origin, l));
         }
-        
-        places = filterPlacesByDistance(places, distanceInMeters);   
-        places = filterPlacesByCategories(places, categories, false);
-        
-        
-        if(mainCategory != null && !mainCategory.isEmpty()) {
-            if(Constants.RESTAURANTS.equals(mainCategory)) {
-                places = filterPlacesByCategories(places, getRestaurantsCategories(), false);
-            } else if(Constants.DIRECTORY.equals(mainCategory)){
-                places = filterPlacesByCategories(places, getRestaurantsCategories(), true);
-            }
-        }
+        places = filterPlacesByDistance(places, distanceInMeters);
         
         Collections.sort(places, new DistanceComparator());
         return places;
@@ -204,6 +170,9 @@ public final class GlobalDataServicePlaceHelper {
         return newIngest;
     }
     
+
+    
+    
     // get location search terms from Google
     // get locations by terms from Yellow Pages
     private List<Place> getPlacesFromSource(
@@ -221,7 +190,7 @@ public final class GlobalDataServicePlaceHelper {
             Callable<List<Place>> worker = new Callable<List<Place>>() {
                 @Override
                 public List<Place> call() throws Exception {
-                    return yellowPagesService.getPlaces(term, zip, distanceInMiles);                    
+                    return yellowPagesService.getPlaces(zip, distanceInMiles, term);                    
                 }                
             };            
             results.add(executors.submit(worker));
@@ -302,27 +271,6 @@ public final class GlobalDataServicePlaceHelper {
             }
         }
         return result;
-    }
-    
-    private List<Place> filterPlacesByCategories(
-            List<Place> places, String categories, boolean negate) {
-        if(categories == null || categories.isEmpty() || places.isEmpty()) {            
-            return places;
-        }
-        
-        List<Place> filtered = new ArrayList<>(places.size());
-        Set<String> cats = StringUtils.split(categories, ",", true);
-        outer: for(Place location : places) {
-            String categoriesString = CollectionUtils.join(location.getCategoryNames()).toLowerCase();
-            for(String c : cats) {
-                boolean contains = categoriesString.contains(c); 
-                if(contains && !negate || !contains && negate) {
-                    filtered.add(location);
-                    continue outer;
-                }
-            }            
-        }
-        return filtered;
     }
     
     private List<String> filterLocationCategories(

@@ -34,6 +34,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
      * Currently events are retrieved from Facebook 
      */
     @Override
+    @Transactional("directoryTransactionManager")
     public List<Event> getEvents(Location params) {
         if(params.isZipInfoSet()) {
             return eventHelper.getEventsByZipInfo(params.getZip(), params.getCountryCode());
@@ -45,53 +46,26 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return Collections.emptyList();
     }
     
-    /**
-     * Having location params and distance, the local DB first is checked.  If no place ingest
-     * exist for the params and distance, or the place ingest is expired, then places are
-     * brought from the source, otherwise local DB is used
-     * 
-     * Currently the logic of retrieving a place from the source is this:
-     * 1) Go to Google and get placess by location parameters.
-     * 2) Collect place names
-     * 3) Retrieve places from Yellow Pages using collected names as search terms
-     * 
-     * Retrieval of places from Yellow Pages is done in separate threads. 
-     */
     @Override
     @Transactional("directoryTransactionManager")
     public List<Place> getPlaces(
-            Location params, int distanceInMeters, String mainCategory, String categories) {
+            Location params, int distanceInMeters, String categoryOrTerm) {
         if(params.isZipInfoSet()) {
             return placeHelper.getPlacesByZipInfo(params.getZip(), params.getCountryCode(),
-                    mainCategory, categories, distanceInMeters);
+                    categoryOrTerm, distanceInMeters);
         } else if(params.isLocationSet()) {
             return placeHelper.getPlacesByLocation(params.getLatitude(), params.getLongitude(),
-                    mainCategory, categories, distanceInMeters);
+                    categoryOrTerm, distanceInMeters);
         } else if(params.isIpSet()) {
             return placeHelper.getPlacesByIp(params.getIp(),
-                    mainCategory, categories, distanceInMeters);
+                    categoryOrTerm, distanceInMeters);
         }
         return Collections.emptyList();        
     }
     
-    /**
-     * Get places as in the method above, and collect categories from them.
-     */
     @Override
-    @Transactional("directoryTransactionManager")
-    public List<String> getPlaceCategories(Location params, 
-            int distanceInMeters, String mainCategory) {
-        if(params.isZipInfoSet()) {
-            return placeHelper.getLocationCategoriesByZipInfo(params.getZip(), params.getCountryCode(),
-                    mainCategory, distanceInMeters);
-        } else if(params.isLocationSet()) {
-            return placeHelper.getLocationCategoriesByLocation(params.getLatitude(), params.getLongitude(),
-                    mainCategory, distanceInMeters);
-        } else if(params.isIpSet()) {
-            return placeHelper.getLocationCategoriesByIp(params.getIp(),
-                    mainCategory, distanceInMeters);
-        }
-        return Collections.emptyList();
+    public List<String> getPlaceCategories(String mainCategory) {
+        return placeHelper.getPlaceCategories(mainCategory);
     }
     
     @Override

@@ -33,6 +33,8 @@ import com.townwizard.db.model.AuditableEntity;
 @Table(name = "Ingest")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
 public class PlaceIngest extends AuditableEntity {
+    
+    public static enum Status {NEW, IN_PROGRESS, DONE}
 
     private static final long serialVersionUID = -5910483030029302936L;
     
@@ -40,6 +42,7 @@ public class PlaceIngest extends AuditableEntity {
     private String countryCode;
     private String term;
     private Integer distance;
+    private Status status;
     
     @OneToOne(fetch = FetchType.EAGER) @JoinColumn(name = "categoryId")
     private PlaceCategory placeCategory;
@@ -72,6 +75,12 @@ public class PlaceIngest extends AuditableEntity {
     }
     public Integer getDistance() {
         return distance;
+    }
+    public Status getStatus() {
+        return status;
+    }
+    public void setStatus(Status status) {
+        this.status = status;
     }
     public void setDistance(Integer distance) {
         this.distance = distance;

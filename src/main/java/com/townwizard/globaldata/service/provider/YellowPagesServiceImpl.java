@@ -27,7 +27,7 @@ public class YellowPagesServiceImpl implements YellowPagesService {
      * Executes one HTTP request to get locations
      */
     @Override
-    public List<Place> getPlaces(String term, String zip, double distanceInMiles) {
+    public List<Place> getPlaces(String zip, double distanceInMiles, String term) {
         try {
             String json = connector.executePlacesRequest(term, zip, distanceInMiles);
             List<YellowPages.Location> gObjects = jsonToObjects(json, YellowPages.Location.class);

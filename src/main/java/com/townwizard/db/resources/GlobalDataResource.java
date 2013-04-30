@@ -53,13 +53,7 @@ public class GlobalDataResource extends ResourceSupport {
     
     /**
      * Service to return places JSON by either zip code, location (latitude and longitude),
-     * or client ip.
-     * 
-     * Main category is something like "restaurants" or "directory" and is a main filter by which
-     * filter the places.
-     * 
-     * Categories is a comma separated list of more granular category terms for which to find places.
-     * Both, main category and categories are optional.
+     * or client ip for a given category or term.
      */
     @GET
     @Path("/locations")
@@ -68,12 +62,11 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("zip") String zip,
             @QueryParam ("l") String location,
             @QueryParam ("ip") String ip,
-            @QueryParam ("s") String categories,
-            @QueryParam ("cat") String mainCategory) {
+            @QueryParam ("s") String categoryOrTerm) {
         try {
             List<Place> places = globalDataService.getPlaces(
                     new Location(zip, DEFAULT_COUNTRY_CODE, location, ip),
-                    DEFAULT_DISTANCE_IN_METERS, mainCategory, categories);            
+                    DEFAULT_DISTANCE_IN_METERS, categoryOrTerm);            
             
             return Response.status(Status.OK).entity(places).build();
         } catch(Exception e) {
@@ -83,21 +76,15 @@ public class GlobalDataResource extends ResourceSupport {
     }
     
     /**
-     * Service to return place categories as JSON by either zip code, location, or client ip.
-     * The optional main category is described in the method above.
+     * Service to return place categories as JSON.
+     * Filter by main category if given.
      */
     @GET
     @Path("/lcategories")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response placeCategories(
-            @QueryParam ("zip") String zip,
-            @QueryParam ("l") String location,
-            @QueryParam ("ip") String ip,
-            @QueryParam ("cat") String mainCategory) {
+    public Response placeCategories(@QueryParam ("cat") String mainCategory) {
         try {
-            List<String> categories = globalDataService.getPlaceCategories(
-                    new Location(zip, DEFAULT_COUNTRY_CODE, location, ip),
-                    DEFAULT_DISTANCE_IN_METERS, mainCategory);
+            List<String> categories = globalDataService.getPlaceCategories(mainCategory);
             return Response.status(Status.OK).entity(categories).build();
         } catch(Exception e) {
             handleGenericException(e);
