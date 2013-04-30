@@ -1,4 +1,4 @@
-package com.townwizard.globaldata.service;
+package com.townwizard.globaldata.service.provider;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +19,7 @@ import com.townwizard.globaldata.connector.FacebookConnector;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Facebook;
 import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.service.ServiceUtils;
 
 /**
  * Implementation for FacebookService.

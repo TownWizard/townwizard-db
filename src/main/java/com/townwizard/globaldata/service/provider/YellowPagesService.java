@@ -1,4 +1,4 @@
-package com.townwizard.globaldata.service;
+package com.townwizard.globaldata.service.provider;
 
 import java.util.List;
 

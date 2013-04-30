@@ -38,6 +38,9 @@ import com.townwizard.globaldata.model.directory.Location;
 import com.townwizard.globaldata.model.directory.LocationCategory;
 import com.townwizard.globaldata.model.directory.LocationIngest;
 import com.townwizard.globaldata.service.GlobalDataService.LocationParams;
+import com.townwizard.globaldata.service.provider.FacebookService;
+import com.townwizard.globaldata.service.provider.GoogleService;
+import com.townwizard.globaldata.service.provider.YellowPagesService;
 
 /**
  * GlobalDataService implementation

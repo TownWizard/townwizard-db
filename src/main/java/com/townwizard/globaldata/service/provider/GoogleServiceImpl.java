@@ -1,4 +1,4 @@
-package com.townwizard.globaldata.service;
+package com.townwizard.globaldata.service.provider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +14,7 @@ import com.townwizard.db.util.JSONUtils;
 import com.townwizard.globaldata.connector.GoogleConnector;
 import com.townwizard.globaldata.model.Google;
 import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.service.ServiceUtils;
 
 /**
  * GoogleService implementation

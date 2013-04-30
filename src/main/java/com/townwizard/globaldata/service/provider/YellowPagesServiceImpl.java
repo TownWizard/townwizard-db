@@ -1,4 +1,4 @@
-package com.townwizard.globaldata.service;
+package com.townwizard.globaldata.service.provider;
 
 import java.util.Collections;
 import java.util.List;
@@ -13,6 +13,7 @@ import com.townwizard.db.util.JSONUtils;
 import com.townwizard.globaldata.connector.YellowPagesConnector;
 import com.townwizard.globaldata.model.YellowPages;
 import com.townwizard.globaldata.model.directory.Location;
+import com.townwizard.globaldata.service.ServiceUtils;
 
 /**
  * Yellow Pages service implementation
