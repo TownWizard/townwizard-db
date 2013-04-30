@@ -52,30 +52,30 @@ public class GlobalDataResource extends ResourceSupport {
     }    
     
     /**
-     * Service to return locations (places) JSON by either zip code, location (latitude and longitude),
+     * Service to return places JSON by either zip code, location (latitude and longitude),
      * or client ip.
      * 
      * Main category is something like "restaurants" or "directory" and is a main filter by which
-     * filter the locations.
+     * filter the places.
      * 
-     * Categories is a comma separated list of more granular category terms for which to find locations.
+     * Categories is a comma separated list of more granular category terms for which to find places.
      * Both, main category and categories are optional.
      */
     @GET
     @Path("/locations")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response locations(
+    public Response places(
             @QueryParam ("zip") String zip,
             @QueryParam ("l") String location,
             @QueryParam ("ip") String ip,
             @QueryParam ("s") String categories,
             @QueryParam ("cat") String mainCategory) {
         try {
-            List<Place> locations = globalDataService.getPlaces(
+            List<Place> places = globalDataService.getPlaces(
                     new Location(zip, DEFAULT_COUNTRY_CODE, location, ip),
                     DEFAULT_DISTANCE_IN_METERS, mainCategory, categories);            
             
-            return Response.status(Status.OK).entity(locations).build();
+            return Response.status(Status.OK).entity(places).build();
         } catch(Exception e) {
             handleGenericException(e);
         }
@@ -83,13 +83,13 @@ public class GlobalDataResource extends ResourceSupport {
     }
     
     /**
-     * Service to return location categories as JSON by either zip code, location, or client ip.
+     * Service to return place categories as JSON by either zip code, location, or client ip.
      * The optional main category is described in the method above.
      */
     @GET
     @Path("/lcategories")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response locationCategories(
+    public Response placeCategories(
             @QueryParam ("zip") String zip,
             @QueryParam ("l") String location,
             @QueryParam ("ip") String ip,

@@ -155,8 +155,8 @@ public class LocationServiceImpl implements LocationService {
     private void loadData() throws Exception {
         locationsByZip = DataUtils.dataFileToMap(
                 getDataInputStream(LOCATION_DATABASE), 0,
-                new int[]{1, 0, 2, 4, 9, 10}, 
-                new String[] {"zip", "countryCode", "city", "state", "latitude", "longitude"},
+                new int[]{1, 0, 2, 9, 10}, 
+                new String[] {"zip", "countryCode", "city", "latitude", "longitude"},
                 String.class, Location.class, "\t", "");
         
         locationsByLatitude = new TreeMap<>();

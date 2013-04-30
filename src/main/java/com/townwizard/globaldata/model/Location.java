@@ -15,6 +15,8 @@ public class Location {
     private Float latitude;
     private Float longitude;
     private String ip;
+
+    public Location(){}
     
     /**
      * Create an object from latitude and longitude
