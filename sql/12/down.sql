@@ -10,7 +10,7 @@ PREPARE stmt FROM @stmt;
 EXECUTE stmt;
 -- ////////////////////////////////////////// --
 
-DROP DATABASE directory;
+DROP DATABASE IF EXISTS directory;
 
 
 CREATE TABLE LocationIngest (

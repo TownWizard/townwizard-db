@@ -10,28 +10,15 @@ PREPARE stmt FROM @stmt;
 EXECUTE stmt;
 -- ////////////////////////////////////////// --
 
-DROP TABLE Location_LocationIngest;
-DROP TABLE Location_LocationCategory;
-DROP TABLE LocationIngest;
-DROP TABLE LocationCategory;
-DROP TABLE Location;
+DROP TABLE IF EXISTS Location_LocationIngest;
+DROP TABLE IF EXISTS Location_LocationCategory;
+DROP TABLE IF EXISTS LocationIngest;
+DROP TABLE IF EXISTS LocationCategory;
+DROP TABLE IF EXISTS Location;
 
 CREATE DATABASE directory;
 
 USE directory;
-
-CREATE TABLE Ingest (
-  id BIGINT NOT NULL AUTO_INCREMENT,
-  created DATETIME NOT NULL,
-  updated DATETIME NOT NULL,
-  active BIT NOT NULL,
-  zip VARCHAR(10),
-  country_code CHAR(2),
-  term VARCHAR(250),
-  distance INTEGER,
-  CONSTRAINT pk_ingest PRIMARY KEY (id),
-  CONSTRAINT unq_ingest UNIQUE(zip, country_code, term)
-) ENGINE = InnoDB;
 
 CREATE TABLE Category (
   id BIGINT NOT NULL AUTO_INCREMENT,
@@ -39,6 +26,23 @@ CREATE TABLE Category (
   CONSTRAINT pk_category PRIMARY KEY (id),
   CONSTRAINT unq_category_name UNIQUE(name)
 ) ENGINE = InnoDB;
+
+CREATE TABLE Ingest (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  created DATETIME NOT NULL,
+  updated DATETIME NOT NULL,
+  active BIT NOT NULL,
+  zip VARCHAR(10),
+  country_code CHAR(2),  
+  distance INTEGER,
+  category_id BIGINT,
+  term VARCHAR(250),
+  CONSTRAINT pk_ingest PRIMARY KEY (id),
+  CONSTRAINT unq_ingest UNIQUE(zip, country_code, category_id, term),
+  CONSTRAINT fk_ingest_category FOREIGN KEY(category_id) REFERENCES Category(id)
+) ENGINE = InnoDB;
+
+ALTER TABLE Ingest ADD INDEX idx_ingest (zip, country_code);
 
 CREATE TABLE Location (
   id BIGINT NOT NULL AUTO_INCREMENT,
