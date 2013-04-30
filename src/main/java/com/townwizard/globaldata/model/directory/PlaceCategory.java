@@ -19,7 +19,7 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 /**
- * Location category objects are Hibernate entities and relat to Location objects in many-to-many
+ * Place category objects are Hibernate entities and relate to Place objects in many-to-many
  * fashion.
  */
 @Entity
@@ -39,7 +39,7 @@ public class PlaceCategory implements Serializable {
             joinColumns= {@JoinColumn (name="category_id")},
             inverseJoinColumns = {@JoinColumn(name="location_id")}
     )    
-    private Set<Place> locations;
+    private Set<Place> places;
 
     public Long getId() {
         return id;
@@ -53,22 +53,22 @@ public class PlaceCategory implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
-    public Set<Place> getLocations() {
-        return locations;
+    public Set<Place> getPlaces() {
+        return places;
     }
-    public void setLocations(Set<Place> locations) {
-        this.locations = locations;
+    public void setPlaces(Set<Place> places) {
+        this.places = places;
     }
     
     /**
-     * Convenience method to add location to location category.  This method will not set
-     * both sides of the relationships.  This is done on the Location side.
+     * Convenience method to add place to place category.  This method will not set
+     * both sides of the relationships.  This is done on the Place side.
      */
-    public void addLocation(Place l) {
-        if(locations == null) {
-            locations = new HashSet<>();
+    public void addPlace(Place l) {
+        if(places == null) {
+            places = new HashSet<>();
         }
-        locations.add(l);        
+        places.add(l);        
     }
     
     // since this class does not extend AbstractEntity, it needs hashCode() and equals()

@@ -240,7 +240,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         List<Place> locations = null;
         PlaceIngest ingest = locationDao.getLocationIngest(zip, countryCode);
         if(!locationIngestRequired(ingest, distanceInMeters)) {
-            Set<Place> ingestLocations = ingest.getLocations();
+            Set<Place> ingestLocations = ingest.getPlaces();
             locations = new ArrayList<>(ingestLocations.size());
             locations.addAll(ingestLocations);
         } else {

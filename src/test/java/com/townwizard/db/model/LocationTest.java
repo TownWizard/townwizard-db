@@ -129,7 +129,7 @@ public class LocationTest extends TestSupport {
             PlaceCategory c = createLocationCategory();
             l.addCategory(c);
             l.addCategory(c);
-            assertEquals("Category must reject duplicate location", 1, c.getLocations().size());
+            assertEquals("Category must reject duplicate location", 1, c.getPlaces().size());
             assertEquals("Place must reject duplicate category", 1, l.getCategories().size());
             
             PlaceCategory c2 = new PlaceCategory();
@@ -147,7 +147,7 @@ public class LocationTest extends TestSupport {
             Place fromDb = (Place)session.load(Place.class, l.getId());            
             assertEquals("Two categories for place must exist", 2, fromDb.getCategories().size());
             for(PlaceCategory cat : fromDb.getCategories()) {
-                assertEquals("One Place for category must exist", 1, cat.getLocations().size());
+                assertEquals("One Place for category must exist", 1, cat.getPlaces().size());
             }
         } catch(Exception e) {
             e.printStackTrace();

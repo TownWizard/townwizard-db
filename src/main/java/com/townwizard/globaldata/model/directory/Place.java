@@ -27,7 +27,7 @@ import com.townwizard.globaldata.model.DistanceComparable;
 
 /**
  * Represents a generic (that is not provider specific) location (place) object.
- * Location objects from different providers (YP, Google) may be converted to instance of this class.
+ * Location objects from different providers (YP, Google) may be converted to instances of this class.
  * The class imlements DistanceComparable so the instances of this class can be sorted by distance/name.
  * 
  * Instances of this class are saved in our local DB (so an object of this class is a Hibernate entity)
@@ -67,10 +67,10 @@ public class Place extends AbstractEntity implements DistanceComparable {
     @JsonIgnore @Transient
     private String categoriesStr;      //categories concatenated in pipe-separated string, not saved in DB
     @JsonIgnore
-    @ManyToMany (mappedBy = "locations", fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    @ManyToMany (mappedBy = "places", fetch=FetchType.EAGER, cascade=CascadeType.ALL)
     private Set<PlaceCategory> categories;
     @JsonIgnore
-    @ManyToMany (mappedBy = "locations", fetch=FetchType.LAZY)
+    @ManyToMany (mappedBy = "places", fetch=FetchType.LAZY)
     private Set<PlaceIngest> ingests;
     @Column(name="source")
     @Enumerated(EnumType.ORDINAL)
@@ -225,7 +225,7 @@ public class Place extends AbstractEntity implements DistanceComparable {
             categories = new HashSet<>();
         }
         categories.add(c);
-        c.addLocation(this);
+        c.addPlace(this);
     }
 
     /**
@@ -237,7 +237,7 @@ public class Place extends AbstractEntity implements DistanceComparable {
             ingests = new HashSet<>();
         }
         ingests.add(i);
-        i.addLocation(this);
+        i.addPlace(this);
     }    
     
     @Override

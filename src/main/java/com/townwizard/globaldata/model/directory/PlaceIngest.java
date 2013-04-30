@@ -46,7 +46,7 @@ public class PlaceIngest extends AuditableEntity {
             joinColumns= {@JoinColumn (name="ingest_id")},
             inverseJoinColumns = {@JoinColumn(name="location_id")}
     )    
-    private Set<Place> locations;    
+    private Set<Place> places;    
     
     public String getZip() {
         return zip;
@@ -72,22 +72,22 @@ public class PlaceIngest extends AuditableEntity {
     public void setDistance(Integer distance) {
         this.distance = distance;
     }
-    public Set<Place> getLocations() {
-        return locations;
+    public Set<Place> getPlaces() {
+        return places;
     }
-    public void setLocations(Set<Place> locations) {
-        this.locations = locations;
+    public void setPlaces(Set<Place> places) {
+        this.places = places;
     }
     
     /**
-     * Convenience method to add location to this object.  This method will not set both
-     * sides of the relationship, this is done on the Location side.
+     * Convenience method to add place to this object.  This method will not set both
+     * sides of the relationship, this is done on the Place side.
      */
-    public void addLocation(Place l) {
-        if(locations == null) {
-            locations = new HashSet<>();
+    public void addPlace(Place l) {
+        if(places == null) {
+            places = new HashSet<>();
         }
-        locations.add(l);        
+        places.add(l);        
     }
 
 }
