@@ -20,13 +20,13 @@ import com.townwizard.globaldata.model.directory.PlaceCategory;
 import com.townwizard.globaldata.model.directory.PlaceIngest;
 
 /**
- * Hibernate implementation of LocationDao
+ * Hibernate implementation of PlaceDao
  */
-@Component("locationDao")
-public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implements LocationDao {
+@Component("placeDao")
+public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements PlaceDao {
 
     @Override
-    public PlaceIngest getLocationIngest(String zip, String countryCode) {
+    public PlaceIngest getPlaceIngest(String zip, String countryCode) {
         return (PlaceIngest)getSession()
                 .createQuery("from PlaceIngest where zip = :zip and countryCode = :countryCode")
                 .setString("zip", zip)
@@ -36,12 +36,12 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
     
     @Override
     @SuppressWarnings("unchecked")
-    public List<PlaceCategory> getAllLocationCategories() {
+    public List<PlaceCategory> getAllPlaceCategories() {
         return getSession().createQuery("from LocationCategory").list();
     }
     
     @Override
-    public List<String> getLocationCategories(Long ingestId) {
+    public List<String> getPlaceCategories(Long ingestId) {
         String sql = 
                 "SELECT DISTINCT c.name FROM Category c " + 
                 "JOIN Location_Category llc ON c.id = llc.category_id " +  
@@ -60,7 +60,7 @@ public class LocationDaoHibernateImpl extends AbstractDaoHibernateImpl implement
     }
     
     @Override
-    public void saveLocations(List<Place> locations, PlaceIngest ingest) {
+    public void savePlaces(List<Place> locations, PlaceIngest ingest) {
 
         List<String> externalIds = new ArrayList<>(locations.size());
         for(Place location : locations) {

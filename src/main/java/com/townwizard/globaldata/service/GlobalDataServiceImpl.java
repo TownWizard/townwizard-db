@@ -30,7 +30,7 @@ import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.DateUtils;
 import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.dao.GlobalDataDao;
-import com.townwizard.globaldata.dao.LocationDao;
+import com.townwizard.globaldata.dao.PlaceDao;
 import com.townwizard.globaldata.model.CityLocation;
 import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Event;
@@ -57,7 +57,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     @Autowired
     private LocationService locationService;
     @Autowired
-    private LocationDao locationDao;
+    private PlaceDao placeDao;
     @Autowired
     private GlobalDataDao globalDataDao;
     
@@ -203,19 +203,19 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     //main location categories retrieval method
     private List<String> getLocationCategories(
             String zip, String countryCode, String mainCategory, int distanceInMeters) {
-        PlaceIngest ingest = locationDao.getLocationIngest(zip, countryCode);
+        PlaceIngest ingest = placeDao.getPlaceIngest(zip, countryCode);
         if(locationIngestRequired(ingest, distanceInMeters)) {
             List<Place> places = getPlacesFromSource(zip, countryCode, distanceInMeters);
             if(!places.isEmpty()) {
                 PlaceIngest updatedIngest = 
                         createOrUpdateLocationIngest(ingest, zip, countryCode, distanceInMeters);
-                locationDao.saveLocations(places, updatedIngest);
+                placeDao.savePlaces(places, updatedIngest);
                 ingest = updatedIngest;
             }
         }
         
         if(ingest != null) {
-            List<String> categories = locationDao.getLocationCategories(ingest.getId());
+            List<String> categories = placeDao.getPlaceCategories(ingest.getId());
             if(mainCategory != null && !mainCategory.isEmpty()) {
                 if(Constants.RESTAURANTS.equals(mainCategory)) {
                     categories = filterLocationCategories(categories, getRestaurantsCategories(), false);
@@ -238,7 +238,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             int distanceInMeters, Location origin) {
         
         List<Place> places = null;
-        PlaceIngest ingest = locationDao.getLocationIngest(zip, countryCode);
+        PlaceIngest ingest = placeDao.getPlaceIngest(zip, countryCode);
         if(!locationIngestRequired(ingest, distanceInMeters)) {
             Set<Place> ingestPlaces = ingest.getPlaces();
             places = new ArrayList<>(ingestPlaces.size());
@@ -248,7 +248,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             if(!places.isEmpty()) {
                 PlaceIngest updatedIngest = 
                         createOrUpdateLocationIngest(ingest, zip, countryCode, distanceInMeters);
-                locationDao.saveLocations(places, updatedIngest);
+                placeDao.savePlaces(places, updatedIngest);
             }
         }
         
@@ -283,7 +283,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             PlaceIngest ingest, String zip, String countryCode, int distanceInMeters) {
         if(ingest != null) {
             ingest.setDistance(distanceInMeters);
-            locationDao.update(ingest);
+            placeDao.update(ingest);
             return ingest;
         }
         
@@ -291,7 +291,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         newIngest.setZip(zip);
         newIngest.setCountryCode(countryCode);
         newIngest.setDistance(distanceInMeters);
-        locationDao.create(newIngest);
+        placeDao.create(newIngest);
         return newIngest;
     }
     
@@ -376,7 +376,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     }
     
     private List<String> getSearchTerms() {        
-        List<PlaceCategory> categories = locationDao.getAllLocationCategories();
+        List<PlaceCategory> categories = placeDao.getAllPlaceCategories();
         List<String> terms = new ArrayList<>(categories.size());
         for(PlaceCategory c : categories) {
             terms.add(c.getName());

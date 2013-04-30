@@ -46,7 +46,7 @@
   </bean>
   <tx:annotation-driven transaction-manager="directoryTransactionManager" />
   
-  <bean id="locationDao" class="com.townwizard.globaldata.dao.LocationDaoHibernateImpl">
+  <bean id="placeDao" class="com.townwizard.globaldata.dao.PlaceDaoHibernateImpl">
     <property name="sessionFactory" ref="directorySessionFactory"/>
   </bean>
   
