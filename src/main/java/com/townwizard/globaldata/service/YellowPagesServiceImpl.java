@@ -9,6 +9,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.townwizard.db.util.JSONUtils;
 import com.townwizard.globaldata.connector.YellowPagesConnector;
 import com.townwizard.globaldata.model.YellowPages;
 import com.townwizard.globaldata.model.directory.Location;
@@ -45,7 +46,7 @@ public class YellowPagesServiceImpl implements YellowPagesService {
             JSONObject searchListings = searchResult.optJSONObject("searchListings");
             if(searchListings != null) { 
                 JSONArray data = searchListings.getJSONArray("searchListing");
-                return ServiceUtils.jsonToObjects(data, objectClass);
+                return JSONUtils.jsonToObjects(data, objectClass);
             }
         }
         return Collections.emptyList();

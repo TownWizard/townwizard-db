@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.CollectionUtils;
+import com.townwizard.db.util.JSONUtils;
 import com.townwizard.globaldata.connector.FacebookConnector;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Facebook;
@@ -132,7 +133,7 @@ public class FacebookServiceImpl implements FacebookService {
             throws JSONException, IllegalAccessException, InstantiationException {
         JSONObject j = new JSONObject(json);        
         JSONArray data = j.getJSONArray("data");
-        return ServiceUtils.jsonToObjects(data, objectClass);
+        return JSONUtils.jsonToObjects(data, objectClass);
     }
 
 }
