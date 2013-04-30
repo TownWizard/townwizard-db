@@ -79,9 +79,7 @@ public class LocationServiceImpl implements LocationService {
             Set<Location> allLocations = lByLatitude;
             allLocations.addAll(lByLongitude);
             
-            Location orig = new Location();
-            orig.setLatitude(lat);
-            orig.setLongitude(lon);
+            Location orig = new Location(lat, lon);
             
             int minDistance = Integer.MAX_VALUE;
             Location selected = null;

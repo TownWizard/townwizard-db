@@ -17,9 +17,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.globaldata.model.Event;
+import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.directory.Place;
 import com.townwizard.globaldata.service.GlobalDataService;
-import com.townwizard.globaldata.service.GlobalDataService.LocationParams;
 
 /**
  * Web services related to global data (events, locations, etc)
@@ -43,7 +43,7 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("ip") String ip) {
         try {
             List<Event> events = globalDataService.getEvents(
-                    new LocationParams(zip, DEFAULT_COUNTRY_CODE, location, ip));
+                    new Location(zip, DEFAULT_COUNTRY_CODE, location, ip));
             return Response.status(Status.OK).entity(events).build();
         } catch(Exception e) {
             handleGenericException(e);
@@ -72,7 +72,7 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("cat") String mainCategory) {
         try {
             List<Place> locations = globalDataService.getPlaces(
-                    new LocationParams(zip, DEFAULT_COUNTRY_CODE, location, ip),
+                    new Location(zip, DEFAULT_COUNTRY_CODE, location, ip),
                     DEFAULT_DISTANCE_IN_METERS, mainCategory, categories);            
             
             return Response.status(Status.OK).entity(locations).build();
@@ -96,7 +96,7 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("cat") String mainCategory) {
         try {
             List<String> categories = globalDataService.getPlaceCategories(
-                    new LocationParams(zip, DEFAULT_COUNTRY_CODE, location, ip),
+                    new Location(zip, DEFAULT_COUNTRY_CODE, location, ip),
                     DEFAULT_DISTANCE_IN_METERS, mainCategory);
             return Response.status(Status.OK).entity(categories).build();
         } catch(Exception e) {
@@ -114,7 +114,7 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("ip") String ip) {
         try {
             String zipCode = globalDataService.getZipCode(
-                    new LocationParams(null, null, location, ip));
+                    new Location(null, null, location, ip));
             return Response.status(Status.OK).entity(zipCode).build();
         } catch(Exception e) {
             handleGenericException(e);

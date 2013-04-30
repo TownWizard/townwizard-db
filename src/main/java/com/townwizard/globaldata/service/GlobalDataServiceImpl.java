@@ -67,7 +67,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
      * Currently events are retrieved from Facebook 
      */
     @Override
-    public List<Event> getEvents(LocationParams params) {
+    public List<Event> getEvents(Location params) {
         if(params.isZipInfoSet()) {
             return getEventsByZipInfo(params.getZip(), params.getCountryCode());
         } else if(params.isLocationSet()) {
@@ -93,7 +93,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     @Override
     @Transactional("directoryTransactionManager")
     public List<Place> getPlaces(
-            LocationParams params, int distanceInMeters, String mainCategory, String categories) {
+            Location params, int distanceInMeters, String mainCategory, String categories) {
         if(params.isZipInfoSet()) {
             return getPlacesByZipInfo(params.getZip(), params.getCountryCode(),
                     mainCategory, categories, distanceInMeters);
@@ -112,7 +112,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
      */
     @Override
     @Transactional("directoryTransactionManager")
-    public List<String> getPlaceCategories(LocationParams params, 
+    public List<String> getPlaceCategories(Location params, 
             int distanceInMeters, String mainCategory) {
         if(params.isZipInfoSet()) {
             return getLocationCategoriesByZipInfo(params.getZip(), params.getCountryCode(),
@@ -128,7 +128,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     }
     
     @Override
-    public String getZipCode(LocationParams params) {
+    public String getZipCode(Location params) {
         if(params.isZipInfoSet()) {
             return params.getZip();
         } else if(params.isLocationSet()) {
@@ -253,9 +253,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         }
         
         for(Place p : places) {
-            Location l = new Location();
-            l.setLatitude(p.getLatitude());
-            l.setLongitude(p.getLongitude());
+            Location l = new Location(p.getLatitude(), p.getLongitude());
             p.setDistance(locationService.distance(origin, l));
         }
         
@@ -511,9 +509,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         String eZip = e.getZip();
         Location eventLocation = null;
         if(eLat != null && eLon != null) {
-            eventLocation = new Location();
-            eventLocation.setLatitude(eLat.floatValue());
-            eventLocation.setLongitude(eLon.floatValue());
+            eventLocation = new Location(eLat.floatValue(), eLon.floatValue());
         } else if (eZip != null) {
             eventLocation = locationService.getPrimaryLocation(eZip, countryCode);
         }
