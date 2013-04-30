@@ -30,7 +30,7 @@ public class GoogleServiceImpl implements GoogleService {
      * one or two more requests will be executed to get more locations.
      */
     @Override
-    public List<Place> getLocations(double latitude, double longitude, int distanceInMeters) {
+    public List<Place> getPlaces(double latitude, double longitude, int distanceInMeters) {
         try {
             List<Place> finalList = new ArrayList<>(20);
 

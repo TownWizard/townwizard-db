@@ -20,19 +20,19 @@ public interface GlobalDataService {
     List<Event> getEvents(LocationParams params);
     
     /**
-     * Get locations (places) by either zip info, or location, or client IP, and also by
+     * Get places by either zip info, or location, or client IP, and also by
      * distance, optional main category, and optional comma-separated list of categories.
-     * If main category and/or categories is null locations of all categories are retrieved
+     * If main category and/or categories is null places of all categories are retrieved
      */    
-    List<Place> getLocations(LocationParams params,
+    List<Place> getPlaces(LocationParams params,
             int distanceInMeters, String mainCategory, String categories);
     
     /**
-     * Get sorted location categories (such as restaurants, dental, pizza, etc) from locations
+     * Get sorted place categories (such as restaurants, dental, pizza, etc) from places
      * retrieved by zip/location/ip and distance for some optional main category.
-     * If main category is null location categories for all locations are retrieved
+     * If main category is null place categories for all places are retrieved
      */
-    List<String> getLocationCategories(LocationParams params, 
+    List<String> getPlaceCategories(LocationParams params, 
             int distanceInMeters, String mainCategory);
     
     /**

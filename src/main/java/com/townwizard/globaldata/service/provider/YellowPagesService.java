@@ -10,8 +10,8 @@ import com.townwizard.globaldata.model.directory.Place;
 public interface YellowPagesService {
 
     /**
-     * Get Yellow Pages locations (places) by search term, zip, and distance
+     * Get Yellow Pages places by search term, zip, and distance
      */
-    List<Place> getLocations(String term, String zip, double distanceInMiles);
+    List<Place> getPlaces(String term, String zip, double distanceInMiles);
     
 }

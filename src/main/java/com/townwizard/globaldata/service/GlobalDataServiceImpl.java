@@ -34,10 +34,10 @@ import com.townwizard.globaldata.dao.LocationDao;
 import com.townwizard.globaldata.model.CityLocation;
 import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Event;
+import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.directory.Place;
 import com.townwizard.globaldata.model.directory.PlaceCategory;
 import com.townwizard.globaldata.model.directory.PlaceIngest;
-import com.townwizard.globaldata.service.GlobalDataService.LocationParams;
 import com.townwizard.globaldata.service.provider.FacebookService;
 import com.townwizard.globaldata.service.provider.GoogleService;
 import com.townwizard.globaldata.service.provider.YellowPagesService;
@@ -79,40 +79,40 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     }
     
     /**
-     * Having location params and distance, the local DB first is checked.  If no location ingest
-     * exist for the params and distance, or the location ingest is expired, then locations are
+     * Having location params and distance, the local DB first is checked.  If no place ingest
+     * exist for the params and distance, or the place ingest is expired, then places are
      * brought from the source, otherwise local DB is used
      * 
-     * Currently the logic of retrieving location from source is this:
-     * 1) Go to Google and get locations by location parameters.
-     * 2) Collect location names
-     * 3) Retrieve locations from Yellow Pages using collected names as search terms
+     * Currently the logic of retrieving a place from the source is this:
+     * 1) Go to Google and get placess by location parameters.
+     * 2) Collect place names
+     * 3) Retrieve places from Yellow Pages using collected names as search terms
      * 
-     * Retrieval of locations from Yellow Pages is done in separate threads. 
+     * Retrieval of places from Yellow Pages is done in separate threads. 
      */
     @Override
     @Transactional("directoryTransactionManager")
-    public List<Place> getLocations(
+    public List<Place> getPlaces(
             LocationParams params, int distanceInMeters, String mainCategory, String categories) {
         if(params.isZipInfoSet()) {
-            return getLocationsByZipInfo(params.getZip(), params.getCountryCode(),
+            return getPlacesByZipInfo(params.getZip(), params.getCountryCode(),
                     mainCategory, categories, distanceInMeters);
         } else if(params.isLocationSet()) {
-            return getLocationsByLocation(params.getLatitude(), params.getLongitude(),
+            return getPlacesByLocation(params.getLatitude(), params.getLongitude(),
                     mainCategory, categories, distanceInMeters);
         } else if(params.isIpSet()) {
-            return getLocationsByIp(params.getIp(),
+            return getPlacesByIp(params.getIp(),
                     mainCategory, categories, distanceInMeters);
         }
         return Collections.emptyList();        
     }
     
     /**
-     * Get locations as in the method above, and collect categories from them.
+     * Get places as in the method above, and collect categories from them.
      */
     @Override
     @Transactional("directoryTransactionManager")
-    public List<String> getLocationCategories(LocationParams params, 
+    public List<String> getPlaceCategories(LocationParams params, 
             int distanceInMeters, String mainCategory) {
         if(params.isZipInfoSet()) {
             return getLocationCategoriesByZipInfo(params.getZip(), params.getCountryCode(),
@@ -132,7 +132,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         if(params.isZipInfoSet()) {
             return params.getZip();
         } else if(params.isLocationSet()) {
-            Place orig = locationService.getLocation(params.getLatitude(), params.getLongitude());
+            Location orig = locationService.getLocation(params.getLatitude(), params.getLongitude());
             return orig.getZip();
         } else if(params.isIpSet()) {
             CityLocation cityLocation = globalDataDao.getCityLocationByIp(params.getIp());
@@ -142,31 +142,31 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     }
 
     
-    ///////////// Locations private methods /////////////////////////////
+    ///////////// Places private methods /////////////////////////////
     
-    private List<Place> getLocationsByZipInfo(String zip, String countryCode,
+    private List<Place> getPlacesByZipInfo(String zip, String countryCode,
             String mainCategory, String categories, int distanceInMeters) {
-        Place origin = locationService.getPrimaryLocation(zip, countryCode);
-        return getLocations(zip, countryCode, mainCategory, categories, distanceInMeters, origin);        
+        Location origin = locationService.getPrimaryLocation(zip, countryCode);
+        return getPlaces(zip, countryCode, mainCategory, categories, distanceInMeters, origin);        
     }
 
-    private List<Place> getLocationsByLocation(double latitude, double longitude,
+    private List<Place> getPlacesByLocation(double latitude, double longitude,
             String mainCategory, String categories, int distanceInMeters) {
-        Place orig = locationService.getLocation(latitude, longitude);
-        return getLocations(orig.getZip(), orig.getCountryCode(),
+        Location orig = locationService.getLocation(latitude, longitude);
+        return getPlaces(orig.getZip(), orig.getCountryCode(),
                 mainCategory, categories, distanceInMeters, orig);
     }
     
-    private List<Place> getLocationsByIp(
+    private List<Place> getPlacesByIp(
             String ip, String mainCategory, String categories, int distanceInMeters) {
         CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
         if(cityLocation != null) {
             if(cityLocation.hasPostalCodeAndCountry()) {
-                return getLocationsByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode(),
+                return getPlacesByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode(),
                         mainCategory, categories, distanceInMeters);
             }
             if(cityLocation.hasLocation()) {
-                return getLocationsByLocation(cityLocation.getLatitude(), cityLocation.getLongitude(),
+                return getPlacesByLocation(cityLocation.getLatitude(), cityLocation.getLongitude(),
                         mainCategory, categories, distanceInMeters);
             }             
         }
@@ -180,7 +180,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
 
     private List<String> getLocationCategoriesByLocation(double latitude, double longitude,
             String mainCategory, int distanceInMeters) {
-        Place orig = locationService.getLocation(latitude, longitude);
+        Location orig = locationService.getLocation(latitude, longitude);
         return getLocationCategories(orig.getZip(), orig.getCountryCode(), mainCategory, distanceInMeters);
     }
     
@@ -205,11 +205,11 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             String zip, String countryCode, String mainCategory, int distanceInMeters) {
         PlaceIngest ingest = locationDao.getLocationIngest(zip, countryCode);
         if(locationIngestRequired(ingest, distanceInMeters)) {
-            List<Place> locations = getLocationsFromSource(zip, countryCode, distanceInMeters);
-            if(!locations.isEmpty()) {
+            List<Place> places = getPlacesFromSource(zip, countryCode, distanceInMeters);
+            if(!places.isEmpty()) {
                 PlaceIngest updatedIngest = 
                         createOrUpdateLocationIngest(ingest, zip, countryCode, distanceInMeters);
-                locationDao.saveLocations(locations, updatedIngest);
+                locationDao.saveLocations(places, updatedIngest);
                 ingest = updatedIngest;
             }
         }
@@ -232,44 +232,47 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     //main location retrieval method
     //it tries to get locations from the local DB first,
     //and if no ingest exists or ingest expired, gets the locations from the source
-    private List<Place> getLocations(
+    private List<Place> getPlaces(
             String zip, String countryCode,
             String mainCategory, String categories, 
-            int distanceInMeters, Place origin) {
+            int distanceInMeters, Location origin) {
         
-        List<Place> locations = null;
+        List<Place> places = null;
         PlaceIngest ingest = locationDao.getLocationIngest(zip, countryCode);
         if(!locationIngestRequired(ingest, distanceInMeters)) {
-            Set<Place> ingestLocations = ingest.getPlaces();
-            locations = new ArrayList<>(ingestLocations.size());
-            locations.addAll(ingestLocations);
+            Set<Place> ingestPlaces = ingest.getPlaces();
+            places = new ArrayList<>(ingestPlaces.size());
+            places.addAll(ingestPlaces);
         } else {
-            locations = getLocationsFromSource(zip, countryCode, distanceInMeters);
-            if(!locations.isEmpty()) {
+            places = getPlacesFromSource(zip, countryCode, distanceInMeters);
+            if(!places.isEmpty()) {
                 PlaceIngest updatedIngest = 
                         createOrUpdateLocationIngest(ingest, zip, countryCode, distanceInMeters);
-                locationDao.saveLocations(locations, updatedIngest);
+                locationDao.saveLocations(places, updatedIngest);
             }
         }
         
-        for(Place l : locations) {
-            l.setDistance(locationService.distance(origin, l));
+        for(Place p : places) {
+            Location l = new Location();
+            l.setLatitude(p.getLatitude());
+            l.setLongitude(p.getLongitude());
+            p.setDistance(locationService.distance(origin, l));
         }
         
-        locations = filterLocationsByDistance(locations, distanceInMeters);   
-        locations = filterLocationsByCategories(locations, categories, false);
+        places = filterPlacesByDistance(places, distanceInMeters);   
+        places = filterPlacesByCategories(places, categories, false);
         
         
         if(mainCategory != null && !mainCategory.isEmpty()) {
             if(Constants.RESTAURANTS.equals(mainCategory)) {
-                locations = filterLocationsByCategories(locations, getRestaurantsCategories(), false);
+                places = filterPlacesByCategories(places, getRestaurantsCategories(), false);
             } else if(Constants.DIRECTORY.equals(mainCategory)){
-                locations = filterLocationsByCategories(locations, getRestaurantsCategories(), true);
+                places = filterPlacesByCategories(places, getRestaurantsCategories(), true);
             }
         }
         
-        Collections.sort(locations, new DistanceComparator());
-        return locations;
+        Collections.sort(places, new DistanceComparator());
+        return places;
     }
     
     private boolean locationIngestRequired(PlaceIngest ingest, int distanceInMeters) {
@@ -296,7 +299,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     
     // get location search terms from Google
     // get locations by terms from Yellow Pages
-    private List<Place> getLocationsFromSource(
+    private List<Place> getPlacesFromSource(
             final String zip, String countryCode, int distanceInMeters) {
         
         if(Log.isInfoEnabled()) Log.info("Getting locations from source for zip: " + zip);
@@ -311,13 +314,13 @@ public class GlobalDataServiceImpl implements GlobalDataService {
             Callable<List<Place>> worker = new Callable<List<Place>>() {
                 @Override
                 public List<Place> call() throws Exception {
-                    return yellowPagesService.getLocations(term, zip, distanceInMiles);                    
+                    return yellowPagesService.getPlaces(term, zip, distanceInMiles);                    
                 }                
             };            
             results.add(executors.submit(worker));
         }
         
-        SortedSet<Place> locations = new TreeSet<>(new Comparator<Place>() {
+        SortedSet<Place> places = new TreeSet<>(new Comparator<Place>() {
             @Override
             public int compare(Place l1, Place l2) {
                 int result = l1.getExternalId().compareTo(l2.getExternalId());
@@ -336,7 +339,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
                     Log.debug(e.getMessage());
                 }
                 if(ypLocationsForTerm != null) {
-                    locations.addAll(ypLocationsForTerm);
+                    places.addAll(ypLocationsForTerm);
                 }
             }
         } catch(Exception e) {
@@ -345,15 +348,15 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         long end = System.currentTimeMillis();
         if(Log.isInfoEnabled()) Log.info(
                 "Executed " + terms.size() + " requests and brought: " + 
-                        locations.size()  + " locations in " + (end - start) + " ms");
+                        places.size()  + " places in " + (end - start) + " ms");
         
         
         
-        for(Place l : locations) {
+        for(Place l : places) {
             l.setCountryCode(countryCode);
         }
 
-        return new ArrayList<>(locations);
+        return new ArrayList<>(places);
     }
     
     //the logic of getting the search terms is encapsulated in this method
@@ -361,12 +364,12 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     //to some predefined list of strings in the future
     
     private List<String> getSearchTerms(String zip, String countryCode, int distanceInMeters) {
-        Place origin = locationService.getPrimaryLocation(zip, countryCode);
+        Location origin = locationService.getPrimaryLocation(zip, countryCode);
         if(origin != null) {
-            List<Place> googleLocations = googleService.getLocations(
+            List<Place> googlePlaces = googleService.getPlaces(
                     origin.getLatitude().doubleValue(), origin.getLongitude().doubleValue(), distanceInMeters);            
-            List<String> terms = new ArrayList<>(googleLocations.size());
-            for(final Place gLocation : googleLocations) {
+            List<String> terms = new ArrayList<>(googlePlaces.size());
+            for(final Place gLocation : googlePlaces) {
                 terms.add(gLocation.getName());
             }        
             return terms;            
@@ -383,9 +386,9 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return terms;
     }    
     
-    private List<Place> filterLocationsByDistance(Collection<Place> locations, int distanceInMeters) {
-        List<Place> result = new ArrayList<>(locations.size());        
-        for(Place l : locations) {
+    private List<Place> filterPlacesByDistance(Collection<Place> places, int distanceInMeters) {
+        List<Place> result = new ArrayList<>(places.size());        
+        for(Place l : places) {
             Integer distance = l.getDistance();
             if(distance == null || distance <= distanceInMeters) {
                 result.add(l);
@@ -394,15 +397,15 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return result;
     }
     
-    private List<Place> filterLocationsByCategories(
-            List<Place> locations, String categories, boolean negate) {
-        if(categories == null || categories.isEmpty() || locations.isEmpty()) {            
-            return locations;
+    private List<Place> filterPlacesByCategories(
+            List<Place> places, String categories, boolean negate) {
+        if(categories == null || categories.isEmpty() || places.isEmpty()) {            
+            return places;
         }
         
-        List<Place> filtered = new ArrayList<>(locations.size());
+        List<Place> filtered = new ArrayList<>(places.size());
         Set<String> cats = StringUtils.split(categories, ",", true);
-        outer: for(Place location : locations) {
+        outer: for(Place location : places) {
             String categoriesString = CollectionUtils.join(location.getCategoryNames()).toLowerCase();
             for(String c : cats) {
                 boolean contains = categoriesString.contains(c); 
@@ -441,12 +444,12 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     ///////////// Events private methods /////////////////////////////
     
     private List<Event> getEventsByZipInfo(String zip, String countryCode) {
-        Place origin = locationService.getPrimaryLocation(zip, countryCode);
+        Location origin = locationService.getPrimaryLocation(zip, countryCode);
         return getEvents(zip, countryCode, origin);
     }
     
     private List<Event> getEventsByLocation(double latitude, double longitude) {
-        Place origin = locationService.getLocation(latitude, longitude);
+        Location origin = locationService.getLocation(latitude, longitude);
         return getEvents(origin.getZip(), origin.getCountryCode(), origin);
     }
     
@@ -462,7 +465,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return Collections.emptyList();
     }    
     
-    private List<Event> getEvents(String zip, String countryCode, Place origin) {
+    private List<Event> getEvents(String zip, String countryCode, Location origin) {
         List<String> terms = locationService.getCities(zip, countryCode);
         List<Event> events = facebookService.getEvents(terms);
         List<Event> processedEvents = postProcessEvents(origin, countryCode, events);
@@ -472,7 +475,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     //this calculates and sets event distances as well as
     //properly set events date and time (with time zone) 
     //removes events in the past and sorts the remaining events by time/date
-    private List<Event> postProcessEvents(Place origin, String countryCode, List<Event> events) {
+    private List<Event> postProcessEvents(Location origin, String countryCode, List<Event> events) {
         for(Event e : events) {
             if(origin != null) {
                 setEventDistance(e, countryCode, origin);
@@ -502,13 +505,13 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         return eventsFiltered;
     }
     
-    private void setEventDistance(Event e, String countryCode, Place origin) {
+    private void setEventDistance(Event e, String countryCode, Location origin) {
         Double eLat = e.getLatitude();
         Double eLon = e.getLongitude();
         String eZip = e.getZip();
-        Place eventLocation = null;
+        Location eventLocation = null;
         if(eLat != null && eLon != null) {
-            eventLocation = new Place();
+            eventLocation = new Location();
             eventLocation.setLatitude(eLat.floatValue());
             eventLocation.setLongitude(eLon.floatValue());
         } else if (eZip != null) {

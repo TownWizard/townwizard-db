@@ -71,7 +71,7 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("s") String categories,
             @QueryParam ("cat") String mainCategory) {
         try {
-            List<Place> locations = globalDataService.getLocations(
+            List<Place> locations = globalDataService.getPlaces(
                     new LocationParams(zip, DEFAULT_COUNTRY_CODE, location, ip),
                     DEFAULT_DISTANCE_IN_METERS, mainCategory, categories);            
             
@@ -95,7 +95,7 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("ip") String ip,
             @QueryParam ("cat") String mainCategory) {
         try {
-            List<String> categories = globalDataService.getLocationCategories(
+            List<String> categories = globalDataService.getPlaceCategories(
                     new LocationParams(zip, DEFAULT_COUNTRY_CODE, location, ip),
                     DEFAULT_DISTANCE_IN_METERS, mainCategory);
             return Response.status(Status.OK).entity(categories).build();

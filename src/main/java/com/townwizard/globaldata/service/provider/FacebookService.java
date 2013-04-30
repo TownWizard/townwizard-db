@@ -16,8 +16,8 @@ public interface FacebookService {
     List<Event> getEvents(List<String> terms);
     
     /**
-     * Get Facebook locations (places) given latitude, longitude, and distance
+     * Get Facebook places given latitude, longitude, and distance
      */
-    List<Place> getLocations(double latitude, double longitude, int distanceInMeters);
+    List<Place> getPlaces(double latitude, double longitude, int distanceInMeters);
     
 }

@@ -56,10 +56,10 @@ public class FacebookServiceImpl implements FacebookService {
     }
     
     /**
-     * Executes one search request and converts FB JSON to the list of locations
+     * Executes one search request and converts FB JSON to the list of places
      */
     @Override
-    public List<Place> getLocations(double latitude, double longitude, int distanceInMeters) {
+    public List<Place> getPlaces(double latitude, double longitude, int distanceInMeters) {
         try {
             String json = connector.executeLocationsRequest(latitude, longitude, distanceInMeters);
             List<Facebook.Location> fbObjects = jsonToObjects(json, Facebook.Location.class);

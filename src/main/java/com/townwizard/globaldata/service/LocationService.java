@@ -2,7 +2,7 @@ package com.townwizard.globaldata.service;
 
 import java.util.List;
 
-import com.townwizard.globaldata.model.directory.Place;
+import com.townwizard.globaldata.model.Location;
 
 /**
  * Contains location related methods
@@ -11,17 +11,17 @@ public interface LocationService {
     /**
      * Get locations by zip info
      */
-    List<Place> getLocations(String zip, String countryCode);
+    List<Location> getLocations(String zip, String countryCode);
     
     /**
      * Get primary location by zip info
      */
-    Place getPrimaryLocation(String zip, String countryCode);
+    Location getPrimaryLocation(String zip, String countryCode);
 
     /**
      * Get location by latitude and longitude
      */
-    Place getLocation(double latitude, double longitude);
+    Location getLocation(double latitude, double longitude);
 
     /**
      * Get list of city names by zip info
@@ -31,6 +31,6 @@ public interface LocationService {
     /**
      * Return distance in meters between two locations
      */
-    Integer distance(Place location1, Place location2);
+    Integer distance(Location location1, Location location2);
 
 }

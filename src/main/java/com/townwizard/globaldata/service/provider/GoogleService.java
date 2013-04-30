@@ -10,8 +10,8 @@ import com.townwizard.globaldata.model.directory.Place;
 public interface GoogleService {
     
     /**
-     * Get Google locations (places) by latitude, longitude, and distance
+     * Get Google places by latitude, longitude, and distance
      */
-    List<Place> getLocations(double latitude, double longitude, int distanceInMeters);
+    List<Place> getPlaces(double latitude, double longitude, int distanceInMeters);
 
 }
