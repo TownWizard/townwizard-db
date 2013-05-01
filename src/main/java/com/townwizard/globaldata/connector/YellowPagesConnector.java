@@ -7,7 +7,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.constants.Constants;
-import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.HttpUtils;
 
 /**
@@ -32,7 +31,6 @@ public final class YellowPagesConnector {
         appendMandatoryParameters(sb);
         
         String url = sb.toString();
-        Log.debug(url);
         String response = HttpUtils.executeGetRequest(url);
         return response;
     }

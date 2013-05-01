@@ -9,6 +9,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.townwizard.db.constants.Constants;
 import com.townwizard.db.util.JSONUtils;
 import com.townwizard.globaldata.connector.YellowPagesConnector;
 import com.townwizard.globaldata.model.YellowPages;
@@ -27,8 +28,9 @@ public class YellowPagesServiceImpl implements YellowPagesService {
      * Executes one HTTP request to get locations
      */
     @Override
-    public List<Place> getPlaces(String zip, double distanceInMiles, String term) {
+    public List<Place> getPlaces(String zip, double distanceInMeters, String term) {
         try {
+            double distanceInMiles = distanceInMeters / Constants.METERS_IN_MILE;
             String json = connector.executePlacesRequest(term, zip, distanceInMiles);
             List<YellowPages.Location> gObjects = jsonToObjects(json, YellowPages.Location.class);
             List<Place> objects = ServiceUtils.convertList(gObjects);

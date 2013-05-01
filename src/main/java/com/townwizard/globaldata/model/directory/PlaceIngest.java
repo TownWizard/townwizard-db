@@ -10,6 +10,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -42,6 +43,7 @@ public class PlaceIngest extends AuditableEntity {
     private String countryCode;
     private String term;
     private Integer distance;
+    @Transient
     private Status status;
     
     @OneToOne(fetch = FetchType.EAGER) @JoinColumn(name = "categoryId")

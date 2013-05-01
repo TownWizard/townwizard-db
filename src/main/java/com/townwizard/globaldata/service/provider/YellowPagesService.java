@@ -12,6 +12,6 @@ public interface YellowPagesService {
     /**
      * Get Yellow Pages places by search term, zip, and distance
      */
-    List<Place> getPlaces(String zip, double distanceInMiles, String term);
+    List<Place> getPlaces(String zip, double distanceInMeters, String term);
     
 }

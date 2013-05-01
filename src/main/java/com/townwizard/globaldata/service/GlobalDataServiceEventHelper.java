@@ -26,12 +26,9 @@ import com.townwizard.globaldata.service.provider.FacebookService;
 @Component("eventHelper")
 public final class GlobalDataServiceEventHelper {
     
-    @Autowired
-    private LocationService locationService;
-    @Autowired
-    private GlobalDataDao globalDataDao;
-    @Autowired
-    private FacebookService facebookService;
+    @Autowired private LocationService locationService;
+    @Autowired private GlobalDataDao globalDataDao;
+    @Autowired private FacebookService facebookService;
     
     public List<Event> getEventsByZipInfo(String zip, String countryCode) {
         Location origin = locationService.getPrimaryLocation(zip, countryCode);

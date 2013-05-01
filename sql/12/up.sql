@@ -38,7 +38,8 @@ CREATE TABLE Ingest (
   category_id BIGINT,
   term VARCHAR(250),
   CONSTRAINT pk_ingest PRIMARY KEY (id),
-  CONSTRAINT unq_ingest UNIQUE(zip, country_code, category_id, term),
+  CONSTRAINT unq_ingest_category UNIQUE(zip, country_code, category_id),
+  CONSTRAINT unq_ingest_term UNIQUE(zip, country_code, term),
   CONSTRAINT fk_ingest_category FOREIGN KEY(category_id) REFERENCES Category(id)
 ) ENGINE = InnoDB;
 

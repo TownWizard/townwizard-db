@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.townwizard.globaldata.dao.GlobalDataDao;
 import com.townwizard.globaldata.model.CityLocation;
@@ -34,7 +33,6 @@ public class GlobalDataServiceImpl implements GlobalDataService {
      * Currently events are retrieved from Facebook 
      */
     @Override
-    @Transactional("directoryTransactionManager")
     public List<Event> getEvents(Location params) {
         if(params.isZipInfoSet()) {
             return eventHelper.getEventsByZipInfo(params.getZip(), params.getCountryCode());
@@ -47,7 +45,6 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     }
     
     @Override
-    @Transactional("directoryTransactionManager")
     public List<Place> getPlaces(
             Location params, int distanceInMeters, String categoryOrTerm) {
         if(params.isZipInfoSet()) {

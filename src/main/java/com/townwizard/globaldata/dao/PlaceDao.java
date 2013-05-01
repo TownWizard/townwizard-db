@@ -13,23 +13,31 @@ import com.townwizard.globaldata.model.directory.PlaceIngest;
 public interface PlaceDao extends AbstractDao {
     
     /**
-     * Get a places ingest object from the DB by zip info.
-     * This method actually brings all the locations associated with this location ingest, so
-     * should be treated as "get locations" method. 
-     */
-    @Deprecated
-    PlaceIngest getPlaceIngest(String zip, String countryCode);
-    
-    /**
      * Return the list of all place categories
      */
     List<PlaceCategory> getAllPlaceCategories();
     
     /**
-     * Get sorted list of category names for an ingest 
+     * Get place category by name
      */
-    @Deprecated
-    List<String> getPlaceCategories(Long ingestId);
+    PlaceCategory getCategory(String name);
+
+    /**
+     * Get place ingest by zip, country code, and category or term.
+     * First, search for a category, then, search for a term.
+     */
+    PlaceIngest getPlaceIngest(String zip, String countryCode, String categoryOrTerm);
+    
+    /**
+     * Get places for a given ingest
+     */
+    List<Place> getPlaces(PlaceIngest ingest);
+
+    /**
+     * Delete places associated with the ingest (and only with this ingest),
+     * and then delete ingest itself.
+     */
+    void deleteIngest(PlaceIngest ingest);
     
     /** 
      * The list of places given to this method can be a mix of old (associated with some
@@ -37,8 +45,7 @@ public interface PlaceDao extends AbstractDao {
      * 
      *  The method will save the new places and will associate both old and new places 
      *  with the passed place ingest.
-     */
-    @Deprecated
-    void savePlaces(List<Place> places, PlaceIngest ingest);
-
+     */    
+    void saveIngest(PlaceIngest ingest, List<Place> places);
+    
 }

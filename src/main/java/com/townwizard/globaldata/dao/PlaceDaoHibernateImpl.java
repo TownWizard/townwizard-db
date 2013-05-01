@@ -2,7 +2,6 @@ package com.townwizard.globaldata.dao;
 
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -24,15 +23,6 @@ import com.townwizard.globaldata.model.directory.PlaceIngest;
  */
 @Component("placeDao")
 public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements PlaceDao {
-
-    @Override
-    public PlaceIngest getPlaceIngest(String zip, String countryCode) {
-        return (PlaceIngest)getSession()
-                .createQuery("from PlaceIngest where zip = :zip and countryCode = :countryCode")
-                .setString("zip", zip)
-                .setString("countryCode", countryCode)
-                .uniqueResult();
-    }
     
     @Override
     @SuppressWarnings("unchecked")
@@ -41,26 +31,54 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
     }
     
     @Override
-    public List<String> getPlaceCategories(Long ingestId) {
-        String sql = 
-                "SELECT DISTINCT c.name FROM Category c " + 
-                "JOIN Location_Category llc ON c.id = llc.category_id " +  
-                "JOIN Location l ON llc.location_id = l.id " + 
-                "JOIN Location_Ingest lli ON l.id = lli.location_id " + 
-                "JOIN Ingest li ON lli.ingest_id = li.id " + 
-                "WHERE li.id = ?";
-
-        Session session = getSession();
-        session.flush();
-        
-        @SuppressWarnings("unchecked")
-        List<String> result = session.createSQLQuery(sql).setLong(0, ingestId).list();
-        Collections.sort(result);        
-        return result;
+    public PlaceCategory getCategory(String name) {
+        return (PlaceCategory)getSession().createQuery("from PlaceCategory where name = :name")
+                .setString("name", name).uniqueResult();
     }
     
     @Override
-    public void savePlaces(List<Place> locations, PlaceIngest ingest) {
+    public List<Place> getPlaces(PlaceIngest ingest) {
+        Session session = getSession();
+        PlaceIngest fromDB = (PlaceIngest)session.get(PlaceIngest.class, ingest.getId());
+        Set<Place> ingestPlaces = fromDB.getPlaces();
+        List<Place> places = new ArrayList<>(ingestPlaces.size());
+        places.addAll(ingestPlaces);
+        return places;
+    }
+    
+    @Override
+    public PlaceIngest getPlaceIngest(String zip, String countryCode, String categoryOrTerm) {
+        @SuppressWarnings("unchecked")
+        List<Object[]> ingests = getSession()
+                .createQuery("from PlaceIngest i left join i.placeCategory c " + 
+                            "where i.zip = :zip and i.countryCode = :countryCode " + 
+                            "and (c.name = :categoryOrTerm or i.term = lower(:categoryOrTerm))")
+                .setString("zip", zip)
+                .setString("countryCode", countryCode)
+                .setString("categoryOrTerm", categoryOrTerm)
+                .list();
+        
+        if(!ingests.isEmpty()) {
+            Object[] ingestAndCategory = ingests.get(0); 
+            return (PlaceIngest) ingestAndCategory[0];
+        }
+        return null;
+    }
+    
+    @Override
+    public void deleteIngest(PlaceIngest ingest) {
+        Session session = getSession();
+        Set<Place> places = ingest.getPlaces();
+        for(Place p : places) {
+            if(p.getIngests().size() == 1) {
+                session.delete(p);
+            }
+        }
+        session.delete(ingest);
+    }
+    
+    @Override
+    public void saveIngest(PlaceIngest ingest, List<Place> locations) {
 
         List<String> externalIds = new ArrayList<>(locations.size());
         for(Place location : locations) {
@@ -110,7 +128,11 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
                 create(location);
             }
         }
+        
+        update(ingest);
     }
+
+    ///////////////////////////// private methods //////////////////////////////////////////
     
     private Map<String, List<Place>> getLocationsByExternalIds(List<String> externalIds) {
         @SuppressWarnings("unchecked")
@@ -127,14 +149,6 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
                 result.put(externalId, locationsById);
             }
             locationsById.add(l);
-        }
-        return result;
-    }
-    
-    private Set<String> collectCategoryNames(List<Place> locations) {
-        Set<String> result = new HashSet<>();
-        for(Place l : locations) {
-            result.addAll(l.extractCategoryNames());
         }
         return result;
     }
@@ -163,5 +177,13 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
             }
         }
     }
-
+    
+    private Set<String> collectCategoryNames(List<Place> locations) {
+        Set<String> result = new HashSet<>();
+        for(Place l : locations) {
+            result.addAll(l.extractCategoryNames());
+        }
+        return result;
+    }
+    
 }

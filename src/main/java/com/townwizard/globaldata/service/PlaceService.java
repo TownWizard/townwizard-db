@@ -14,23 +14,26 @@ public interface PlaceService {
     List<PlaceCategory> getAllPlaceCategories();
     
     /**
+     * Return sorted list of all place category names
+     */
+    List<String> getAllPlaceCategoryNames();
+    
+    /**
      * Return the list of places related to the given ingest.
      */
     List<Place> getPlaces(PlaceIngest ingest);    
 
     /**
      * Check if an ingest exists for the given zip, country code, and the term.
-     * If not, create a new ingest (which is unfinished).
-     * Return the old or new ingest. 
+     * If an ingest exist, but not done, return ingest with the state IN_PROGRESS.
+     * If no ingest exist, create one and return it with the state NEW.
+     * Othewise, return the ingest with the state DONE.
      */
     PlaceIngest getIngest(
             String zipCode, String countryCode, int distanceInMeters, String categoryOrTerm);
     
     /**
-     * Do whatever is necessary to do to ingest places (save places, update categories, etc) for
-     * a given unfinished ingest.
-     * 
-     * If the ingest given is finished and valid, do nothing
+     * Save ingest and associate places with it.
      */
-    void completeIngest(PlaceIngest ingest, List<Place> places); 
+    void saveIngest(PlaceIngest ingest, List<Place> places); 
 }

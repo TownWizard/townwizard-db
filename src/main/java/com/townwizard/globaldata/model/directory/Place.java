@@ -67,7 +67,7 @@ public class Place extends AbstractEntity implements DistanceComparable {
     @JsonIgnore @Transient
     private String categoriesStr;      //categories concatenated in pipe-separated string, not saved in DB
     @JsonIgnore
-    @ManyToMany (mappedBy = "places", fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    @ManyToMany (mappedBy = "places", fetch=FetchType.LAZY, cascade=CascadeType.ALL)
     private Set<PlaceCategory> categories;
     @JsonIgnore
     @ManyToMany (mappedBy = "places", fetch=FetchType.LAZY)
@@ -206,6 +206,7 @@ public class Place extends AbstractEntity implements DistanceComparable {
      * Converts categories (as list of LocationCategory objects) to list of strings,
      * which only contain category names.
      */
+    @JsonIgnore
     public List<String> getCategoryNames() {
         List<String> result = new LinkedList<>();
         if(categories != null) {
