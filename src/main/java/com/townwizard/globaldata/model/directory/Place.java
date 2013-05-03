@@ -1,6 +1,7 @@
 package com.townwizard.globaldata.model.directory;
 
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,6 +13,8 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -21,7 +24,6 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.townwizard.db.constants.Constants;
-import com.townwizard.db.model.AbstractEntity;
 import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.model.DistanceComparable;
 
@@ -34,11 +36,9 @@ import com.townwizard.globaldata.model.DistanceComparable;
  */
 @Entity
 @Table(name = "Location")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
-public class Place extends AbstractEntity implements DistanceComparable {
+//@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
+public class Place implements DistanceComparable {
     
-    private static final long serialVersionUID = 3832190748475773728L;
-
     /**
      * Enum representing possible location sources.  The ordinals of this enum
      * are used as location source valies in the DB
@@ -51,6 +51,11 @@ public class Place extends AbstractEntity implements DistanceComparable {
         public int getId() { return id; }
     }
     
+    @Id @GeneratedValue @Column(nullable = false, updatable = false)
+    @JsonIgnore
+    private Long id;
+    @JsonIgnore
+    private Date created;
     private String externalId;
     private String name;
     private String zip;
@@ -80,6 +85,18 @@ public class Place extends AbstractEntity implements DistanceComparable {
     @Transient
     private Double distanceInMiles;    //calculated on our side on the fly, and not saved in the DB
     
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public Date getCreated() {
+        return created;
+    }
+    public void setCreated(Date created) {
+        this.created = created;
+    }    
     public String getExternalId() {
         return externalId;
     }

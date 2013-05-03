@@ -1,5 +1,6 @@
 package com.townwizard.globaldata.service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.logger.Log;
+import com.townwizard.globaldata.model.directory.Ingest;
 import com.townwizard.globaldata.model.directory.Place;
 import com.townwizard.globaldata.model.directory.PlaceIngest;
 import com.townwizard.globaldata.model.directory.ZipIngest;
@@ -38,7 +40,7 @@ public final class PlaceIngester {
     private static final ExecutorService queueMonitor = Executors.newFixedThreadPool(1);    
     
     //These executors will bring places from the source in parallel.
-    private static final ExecutorService httpExecutors = Executors.newFixedThreadPool(50);
+    private static final ExecutorService httpExecutors = Executors.newFixedThreadPool(10);
     
     //The http executors will be placing category ingests in this queue, and the 
     //db thread will be taking ingest from it and save ingests in the DB
@@ -48,37 +50,42 @@ public final class PlaceIngester {
         String zip, countryCode, category;
         int distanceInMeters;
         List<Place> places;
+        int countDown;
         
-        IngestItem(String zip, String countryCode, int distanceInMeters, String category, List<Place> places) {
+        IngestItem(String zip, String countryCode, int distanceInMeters, String category,
+                List<Place> places, int countDown) {
             this.zip = zip;
             this.countryCode = countryCode;
             this.distanceInMeters = distanceInMeters;
             this.category = category;
             this.places = places;
+            this.countDown = countDown;
         }
     }
     
     private final class HttpExecutor implements Runnable {
         
         private String zip, countryCode, category;        
-        private int distanceInMeters;        
+        private int distanceInMeters;
+        private int countDown;
         
-        HttpExecutor(String zip, String countryCode, int distanceInMeters, String category) {
+        HttpExecutor(String zip, String countryCode, int distanceInMeters, String category, int countDown) {
             this.zip = zip;
             this.countryCode = countryCode;
             this.distanceInMeters = distanceInMeters;
             this.category = category;
+            this.countDown = countDown;
         }
 
         @Override
         public void run() {
             try {
                 List<Place> places = getPlacesFromSource(zip, countryCode, distanceInMeters, category);
-                if(!places.isEmpty()) {
-                    ingestQueue.put(new IngestItem(zip, countryCode, distanceInMeters, category, places));
-                }
+                //Log.debug(category + ": " + places.size());
+                ingestQueue.put(new IngestItem(zip, countryCode, distanceInMeters, category, places, countDown));                
             } catch(Exception e) {
                 Log.exception(e);
+                e.printStackTrace();
             }
         }
     }
@@ -98,8 +105,18 @@ public final class PlaceIngester {
                     IngestItem item = ingestQueue.take();                    
                     doIngestByZipAndCategory(
                             item.zip, item.countryCode, item.distanceInMeters, item.category, item.places);
+                    if(item.countDown == 0) {
+                        ZipIngest ingest = placeService.getZipIngest(item.zip, item.countryCode);
+                        if(ingest != null) {
+                            if(Log.isInfoEnabled()) Log.info("Finishing ingest for zip: " + item.zip);
+                            ingest.setStatus(Ingest.Status.R);
+                            ingest.setFinished(new Date());
+                            placeService.updateZipIngest(ingest);
+                        }
+                    }
                 } catch (Exception e) {
                     Log.exception(e);
+                    e.printStackTrace();
                 }
             }                
         }        
@@ -133,13 +150,22 @@ public final class PlaceIngester {
     
     public void ingestByZip(String zipCode, String countryCode, int distanceInMeters) {
         ZipIngest ingest = placeService.getZipIngest(zipCode, countryCode);
-        if(ingest.getStatus() != ZipIngest.Status.NEW) return;
+        if(ingest.getStatus() != ZipIngest.Status.N) return;
         
-        for(String category : placeService.getAllPlaceCategoryNames()) {
-            httpExecutors.submit(new HttpExecutor(zipCode, countryCode, distanceInMeters, category));
+        if(Log.isInfoEnabled()) Log.info("Starting ingest for zip: " + zipCode);
+        
+        ingest.setStatus(Ingest.Status.I);
+        placeService.updateZipIngest(ingest);
+        
+        List<String> categories = placeService.getAllPlaceCategoryNames();
+        int countDown = categories.size();
+        for(String category : categories) {
+            if(--countDown == 0) {
+                if(Log.isDebugEnabled()) Log.debug("Submitting zero item for zip: " +  zipCode);
+            }
+            httpExecutors.submit(new HttpExecutor(zipCode, countryCode, distanceInMeters, category, countDown));
         }
         
-        placeService.updateZipIngest(ingest);
     }
     
     public Object[] ingestByZipAndCategory(
@@ -155,11 +181,11 @@ public final class PlaceIngester {
         PlaceIngest.Status status = ingest.getStatus();
         
         List<Place> places = placeList;
-        if(status != PlaceIngest.Status.DONE) {
+        if(status != PlaceIngest.Status.R) {
             if(places == null) {
                 places = getPlacesFromSource(zipCode, countryCode, distanceInMeters, categoryOrTerm);
             }
-            if(status == PlaceIngest.Status.NEW) {
+            if(status == PlaceIngest.Status.N) {
                 placeService.saveIngest(ingest, places);
                 /*
                 if(ingest.getPlaceCategory() != null) {

@@ -48,7 +48,7 @@ public interface PlaceService {
     ZipIngest getZipIngest(String zip, String countryCode);
     
     /**
-     * Update zip ingest after starting it.
+     * Update zip ingest.
      */
     void updateZipIngest(ZipIngest zipIngest);
 }

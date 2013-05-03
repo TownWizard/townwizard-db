@@ -97,9 +97,7 @@ public final class GlobalDataServicePlaceHelper {
         
         Collections.sort(result, new DistanceComparator());
         
-        if(ingest.getStatus() == PlaceIngest.Status.NEW) {
-            placeIngester.ingestByZip(zip, countryCode, distanceInMeters);
-        }
+        placeIngester.ingestByZip(zip, countryCode, distanceInMeters);
         
         return result;
     }

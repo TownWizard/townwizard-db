@@ -1,6 +1,5 @@
 package com.townwizard.globaldata.model.directory;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,10 +24,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Entity
 @Table(name = "Category")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
-public class PlaceCategory implements Serializable {
-
-    private static final long serialVersionUID = -6790493186121169497L;
-
+public class PlaceCategory {
+    
     @Id @GeneratedValue @Column(nullable = false, updatable = false)
     private Long id;
     private String name;

@@ -3,7 +3,6 @@ package com.townwizard.db.model;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -17,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.townwizard.db.test.TestSupport;
+import com.townwizard.globaldata.model.directory.Ingest;
 import com.townwizard.globaldata.model.directory.Place;
 import com.townwizard.globaldata.model.directory.PlaceCategory;
 import com.townwizard.globaldata.model.directory.PlaceIngest;
@@ -58,13 +58,6 @@ public class PlaceTest extends TestSupport {
             
             PlaceIngest fromDb = getLocationIngestById(id);
             assertNotNull("Place ingest should be found in db after save() by id", fromDb);
-            Date updated = fromDb.getUpdated();
-            try { Thread.sleep(100); } catch (Exception e) {}
-            fromDb.setDistance(50000);
-            session.save(fromDb);
-            
-            fromDb = getLocationIngestById(id);
-            assertNotSame("Place ingest updated should change after update()", updated, fromDb.getUpdated());
             
             PlaceCategory c = createLocationCategory();
             session.save(c);
@@ -197,6 +190,8 @@ public class PlaceTest extends TestSupport {
         i.setDistance(2000);
         i.setCountryCode("US");
         i.setTerm("Test term");
+        i.setStatus(Ingest.Status.N);
+        i.setCreated(new Date());
         return i;
     }
     
@@ -215,6 +210,7 @@ public class PlaceTest extends TestSupport {
         l.setStreet("1234 Hilan Blvd");
         l.setUrl("http://c.ypcdn.com/2/c/rtd?vrid=e938536c6b70c0c9c1e8d6ffaa32053b&rid=d73bd11c-ccc6-44e9-8a75-da8e6cf99d2d&ptid=943aw4l8qj&ypid=2816456&lid=2816456&tl=7&lsrc=MDM&dest=http%3A%2F%2Fwww.yellowpages.com%2Fstaten-island-ny%2Fmip%2Fnew-york-public-library-2816456%3Ffrom%3Dpubapi_943aw4l8qj");
         l.setZip("00000");
+        l.setCreated(new Date());
         return l;
     }
     

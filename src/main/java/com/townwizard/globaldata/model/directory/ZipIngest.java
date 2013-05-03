@@ -1,39 +1,26 @@
 package com.townwizard.globaldata.model.directory;
 
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import java.util.Date;
 
-import com.townwizard.db.model.AuditableEntity;
+import javax.persistence.Entity;
 
 @Entity
-public class ZipIngest extends AuditableEntity {
+public class ZipIngest extends Ingest {
     
-    private static final long serialVersionUID = -6567028287277983751L;
-    
-    public static enum Status {NEW, IN_PROGRESS, DONE}
-    
-    private String zip;
-    private String countryCode;
-    @Transient
-    private Status status;
-    
-    public String getZip() {
-        return zip;
+    private Date started;
+    private Date finished;
+
+    public Date getStarted() {
+        return started;
     }
-    public void setZip(String zip) {
-        this.zip = zip;
+    public void setStarted(Date started) {
+        this.started = started;
     }
-    public String getCountryCode() {
-        return countryCode;
+    public Date getFinished() {
+        return finished;
     }
-    public void setCountryCode(String countryCode) {
-        this.countryCode = countryCode;
-    }
-    public Status getStatus() {
-        return status;
-    }
-    public void setStatus(Status status) {
-        this.status = status;
+    public void setFinished(Date finished) {
+        this.finished = finished;
     }
     
 }

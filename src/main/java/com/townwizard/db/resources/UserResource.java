@@ -46,17 +46,19 @@ public class UserResource extends ResourceSupport {
         User u = null;
         try {
             u = userService.getById(userId);
-            boolean needsUpdate = false;
-            if(ip != null && u.getRegistrationIp() == null) {
-                u.setRegistrationIp(ip);
-                needsUpdate = true;
-            }            
-            if(siteId != null && u.getSiteId() == null) {                
-                u.setSiteId(siteId);
-                needsUpdate = true;
-            }
-            if(needsUpdate) {
-                userService.update(u);
+            if(u != null) {
+                boolean needsUpdate = false;
+                if(ip != null && u.getRegistrationIp() == null) {
+                    u.setRegistrationIp(ip);
+                    needsUpdate = true;
+                }            
+                if(siteId != null && u.getSiteId() == null) {                
+                    u.setSiteId(siteId);
+                    needsUpdate = true;
+                }
+                if(needsUpdate) {
+                    userService.update(u);
+                }
             }
         } catch (Exception e) {
             handleGenericException(e);

@@ -54,9 +54,4 @@ public interface PlaceDao extends AbstractDao {
      */
     ZipIngest getZipIngest(String zip, String countryCode);
     
-    /**
-     * Update zip ingest.
-     */
-    void updateZipIngest(ZipIngest zipIngest);
-    
 }

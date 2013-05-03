@@ -1,5 +1,6 @@
 package com.townwizard.globaldata.model.directory;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,9 +11,6 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
-
-import com.townwizard.db.model.AuditableEntity;
 
 /**
  * Location ingest is an object which is related to locations collected at particular time,
@@ -29,18 +27,11 @@ import com.townwizard.db.model.AuditableEntity;
  */
 @Entity
 @Table(name = "Ingest")
-public class PlaceIngest extends AuditableEntity {
+public class PlaceIngest extends Ingest {
     
-    public static enum Status {NEW, IN_PROGRESS, DONE}
-
-    private static final long serialVersionUID = -5910483030029302936L;
-    
-    private String zip;
-    private String countryCode;
+    private Date created;
     private String term;
     private Integer distance;
-    @Transient
-    private Status status;
     
     @OneToOne(fetch = FetchType.EAGER) @JoinColumn(name = "categoryId")
     private PlaceCategory placeCategory;
@@ -52,18 +43,12 @@ public class PlaceIngest extends AuditableEntity {
             inverseJoinColumns = {@JoinColumn(name="location_id")}
     )    
     private Set<Place> places;    
-    
-    public String getZip() {
-        return zip;
+
+    public Date getCreated() {
+        return created;
     }
-    public void setZip(String zip) {
-        this.zip = zip;
-    }
-    public String getCountryCode() {
-        return countryCode;
-    }
-    public void setCountryCode(String countryCode) {
-        this.countryCode = countryCode;
+    public void setCreated(Date created) {
+        this.created = created;
     }
     public String getTerm() {
         return term;
@@ -73,12 +58,6 @@ public class PlaceIngest extends AuditableEntity {
     }
     public Integer getDistance() {
         return distance;
-    }
-    public Status getStatus() {
-        return status;
-    }
-    public void setStatus(Status status) {
-        this.status = status;
     }
     public void setDistance(Integer distance) {
         this.distance = distance;

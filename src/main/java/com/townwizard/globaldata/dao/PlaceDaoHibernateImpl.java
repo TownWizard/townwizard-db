@@ -2,6 +2,7 @@ package com.townwizard.globaldata.dao;
 
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,12 +10,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.hibernate.Session;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.dao.AbstractDaoHibernateImpl;
-import com.townwizard.db.model.AuditableEntity;
 import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.globaldata.model.directory.Place;
 import com.townwizard.globaldata.model.directory.PlaceCategory;
@@ -40,9 +41,9 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
     }
     
     @Override
-    public List<Place> getPlaces(PlaceIngest ingest) {
-        Session session = getSession();
-        PlaceIngest fromDB = (PlaceIngest)session.get(PlaceIngest.class, ingest.getId());
+    public List<Place> getPlaces(PlaceIngest ingest) {        
+        @SuppressWarnings("cast")
+        PlaceIngest fromDB = (PlaceIngest)getById(PlaceIngest.class, ingest.getId());
         Set<Place> ingestPlaces = fromDB.getPlaces();
         List<Place> places = new ArrayList<>(ingestPlaces.size());
         places.addAll(ingestPlaces);
@@ -81,8 +82,20 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
     }
     
     @Override
-    public void saveIngest(PlaceIngest ingest, List<Place> locations) {
-        if(locations.isEmpty()) return;
+    public void saveIngest(PlaceIngest ingest, List<Place> locationList) {
+        if(locationList.isEmpty()) return;
+        
+        Set<Place> locations = new TreeSet<>(new Comparator<Place>() {
+            @Override
+            public int compare(Place o1, Place o2) {
+                return o1.getExternalId().compareTo(o2.getExternalId());
+            }            
+        });
+        locations.addAll(locationList);
+        
+        if(locations.size() < locationList.size()) {
+            System.out.println("Has  duplicates");
+        }
 
         List<String> externalIds = new ArrayList<>(locations.size());
         for(Place location : locations) {
@@ -124,18 +137,19 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
             
             Map<String, PlaceCategory> allCategories = getLocationCategoriesMap();
             
+            Date now = new Date();
             for(Place location : newLocations) {
                 for(String categoryName : location.extractCategoryNames()) {
                     PlaceCategory c = allCategories.get(categoryName);
                     location.addCategory(c);
                 }
                 location.addIngest(ingest);
+                location.setCreated(now);
                 create(location);
             }
         }
-        
-        changeUpdatedTimeForLater(ingest);
-        getSession().update(ingest);
+
+        update(ingest);
     }
     
     @Override
@@ -146,13 +160,6 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
         
     }
     
-    @Override
-    public void updateZipIngest(ZipIngest zipIngest) {
-        Session session = getSession();        
-        changeUpdatedTimeForLater(zipIngest);
-        session.update(zipIngest);
-    }
-
     ///////////////////////////// private methods //////////////////////////////////////////
     
     private Map<String, List<Place>> getLocationsByExternalIds(List<String> externalIds) {
@@ -204,11 +211,6 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
             result.addAll(l.extractCategoryNames());
         }
         return result;
-    }
-    
-    private void changeUpdatedTimeForLater(AuditableEntity e) {
-        Date now = new Date();        
-        e.setUpdated(new Date(now.getTime() + 2000));        
     }
     
 }

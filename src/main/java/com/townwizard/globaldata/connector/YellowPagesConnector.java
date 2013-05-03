@@ -20,24 +20,25 @@ public final class YellowPagesConnector {
     /**
      * Get locations (places) as JSON
      */
-    public String executePlacesRequest(String term, String zip, double distanceInMiles)
+    public String executePlacesRequest(String term, String zip, double distanceInMiles, int pageNum)
             throws ClientProtocolException, IOException {
         
         StringBuilder sb = new StringBuilder(SEARCH_URL);
         sb.append("searchloc=").append(zip)
           .append("&term=").append(URLEncoder.encode(term, "UTF-8"))
-          .append("&radius=").append(distanceInMiles);
+          .append("&radius=").append(distanceInMiles)
+          .append("&pagenum=").append(pageNum);
         
         appendMandatoryParameters(sb);
         
         String url = sb.toString();
+        //System.out.println(url);
         String response = HttpUtils.executeGetRequest(url);
         return response;
     }
     
     private void appendMandatoryParameters(StringBuilder sb) {
-        sb.append("&sort=distance")
-          .append("&listingcount=10")
+        sb.append("&listingcount=50")
           .append("&format=json")
           .append("&key=").append(Constants.YELLO_PAGES_API_KEY);
     }

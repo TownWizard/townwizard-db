@@ -30,8 +30,7 @@ CREATE TABLE Category (
 CREATE TABLE Ingest (
   id BIGINT NOT NULL AUTO_INCREMENT,
   created DATETIME NOT NULL,
-  updated DATETIME NOT NULL,
-  active BIT NOT NULL,
+  status CHAR(1) NOT NULL,
   zip VARCHAR(10),
   country_code CHAR(2),  
   distance INTEGER,
@@ -47,7 +46,7 @@ ALTER TABLE Ingest ADD INDEX idx_ingest (zip, country_code);
 
 CREATE TABLE Location (
   id BIGINT NOT NULL AUTO_INCREMENT,
-  active BIT NOT NULL,  
+  created DATETIME NOT NULL,
   external_id VARCHAR(255),
   name VARCHAR(255),
   category VARCHAR(255),
@@ -85,9 +84,9 @@ CREATE TABLE Location_Ingest (
 
 CREATE TABLE ZipIngest (
   id BIGINT NOT NULL AUTO_INCREMENT,
-  created DATETIME NOT NULL,
-  updated DATETIME NOT NULL,
-  active BIT NOT NULL,
+  started DATETIME NOT NULL,
+  finished DATETIME,
+  status CHAR(1) NOT NULL,
   zip VARCHAR(10) NOT NULL,
   country_code CHAR(2) NOT NULL,
   CONSTRAINT pk_zip_ingest PRIMARY KEY (id),

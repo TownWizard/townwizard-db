@@ -1,5 +1,6 @@
 package com.townwizard.globaldata.service.provider;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,13 +32,28 @@ public class YellowPagesServiceImpl implements YellowPagesService {
     public List<Place> getPlaces(String zip, double distanceInMeters, String term) {
         try {
             double distanceInMiles = distanceInMeters / Constants.METERS_IN_MILE;
-            String json = connector.executePlacesRequest(term, zip, distanceInMiles);
-            List<YellowPages.Location> gObjects = jsonToObjects(json, YellowPages.Location.class);
-            List<Place> objects = ServiceUtils.convertList(gObjects);
-            return objects;
+            //double distanceInMiles = 5;
+            
+            List<Place> finalResult = new ArrayList<>();
+            int pageNum = 1;
+            List<Place> result = null;
+            do {
+                result = getPageOfPlaces(zip, distanceInMiles, term, pageNum++);
+                finalResult.addAll(result);
+            } while(result.size() >= 50);
+            
+            return finalResult;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    private List<Place> getPageOfPlaces(String zip, double distanceInMiles, String term, int pageNum) 
+        throws Exception {
+        String json = connector.executePlacesRequest(term, zip, distanceInMiles, pageNum);
+        List<YellowPages.Location> gObjects = jsonToObjects(json, YellowPages.Location.class);
+        List<Place> objects = ServiceUtils.convertList(gObjects);
+        return objects;
     }
     
     private <T> List<T> jsonToObjects (String json, Class<T> objectClass) 

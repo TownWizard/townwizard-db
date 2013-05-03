@@ -17,7 +17,7 @@ public class Constants {
     public static final int DEFAULT_DISTANCE_IN_METERS = 50000;
     public static final String DEFAULT_COUNTRY_CODE = "US";
     public static final double METERS_IN_MILE = 1609.34;
-    public static final int REFRESH_LOCATIONS_PERIOD_IN_DAYS = 90;
+    public static final int REFRESH_PLACE_INGEST_PERIOD_IN_DAYS = 90;
     
     public static final String FACEBOOK_EVENTS = "http://www.facebook.com/events";
     public static final String RESTAURANTS = "restaurants";
