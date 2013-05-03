@@ -12,9 +12,6 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
 import com.townwizard.db.model.AuditableEntity;
 
 /**
@@ -32,7 +29,6 @@ import com.townwizard.db.model.AuditableEntity;
  */
 @Entity
 @Table(name = "Ingest")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
 public class PlaceIngest extends AuditableEntity {
     
     public static enum Status {NEW, IN_PROGRESS, DONE}

@@ -83,6 +83,17 @@ CREATE TABLE Location_Ingest (
   CONSTRAINT fk_li_ingest FOREIGN KEY(ingest_id) REFERENCES Ingest(id)
 ) ENGINE = InnoDB;
 
+CREATE TABLE ZipIngest (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  created DATETIME NOT NULL,
+  updated DATETIME NOT NULL,
+  active BIT NOT NULL,
+  zip VARCHAR(10) NOT NULL,
+  country_code CHAR(2) NOT NULL,
+  CONSTRAINT pk_zip_ingest PRIMARY KEY (id),
+  CONSTRAINT unq_zip_ingest UNIQUE(zip, country_code)
+)  ENGINE = InnoDB;
+
 
 INSERT INTO Category (name) VALUES ('Abdominal Supports');
 INSERT INTO Category (name) VALUES ('Abrasives');

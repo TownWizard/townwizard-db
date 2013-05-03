@@ -80,10 +80,12 @@ public final class GlobalDataServicePlaceHelper {
         Object[] ingestWithPlaces = placeIngester.ingestByZipAndCategory(
                 zip, countryCode, distanceInMeters, categoryOrTerm);
         
+        PlaceIngest ingest = (PlaceIngest)ingestWithPlaces[0];        
+        
         @SuppressWarnings("unchecked")
         List<Place> places = (List<Place>)ingestWithPlaces[1];
         if(places == null) {
-            places = placeService.getPlaces((PlaceIngest)ingestWithPlaces[0]);
+            places = placeService.getPlaces(ingest);
         }
 
         for(Place p : places) {
@@ -94,6 +96,10 @@ public final class GlobalDataServicePlaceHelper {
         List<Place> result = filterPlacesByDistance(places, distanceInMeters);        
         
         Collections.sort(result, new DistanceComparator());
+        
+        if(ingest.getStatus() == PlaceIngest.Status.NEW) {
+            placeIngester.ingestByZip(zip, countryCode, distanceInMeters);
+        }
         
         return result;
     }

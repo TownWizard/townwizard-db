@@ -2,6 +2,7 @@ package com.townwizard.globaldata.dao;
 
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -13,10 +14,12 @@ import org.hibernate.Session;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.dao.AbstractDaoHibernateImpl;
+import com.townwizard.db.model.AuditableEntity;
 import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.globaldata.model.directory.Place;
 import com.townwizard.globaldata.model.directory.PlaceCategory;
 import com.townwizard.globaldata.model.directory.PlaceIngest;
+import com.townwizard.globaldata.model.directory.ZipIngest;
 
 /**
  * Hibernate implementation of PlaceDao
@@ -79,6 +82,7 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
     
     @Override
     public void saveIngest(PlaceIngest ingest, List<Place> locations) {
+        if(locations.isEmpty()) return;
 
         List<String> externalIds = new ArrayList<>(locations.size());
         for(Place location : locations) {
@@ -117,6 +121,7 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
         
         if(!newLocations.isEmpty()) {
             createMissingCategories(newLocations);
+            
             Map<String, PlaceCategory> allCategories = getLocationCategoriesMap();
             
             for(Place location : newLocations) {
@@ -129,7 +134,23 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
             }
         }
         
-        update(ingest);
+        changeUpdatedTimeForLater(ingest);
+        getSession().update(ingest);
+    }
+    
+    @Override
+    public ZipIngest getZipIngest(String zip, String countryCode) {
+        return (ZipIngest)getSession()
+                .createQuery("from ZipIngest where zip = :zip and countryCode = :countryCode")
+                .setString("zip", zip).setString("countryCode", countryCode).uniqueResult();
+        
+    }
+    
+    @Override
+    public void updateZipIngest(ZipIngest zipIngest) {
+        Session session = getSession();        
+        changeUpdatedTimeForLater(zipIngest);
+        session.update(zipIngest);
     }
 
     ///////////////////////////// private methods //////////////////////////////////////////
@@ -155,8 +176,7 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
     
     private Map<String, PlaceCategory> getLocationCategoriesMap() {
         Map<String, PlaceCategory> result = new HashMap<>();
-        @SuppressWarnings("unchecked")
-        List<PlaceCategory> allCategories = getSession().createQuery("from PlaceCategory").list();
+        List<PlaceCategory> allCategories = getAllPlaceCategories();
         for(PlaceCategory c : allCategories) {
             result.put(c.getName(), c);
         }
@@ -184,6 +204,11 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
             result.addAll(l.extractCategoryNames());
         }
         return result;
+    }
+    
+    private void changeUpdatedTimeForLater(AuditableEntity e) {
+        Date now = new Date();        
+        e.setUpdated(new Date(now.getTime() + 2000));        
     }
     
 }

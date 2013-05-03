@@ -6,6 +6,7 @@ import com.townwizard.db.dao.AbstractDao;
 import com.townwizard.globaldata.model.directory.Place;
 import com.townwizard.globaldata.model.directory.PlaceCategory;
 import com.townwizard.globaldata.model.directory.PlaceIngest;
+import com.townwizard.globaldata.model.directory.ZipIngest;
 
 /**
  * Contains methods to get/save locations (places) in our local DB
@@ -47,5 +48,15 @@ public interface PlaceDao extends AbstractDao {
      *  with the passed place ingest.
      */    
     void saveIngest(PlaceIngest ingest, List<Place> places);
+    
+    /**
+     * Get zip ingest.
+     */
+    ZipIngest getZipIngest(String zip, String countryCode);
+    
+    /**
+     * Update zip ingest.
+     */
+    void updateZipIngest(ZipIngest zipIngest);
     
 }

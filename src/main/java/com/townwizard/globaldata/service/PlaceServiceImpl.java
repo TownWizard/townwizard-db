@@ -15,6 +15,7 @@ import com.townwizard.globaldata.dao.PlaceDao;
 import com.townwizard.globaldata.model.directory.Place;
 import com.townwizard.globaldata.model.directory.PlaceCategory;
 import com.townwizard.globaldata.model.directory.PlaceIngest;
+import com.townwizard.globaldata.model.directory.ZipIngest;
 
 @Component("placeService")
 @Transactional("directoryTransactionManager")
@@ -76,6 +77,39 @@ public final class PlaceServiceImpl implements PlaceService {
         return placeDao.getPlaces(ingest);
     }
     
+    @Override
+    public ZipIngest getZipIngest(String zip, String countryCode) {
+        if(zip == null || countryCode == null) return null;
+        
+        ZipIngest ingest = placeDao.getZipIngest(zip, countryCode);
+        
+        if(ingest != null && isZipIngestInvalid(ingest)) {
+            placeDao.delete(ingest);
+            ingest = null;
+        }
+        
+        boolean isNew = false;
+        if(ingest == null) {
+            ingest = createZipIngest(zip, countryCode);
+            isNew = true;
+        }
+        
+        if(isNew) {
+            ingest.setStatus(ZipIngest.Status.NEW);
+        } else if(ingest.getCreated().equals(ingest.getUpdated())) {
+            ingest.setStatus(ZipIngest.Status.IN_PROGRESS);
+        } else {
+            ingest.setStatus(ZipIngest.Status.DONE);
+        }
+        
+        return ingest;
+    }
+    
+    @Override
+    public void updateZipIngest(ZipIngest zipIngest) {
+        placeDao.updateZipIngest(zipIngest);
+    }
+    
     ////////////////////////// private methods ////////////////////////////////////////
     
     private boolean isIngestInvalid(PlaceIngest ingest, int distanceInMeters) {
@@ -83,6 +117,16 @@ public final class PlaceServiceImpl implements PlaceService {
                 DateUtils.addDays(ingest.getUpdated(), Constants.REFRESH_LOCATIONS_PERIOD_IN_DAYS)
                 .before(new Date());
         return expired || ingest.getDistance() < distanceInMeters;
+    }
+    
+    /*
+     * A zip ingest is invalid if:
+     * 1) its created and updated dates are the same
+     * 2) and it's been 1 day since it was created
+     */
+    private boolean isZipIngestInvalid(ZipIngest ingest) {
+        return ingest.getCreated().equals(ingest.getUpdated()) && 
+               DateUtils.addDays(ingest.getCreated(), 1).before(new Date());
     }
     
     private PlaceIngest createIngest(String zipCode, String countryCode, int distanceInMeters,
@@ -100,5 +144,13 @@ public final class PlaceServiceImpl implements PlaceService {
         placeDao.create(ingest);
         return ingest;
     }
+    
+    private ZipIngest createZipIngest(String zipCode, String countryCode) {        
+        ZipIngest ingest = new ZipIngest();
+        ingest.setZip(zipCode);
+        ingest.setCountryCode(countryCode);
+        placeDao.create(ingest);
+        return ingest;
+    }    
 
 }
