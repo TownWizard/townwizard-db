@@ -3,7 +3,6 @@ package com.townwizard.globaldata.model.directory;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -14,23 +13,19 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
 /**
  * Place category objects are Hibernate entities and relate to Place objects in many-to-many
  * fashion.
  */
 @Entity
 @Table(name = "Category")
-@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
 public class PlaceCategory {
     
     @Id @GeneratedValue @Column(nullable = false, updatable = false)
     private Long id;
     private String name;
     
-    @ManyToMany (fetch=FetchType.LAZY, cascade=CascadeType.ALL)    
+    @ManyToMany (fetch=FetchType.LAZY)    
     @JoinTable (
             name = "Location_Category",
             joinColumns= {@JoinColumn (name="category_id")},

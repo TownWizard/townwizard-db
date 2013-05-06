@@ -14,9 +14,10 @@ public class Constants {
     public static final String PHP_LOGIN_PATH = "/townwizard-db-api/fb-login.php";
         
     public static final String EMPTY_JSON = "{}";
-    public static final int DEFAULT_DISTANCE_IN_METERS = 50000;
-    public static final String DEFAULT_COUNTRY_CODE = "US";
+    public static final int EVENT_DISTANCE_IN_METERS = 50000;
+    public static final int PLACE_DISTANCE_IN_MILES = 5;
     public static final double METERS_IN_MILE = 1609.34;
+    public static final String DEFAULT_COUNTRY_CODE = "US";    
     public static final int REFRESH_PLACE_INGEST_PERIOD_IN_DAYS = 90;
     
     public static final String FACEBOOK_EVENTS = "http://www.facebook.com/events";

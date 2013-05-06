@@ -37,7 +37,9 @@ public abstract class AbstractDaoHibernateImpl implements AbstractDao {
     }
     
     public <T> void delete(T entity) {
-        getSession().delete(entity);
+        Session session = getSession();
+        session.delete(entity);
+        session.flush();
     }
     
     @SuppressWarnings("unchecked")

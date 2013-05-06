@@ -187,7 +187,6 @@ public class PlaceTest extends TestSupport {
     private PlaceIngest createLocationIngest() {
         PlaceIngest i = new PlaceIngest();
         i.setZip("00000");
-        i.setDistance(2000);
         i.setCountryCode("US");
         i.setTerm("Test term");
         i.setStatus(Ingest.Status.N);

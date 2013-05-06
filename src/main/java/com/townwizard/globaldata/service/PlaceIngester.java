@@ -1,5 +1,6 @@
 package com.townwizard.globaldata.service;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -40,7 +41,7 @@ public final class PlaceIngester {
     private static final ExecutorService queueMonitor = Executors.newFixedThreadPool(1);    
     
     //These executors will bring places from the source in parallel.
-    private static final ExecutorService httpExecutors = Executors.newFixedThreadPool(10);
+    private static final ExecutorService httpExecutors = Executors.newFixedThreadPool(30);
     
     //The http executors will be placing category ingests in this queue, and the 
     //db thread will be taking ingest from it and save ingests in the DB
@@ -48,15 +49,12 @@ public final class PlaceIngester {
     
     private final static class IngestItem {
         String zip, countryCode, category;
-        int distanceInMeters;
         List<Place> places;
         int countDown;
         
-        IngestItem(String zip, String countryCode, int distanceInMeters, String category,
-                List<Place> places, int countDown) {
+        IngestItem(String zip, String countryCode, String category, List<Place> places, int countDown) {
             this.zip = zip;
-            this.countryCode = countryCode;
-            this.distanceInMeters = distanceInMeters;
+            this.countryCode = countryCode;            
             this.category = category;
             this.places = places;
             this.countDown = countDown;
@@ -65,14 +63,12 @@ public final class PlaceIngester {
     
     private final class HttpExecutor implements Runnable {
         
-        private String zip, countryCode, category;        
-        private int distanceInMeters;
+        private String zip, countryCode, category;
         private int countDown;
         
-        HttpExecutor(String zip, String countryCode, int distanceInMeters, String category, int countDown) {
+        HttpExecutor(String zip, String countryCode, String category, int countDown) {
             this.zip = zip;
-            this.countryCode = countryCode;
-            this.distanceInMeters = distanceInMeters;
+            this.countryCode = countryCode;            
             this.category = category;
             this.countDown = countDown;
         }
@@ -80,9 +76,15 @@ public final class PlaceIngester {
         @Override
         public void run() {
             try {
-                List<Place> places = getPlacesFromSource(zip, countryCode, distanceInMeters, category);
-                //Log.debug(category + ": " + places.size());
-                ingestQueue.put(new IngestItem(zip, countryCode, distanceInMeters, category, places, countDown));                
+                List<Place> places = null;
+                try {
+                    places = getPlacesFromSource(zip, countryCode, category);
+                } catch(Exception e) {
+                    places = Collections.emptyList();
+                    Log.exception(e);
+                    e.printStackTrace();
+                }
+                ingestQueue.put(new IngestItem(zip, countryCode, category, places, countDown));                
             } catch(Exception e) {
                 Log.exception(e);
                 e.printStackTrace();
@@ -103,8 +105,7 @@ public final class PlaceIngester {
             while(true) {
                 try {
                     IngestItem item = ingestQueue.take();                    
-                    doIngestByZipAndCategory(
-                            item.zip, item.countryCode, item.distanceInMeters, item.category, item.places);
+                    doIngestByZipAndCategory(item.zip, item.countryCode, item.category, item.places);
                     if(item.countDown == 0) {
                         ZipIngest ingest = placeService.getZipIngest(item.zip, item.countryCode);
                         if(ingest != null) {
@@ -148,7 +149,7 @@ public final class PlaceIngester {
         }        
     }
     
-    public void ingestByZip(String zipCode, String countryCode, int distanceInMeters) {
+    public void ingestByZip(String zipCode, String countryCode) {
         ZipIngest ingest = placeService.getZipIngest(zipCode, countryCode);
         if(ingest.getStatus() != ZipIngest.Status.N) return;
         
@@ -163,27 +164,25 @@ public final class PlaceIngester {
             if(--countDown == 0) {
                 if(Log.isDebugEnabled()) Log.debug("Submitting zero item for zip: " +  zipCode);
             }
-            httpExecutors.submit(new HttpExecutor(zipCode, countryCode, distanceInMeters, category, countDown));
+            httpExecutors.submit(new HttpExecutor(zipCode, countryCode, category, countDown));
         }
         
     }
     
-    public Object[] ingestByZipAndCategory(
-            String zipCode, String countryCode, int distanceInMeters, String categoryOrTerm) {
-        return doIngestByZipAndCategory(zipCode, countryCode, distanceInMeters, categoryOrTerm, null);
+    public Object[] ingestByZipAndCategory(String zipCode, String countryCode, String categoryOrTerm) {
+        return doIngestByZipAndCategory(zipCode, countryCode, categoryOrTerm, null);
     } 
     
-    private Object[] doIngestByZipAndCategory(String zipCode, String countryCode,
-            int distanceInMeters, String categoryOrTerm, List<Place> placeList) {
+    private Object[] doIngestByZipAndCategory(
+            String zipCode, String countryCode, String categoryOrTerm, List<Place> placeList) {
         
-        PlaceIngest ingest = placeService.getIngest(
-                zipCode, countryCode, distanceInMeters, categoryOrTerm);
+        PlaceIngest ingest = placeService.getIngest(zipCode, countryCode, categoryOrTerm);
         PlaceIngest.Status status = ingest.getStatus();
         
         List<Place> places = placeList;
         if(status != PlaceIngest.Status.R) {
             if(places == null) {
-                places = getPlacesFromSource(zipCode, countryCode, distanceInMeters, categoryOrTerm);
+                places = getPlacesFromSource(zipCode, countryCode, categoryOrTerm);
             }
             if(status == PlaceIngest.Status.N) {
                 placeService.saveIngest(ingest, places);
@@ -202,8 +201,8 @@ public final class PlaceIngester {
     }
     
     private List<Place> getPlacesFromSource(
-            String zipCode, String countryCode, int distanceInMeters, String categoryOrTerm) {
-        List<Place> places = yellowPagesService.getPlaces(zipCode, distanceInMeters, categoryOrTerm);
+            String zipCode, String countryCode, String categoryOrTerm) {
+        List<Place> places = yellowPagesService.getPlaces(zipCode, categoryOrTerm);
         for(Place p : places) p.setCountryCode(countryCode);
         return places;
     }

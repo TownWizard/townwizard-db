@@ -92,10 +92,6 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
             }            
         });
         locations.addAll(locationList);
-        
-        if(locations.size() < locationList.size()) {
-            System.out.println("Has  duplicates");
-        }
 
         List<String> externalIds = new ArrayList<>(locations.size());
         for(Place location : locations) {
@@ -150,6 +146,8 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
         }
 
         update(ingest);
+        
+        getSession().flush();
     }
     
     @Override

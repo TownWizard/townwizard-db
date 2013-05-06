@@ -1,7 +1,6 @@
 package com.townwizard.globaldata.service;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -27,29 +26,26 @@ public final class GlobalDataServicePlaceHelper {
     @Autowired private PlaceService placeService;
     @Autowired private PlaceIngester placeIngester;    
     
-    public List<Place> getPlacesByZipInfo(String zip, String countryCode,
-            String categoryOrTerm, int distanceInMeters) {
+    public List<Place> getPlacesByZipInfo(String zip, String countryCode, String categoryOrTerm) {
         Location origin = locationService.getPrimaryLocation(zip, countryCode);
-        return getPlaces(zip, countryCode, categoryOrTerm, distanceInMeters, origin);        
+        return getPlaces(zip, countryCode, categoryOrTerm, origin);
     }
 
-    public List<Place> getPlacesByLocation(double latitude, double longitude,
-            String categoryOrTerm, int distanceInMeters) {
+    public List<Place> getPlacesByLocation(double latitude, double longitude, String categoryOrTerm) {
         Location orig = locationService.getLocation(latitude, longitude);
-        return getPlaces(orig.getZip(), orig.getCountryCode(),
-                categoryOrTerm, distanceInMeters, orig);
+        return getPlaces(orig.getZip(), orig.getCountryCode(), categoryOrTerm, orig);
     }
     
-    public List<Place> getPlacesByIp(String ip, String categoryOrTerm, int distanceInMeters) {
+    public List<Place> getPlacesByIp(String ip, String categoryOrTerm) {
         CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
         if(cityLocation != null) {
             if(cityLocation.hasPostalCodeAndCountry()) {
                 return getPlacesByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode(),
-                        categoryOrTerm, distanceInMeters);
+                        categoryOrTerm);
             }
             if(cityLocation.hasLocation()) {
                 return getPlacesByLocation(cityLocation.getLatitude(), cityLocation.getLongitude(),
-                        categoryOrTerm, distanceInMeters);
+                        categoryOrTerm);
             }             
         }
         return Collections.emptyList();
@@ -72,13 +68,9 @@ public final class GlobalDataServicePlaceHelper {
 
     ///////////////////////// private methods //////////////////////////
     
-    private List<Place> getPlaces(
-            String zip, String countryCode,
-            String categoryOrTerm, 
-            int distanceInMeters, Location origin) {
+    private List<Place> getPlaces(String zip, String countryCode, String categoryOrTerm, Location origin) {
 
-        Object[] ingestWithPlaces = placeIngester.ingestByZipAndCategory(
-                zip, countryCode, distanceInMeters, categoryOrTerm);
+        Object[] ingestWithPlaces = placeIngester.ingestByZipAndCategory(zip, countryCode, categoryOrTerm);
         
         PlaceIngest ingest = (PlaceIngest)ingestWithPlaces[0];        
         
@@ -93,24 +85,11 @@ public final class GlobalDataServicePlaceHelper {
             p.setDistance(locationService.distance(origin, l));
         }
         
-        List<Place> result = filterPlacesByDistance(places, distanceInMeters);        
+        Collections.sort(places, new DistanceComparator());
         
-        Collections.sort(result, new DistanceComparator());
+        placeIngester.ingestByZip(zip, countryCode);
         
-        placeIngester.ingestByZip(zip, countryCode, distanceInMeters);
-        
-        return result;
-    }
-    
-    private List<Place> filterPlacesByDistance(Collection<Place> places, int distanceInMeters) {
-        List<Place> result = new ArrayList<>(places.size());        
-        for(Place l : places) {
-            Integer distance = l.getDistance();
-            if(distance == null || distance <= distanceInMeters) {
-                result.add(l);
-            }
-        }
-        return result;
+        return places;
     }
     
     private List<String> filterPlaceCategories(

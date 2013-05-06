@@ -20,8 +20,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import com.townwizard.db.constants.Constants;
 import com.townwizard.db.util.StringUtils;
@@ -36,7 +34,6 @@ import com.townwizard.globaldata.model.DistanceComparable;
  */
 @Entity
 @Table(name = "Location")
-//@Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region="locations")
 public class Place implements DistanceComparable {
     
     /**

@@ -173,7 +173,7 @@ public final class GlobalDataServiceEventHelper {
         List<Event> result = new ArrayList<>(events.size());        
         for(Event e : events) {
             Integer distance = e.getDistance();
-            if(distance == null || distance <= Constants.DEFAULT_DISTANCE_IN_METERS) {
+            if(distance == null || distance <= Constants.EVENT_DISTANCE_IN_METERS) {
                 result.add(e);
             }
         }

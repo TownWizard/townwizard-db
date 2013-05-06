@@ -30,8 +30,7 @@ public interface PlaceService {
      * If no ingest exist, create one and return it with the state NEW.
      * Othewise, return the ingest with the state DONE.
      */
-    PlaceIngest getIngest(
-            String zipCode, String countryCode, int distanceInMeters, String categoryOrTerm);
+    PlaceIngest getIngest(String zipCode, String countryCode, String categoryOrTerm);
     
     /**
      * Save ingest and associate places with it.

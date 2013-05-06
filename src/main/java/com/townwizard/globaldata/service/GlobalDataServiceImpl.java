@@ -45,17 +45,13 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     }
     
     @Override
-    public List<Place> getPlaces(
-            Location params, int distanceInMeters, String categoryOrTerm) {
+    public List<Place> getPlaces(Location params, String categoryOrTerm) {
         if(params.isZipInfoSet()) {
-            return placeHelper.getPlacesByZipInfo(params.getZip(), params.getCountryCode(),
-                    categoryOrTerm, distanceInMeters);
+            return placeHelper.getPlacesByZipInfo(params.getZip(), params.getCountryCode(), categoryOrTerm);
         } else if(params.isLocationSet()) {
-            return placeHelper.getPlacesByLocation(params.getLatitude(), params.getLongitude(),
-                    categoryOrTerm, distanceInMeters);
+            return placeHelper.getPlacesByLocation(params.getLatitude(), params.getLongitude(), categoryOrTerm);
         } else if(params.isIpSet()) {
-            return placeHelper.getPlacesByIp(params.getIp(),
-                    categoryOrTerm, distanceInMeters);
+            return placeHelper.getPlacesByIp(params.getIp(), categoryOrTerm);
         }
         return Collections.emptyList();        
     }

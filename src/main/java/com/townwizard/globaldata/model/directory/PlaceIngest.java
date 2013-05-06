@@ -31,8 +31,7 @@ public class PlaceIngest extends Ingest {
     
     private Date created;
     private String term;
-    private Integer distance;
-    
+        
     @OneToOne(fetch = FetchType.EAGER) @JoinColumn(name = "categoryId")
     private PlaceCategory placeCategory;
     
@@ -55,12 +54,6 @@ public class PlaceIngest extends Ingest {
     }
     public void setTerm(String term) {
         this.term = term;
-    }
-    public Integer getDistance() {
-        return distance;
-    }
-    public void setDistance(Integer distance) {
-        this.distance = distance;
     }
     public Set<Place> getPlaces() {
         return places;

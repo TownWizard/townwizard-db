@@ -16,11 +16,4 @@
     memoryStoreEvictionPolicy="LFU"
     statistics="false"/>
 
-<cache name="locations"
-    maxElementsInMemory="100000"
-    eternal="true"          
-    overflowToDisk="false"
-    memoryStoreEvictionPolicy="LFU"
-    statistics="false"/>
-
 </ehcache>

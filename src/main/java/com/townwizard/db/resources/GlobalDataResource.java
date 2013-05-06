@@ -1,7 +1,6 @@
 package com.townwizard.db.resources;
 
 import static com.townwizard.db.constants.Constants.DEFAULT_COUNTRY_CODE;
-import static com.townwizard.db.constants.Constants.DEFAULT_DISTANCE_IN_METERS;
 
 import java.util.List;
 
@@ -65,8 +64,7 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("s") String categoryOrTerm) {
         try {
             List<Place> places = globalDataService.getPlaces(
-                    new Location(zip, DEFAULT_COUNTRY_CODE, location, ip),
-                    DEFAULT_DISTANCE_IN_METERS, categoryOrTerm);            
+                    new Location(zip, DEFAULT_COUNTRY_CODE, location, ip), categoryOrTerm);            
             
             return Response.status(Status.OK).entity(places).build();
         } catch(Exception e) {

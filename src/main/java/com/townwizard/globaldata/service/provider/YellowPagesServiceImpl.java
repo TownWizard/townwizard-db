@@ -29,16 +29,13 @@ public class YellowPagesServiceImpl implements YellowPagesService {
      * Executes one HTTP request to get locations
      */
     @Override
-    public List<Place> getPlaces(String zip, double distanceInMeters, String term) {
+    public List<Place> getPlaces(String zip, String term) {
         try {
-            double distanceInMiles = distanceInMeters / Constants.METERS_IN_MILE;
-            //double distanceInMiles = 5;
-            
             List<Place> finalResult = new ArrayList<>();
             int pageNum = 1;
             List<Place> result = null;
             do {
-                result = getPageOfPlaces(zip, distanceInMiles, term, pageNum++);
+                result = getPageOfPlaces(zip, Constants.PLACE_DISTANCE_IN_MILES, term, pageNum++);
                 finalResult.addAll(result);
             } while(result.size() >= 50);
             

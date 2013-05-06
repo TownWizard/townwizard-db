@@ -26,19 +26,18 @@ public final class PlaceServiceImpl implements PlaceService {
     private PlaceDao placeDao;
     
     @Override
-    public PlaceIngest getIngest(String zipCode, String countryCode, int distanceInMeters,
-            String categoryOrTerm) {
+    public PlaceIngest getIngest(String zipCode, String countryCode, String categoryOrTerm) {
         if(zipCode == null || countryCode == null || categoryOrTerm == null) return null;
         
         PlaceIngest ingest = placeDao.getPlaceIngest(zipCode, countryCode, categoryOrTerm);
         
-        if(ingest != null && isIngestInvalid(ingest, distanceInMeters)) {
+        if(ingest != null && isIngestInvalid(ingest)) {
             placeDao.deleteIngest(ingest);
             ingest = null;
         }
 
         if(ingest == null) {
-            ingest = createIngest(zipCode, countryCode, distanceInMeters, categoryOrTerm);
+            ingest = createIngest(zipCode, countryCode, categoryOrTerm);
             ingest.setStatus(Ingest.Status.N);
         }        
 
@@ -96,11 +95,9 @@ public final class PlaceServiceImpl implements PlaceService {
     
     ////////////////////////// private methods ////////////////////////////////////////
     
-    private boolean isIngestInvalid(PlaceIngest ingest, int distanceInMeters) {
-        boolean expired =
-                DateUtils.addDays(ingest.getCreated(), Constants.REFRESH_PLACE_INGEST_PERIOD_IN_DAYS)
+    private boolean isIngestInvalid(PlaceIngest ingest) {
+        return DateUtils.addDays(ingest.getCreated(), Constants.REFRESH_PLACE_INGEST_PERIOD_IN_DAYS)
                 .before(new Date());
-        return expired || ingest.getDistance() < distanceInMeters;
     }
     
     /*
@@ -116,13 +113,11 @@ public final class PlaceServiceImpl implements PlaceService {
                 DateUtils.addDays(ingest.getStarted(), Constants.REFRESH_PLACE_INGEST_PERIOD_IN_DAYS).before(new Date()); 
     }
     
-    private PlaceIngest createIngest(String zipCode, String countryCode, int distanceInMeters,
-            String categoryOrTerm) {
+    private PlaceIngest createIngest(String zipCode, String countryCode, String categoryOrTerm) {
         PlaceCategory category = placeDao.getCategory(categoryOrTerm);
         PlaceIngest ingest = new PlaceIngest();
         ingest.setZip(zipCode);
         ingest.setCountryCode(countryCode);
-        ingest.setDistance(distanceInMeters);
         if(category != null) {
             ingest.setPlaceCategory(category);
         } else {
