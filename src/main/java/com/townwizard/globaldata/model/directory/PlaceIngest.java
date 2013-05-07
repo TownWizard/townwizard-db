@@ -75,7 +75,7 @@ public class PlaceIngest extends Ingest {
         if(places == null) {
             places = new HashSet<>();
         }
-        places.add(l);        
+        places.add(l);
     }
 
 }

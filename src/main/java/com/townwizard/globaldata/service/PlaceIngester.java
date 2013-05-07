@@ -3,10 +3,10 @@ package com.townwizard.globaldata.service;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.annotation.PostConstruct;
 
@@ -41,11 +41,12 @@ public final class PlaceIngester {
     private static final ExecutorService queueMonitor = Executors.newFixedThreadPool(1);    
     
     //These executors will bring places from the source in parallel.
-    private static final ExecutorService httpExecutors = Executors.newFixedThreadPool(30);
+    private static final ExecutorService httpExecutors = Executors.newFixedThreadPool(5);
     
     //The http executors will be placing category ingests in this queue, and the 
     //db thread will be taking ingest from it and save ingests in the DB
-    private static final BlockingQueue<IngestItem> ingestQueue = new LinkedBlockingQueue<>();
+    //private static final BlockingQueue<IngestItem> ingestQueue = new LinkedBlockingQueue<>();
+    private static final Queue<IngestItem> ingestQueue = new ConcurrentLinkedQueue<>();
     
     private final static class IngestItem {
         String zip, countryCode, category;
@@ -84,7 +85,7 @@ public final class PlaceIngester {
                     Log.exception(e);
                     e.printStackTrace();
                 }
-                ingestQueue.put(new IngestItem(zip, countryCode, category, places, countDown));                
+                ingestQueue.add(new IngestItem(zip, countryCode, category, places, countDown));                
             } catch(Exception e) {
                 Log.exception(e);
                 e.printStackTrace();
@@ -104,16 +105,21 @@ public final class PlaceIngester {
         public void run() {
             while(true) {
                 try {
-                    IngestItem item = ingestQueue.take();                    
-                    doIngestByZipAndCategory(item.zip, item.countryCode, item.category, item.places);
-                    if(item.countDown == 0) {
-                        ZipIngest ingest = placeService.getZipIngest(item.zip, item.countryCode);
-                        if(ingest != null) {
-                            if(Log.isInfoEnabled()) Log.info("Finishing ingest for zip: " + item.zip);
-                            ingest.setStatus(Ingest.Status.R);
-                            ingest.setFinished(new Date());
-                            placeService.updateZipIngest(ingest);
+                    IngestItem item = ingestQueue.poll();
+                    if(item != null) {
+                        //System.out.println("Ingesting: zip - " + item.zip + " item - " + item.countDown);
+                        doIngestByZipAndCategory(item.zip, item.countryCode, item.category, item.places);
+                        if(item.countDown == 0) {
+                            ZipIngest ingest = placeService.getZipIngest(item.zip, item.countryCode);
+                            if(ingest != null) {
+                                if(Log.isInfoEnabled()) Log.info("Finishing ingest for zip: " + item.zip);
+                                ingest.setStatus(Ingest.Status.R);
+                                ingest.setFinished(new Date());
+                                placeService.updateZipIngest(ingest);
+                            }
                         }
+                    } else {
+                        Thread.sleep(500);
                     }
                 } catch (Exception e) {
                     Log.exception(e);
