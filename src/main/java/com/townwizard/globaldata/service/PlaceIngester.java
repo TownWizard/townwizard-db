@@ -185,8 +185,8 @@ public final class PlaceIngester {
         PlaceIngester.dbExecutor.shutdownNow();
         
         int attempt = 1;
-        while(attempt++ <= 5 || 
-             !(httpExecutors.isTerminated() && dbExecutor.isTerminated() && queueMonitor.isTerminated())) {
+        while(!(httpExecutors.isTerminated() && dbExecutor.isTerminated() && queueMonitor.isTerminated())) {
+            if(attempt++ > 5) break;
             try { Thread.sleep(1000); } catch(InterruptedException e) {
                 Log.warning("Executors shutdown interrupted");
             }
