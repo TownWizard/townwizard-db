@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.townwizard.db.constants.Constants;
+import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.DateUtils;
 import com.townwizard.globaldata.dao.PlaceDao;
 import com.townwizard.globaldata.model.directory.Ingest;
@@ -27,7 +28,10 @@ public final class PlaceServiceImpl implements PlaceService {
     
     @Override
     public PlaceIngest getIngest(String zipCode, String countryCode, String categoryOrTerm) {
-        if(zipCode == null || countryCode == null || categoryOrTerm == null) return null;
+        if(zipCode == null || countryCode == null || categoryOrTerm == null) {
+            Log.warning("Either zip or countryCode, or term is null.  Cannot find ingest.  Returning null");
+            return null;
+        }
         
         PlaceIngest ingest = placeDao.getPlaceIngest(zipCode, countryCode, categoryOrTerm);
         

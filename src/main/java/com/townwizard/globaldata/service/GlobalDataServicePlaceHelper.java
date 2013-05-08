@@ -76,32 +76,36 @@ public final class GlobalDataServicePlaceHelper {
 
         Object[] ingestWithPlaces = placeIngester.ingestByZipAndCategory(zip, countryCode, categoryOrTerm);
         
-        PlaceIngest ingest = (PlaceIngest)ingestWithPlaces[0];        
-        
-        @SuppressWarnings("unchecked")
-        List<Place> places = (List<Place>)ingestWithPlaces[1];
-        if(places == null) {
-            places = placeService.getPlaces(ingest);
-        }
-        
-        if(mainCategory != null && !mainCategory.isEmpty()) {
-            if(Constants.RESTAURANTS.equals(mainCategory)) {
-                places = filterPlacesByCategories(places, getRestaurantsCategories(), false);
-            } else if(Constants.DIRECTORY.equals(mainCategory)){
-                places = filterPlacesByCategories(places, getRestaurantsCategories(), true);
+        if(ingestWithPlaces != null) {
+            PlaceIngest ingest = (PlaceIngest)ingestWithPlaces[0];        
+            
+            @SuppressWarnings("unchecked")
+            List<Place> places = (List<Place>)ingestWithPlaces[1];
+            if(places == null) {
+                places = placeService.getPlaces(ingest);
             }
+            
+            if(mainCategory != null && !mainCategory.isEmpty()) {
+                if(Constants.RESTAURANTS.equals(mainCategory)) {
+                    places = filterPlacesByCategories(places, getRestaurantsCategories(), false);
+                } else if(Constants.DIRECTORY.equals(mainCategory)){
+                    places = filterPlacesByCategories(places, getRestaurantsCategories(), true);
+                }
+            }
+    
+            for(Place p : places) {
+                Location l = new Location(p.getLatitude(), p.getLongitude());
+                p.setDistance(locationService.distance(origin, l));
+            }
+            
+            Collections.sort(places, new DistanceComparator());
+            
+            placeIngester.ingestByZip(zip, countryCode);
+            
+            return places;
         }
-
-        for(Place p : places) {
-            Location l = new Location(p.getLatitude(), p.getLongitude());
-            p.setDistance(locationService.distance(origin, l));
-        }
         
-        Collections.sort(places, new DistanceComparator());
-        
-        placeIngester.ingestByZip(zip, countryCode);
-        
-        return places;
+        return Collections.emptyList();
     }
     
     private List<String> filterPlaceCategories(

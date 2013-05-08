@@ -206,7 +206,7 @@ public final class PlaceIngester {
     
     public void ingestByZip(String zipCode, String countryCode) {
         ZipIngest ingest = placeService.getZipIngest(zipCode, countryCode);
-        if(ingest.getStatus() != ZipIngest.Status.N) return;
+        if(ingest == null || ingest.getStatus() != ZipIngest.Status.N) return;
         
         if(Log.isInfoEnabled()) Log.info("Starting ingest for zip: " + zipCode);
         
@@ -232,19 +232,22 @@ public final class PlaceIngester {
             String zipCode, String countryCode, String categoryOrTerm, List<Place> placeList) {
         
         PlaceIngest ingest = placeService.getIngest(zipCode, countryCode, categoryOrTerm);
-        PlaceIngest.Status status = ingest.getStatus();
-        
-        List<Place> places = placeList;
-        if(status != PlaceIngest.Status.R) {
-            if(places == null) {
-                places = getPlacesFromSource(zipCode, countryCode, categoryOrTerm);
+        if(ingest != null) {        
+            PlaceIngest.Status status = ingest.getStatus();
+            
+            List<Place> places = placeList;
+            if(status != PlaceIngest.Status.R) {
+                if(places == null) {
+                    places = getPlacesFromSource(zipCode, countryCode, categoryOrTerm);
+                }
+                if(status == PlaceIngest.Status.N) {
+                    placeService.saveIngest(ingest, places);
+                }
             }
-            if(status == PlaceIngest.Status.N) {
-                placeService.saveIngest(ingest, places);
-            }
+            
+            return new Object[]{ingest, places};
         }
-        
-        return new Object[]{ingest, places};        
+        return null;
     }
     
     private List<Place> getPlacesFromSource(
