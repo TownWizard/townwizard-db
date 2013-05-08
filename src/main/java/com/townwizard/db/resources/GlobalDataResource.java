@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.townwizard.db.logger.Log;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.directory.Place;
@@ -63,8 +64,12 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("ip") String ip,
             @QueryParam ("s") String categoryOrTerm) {
         try {
+            long start = System.currentTimeMillis();
             List<Place> places = globalDataService.getPlaces(
-                    new Location(zip, DEFAULT_COUNTRY_CODE, location, ip), categoryOrTerm);            
+                    new Location(zip, DEFAULT_COUNTRY_CODE, location, ip), categoryOrTerm);
+            long end = System.currentTimeMillis();
+            
+            Log.debug("Served " + places.size() + " places in " + (end - start) + " ms");
             
             return Response.status(Status.OK).entity(places).build();
         } catch(Exception e) {
