@@ -62,11 +62,13 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("zip") String zip,
             @QueryParam ("l") String location,
             @QueryParam ("ip") String ip,
-            @QueryParam ("s") String categoryOrTerm) {
+            @QueryParam ("s") String categoryOrTerm,
+            @QueryParam ("cat") String mainCategory) {
         try {
             long start = System.currentTimeMillis();
             List<Place> places = globalDataService.getPlaces(
-                    new Location(zip, DEFAULT_COUNTRY_CODE, location, ip), categoryOrTerm);
+                    new Location(zip, DEFAULT_COUNTRY_CODE, location, ip),
+                    categoryOrTerm, mainCategory);
             long end = System.currentTimeMillis();
             
             Log.debug("Served " + places.size() + " places in " + (end - start) + " ms");

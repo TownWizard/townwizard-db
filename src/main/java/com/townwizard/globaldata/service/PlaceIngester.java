@@ -192,14 +192,6 @@ public final class PlaceIngester {
             }
             if(status == PlaceIngest.Status.N) {
                 placeService.saveIngest(ingest, places);
-                /*
-                if(ingest.getPlaceCategory() != null) {
-                    if(Log.isDebugEnabled()) {
-                        Log.debug("Ingested " + places.size() + " places for zip '" + zipCode + 
-                                "' and category '" + categoryOrTerm + "'");
-                    }
-                }
-                */                
             }
         }
         

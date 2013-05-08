@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.constants.Constants;
+import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.dao.GlobalDataDao;
 import com.townwizard.globaldata.model.CityLocation;
@@ -26,26 +27,28 @@ public final class GlobalDataServicePlaceHelper {
     @Autowired private PlaceService placeService;
     @Autowired private PlaceIngester placeIngester;    
     
-    public List<Place> getPlacesByZipInfo(String zip, String countryCode, String categoryOrTerm) {
+    public List<Place> getPlacesByZipInfo(
+            String zip, String countryCode, String categoryOrTerm, String mainCategory) {
         Location origin = locationService.getPrimaryLocation(zip, countryCode);
-        return getPlaces(zip, countryCode, categoryOrTerm, origin);
+        return getPlaces(zip, countryCode, categoryOrTerm, mainCategory, origin);
     }
 
-    public List<Place> getPlacesByLocation(double latitude, double longitude, String categoryOrTerm) {
+    public List<Place> getPlacesByLocation(
+            double latitude, double longitude, String categoryOrTerm, String mainCategory) {
         Location orig = locationService.getLocation(latitude, longitude);
-        return getPlaces(orig.getZip(), orig.getCountryCode(), categoryOrTerm, orig);
+        return getPlaces(orig.getZip(), orig.getCountryCode(), categoryOrTerm, mainCategory, orig);
     }
     
-    public List<Place> getPlacesByIp(String ip, String categoryOrTerm) {
+    public List<Place> getPlacesByIp(String ip, String categoryOrTerm, String mainCategory) {
         CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
         if(cityLocation != null) {
             if(cityLocation.hasPostalCodeAndCountry()) {
                 return getPlacesByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode(),
-                        categoryOrTerm);
+                        categoryOrTerm, mainCategory);
             }
             if(cityLocation.hasLocation()) {
                 return getPlacesByLocation(cityLocation.getLatitude(), cityLocation.getLongitude(),
-                        categoryOrTerm);
+                        categoryOrTerm, mainCategory);
             }             
         }
         return Collections.emptyList();
@@ -68,7 +71,8 @@ public final class GlobalDataServicePlaceHelper {
 
     ///////////////////////// private methods //////////////////////////
     
-    private List<Place> getPlaces(String zip, String countryCode, String categoryOrTerm, Location origin) {
+    private List<Place> getPlaces(String zip, String countryCode, String categoryOrTerm, 
+            String mainCategory, Location origin) {
 
         Object[] ingestWithPlaces = placeIngester.ingestByZipAndCategory(zip, countryCode, categoryOrTerm);
         
@@ -78,6 +82,14 @@ public final class GlobalDataServicePlaceHelper {
         List<Place> places = (List<Place>)ingestWithPlaces[1];
         if(places == null) {
             places = placeService.getPlaces(ingest);
+        }
+        
+        if(mainCategory != null && !mainCategory.isEmpty()) {
+            if(Constants.RESTAURANTS.equals(mainCategory)) {
+                places = filterPlacesByCategories(places, getRestaurantsCategories(), false);
+            } else if(Constants.DIRECTORY.equals(mainCategory)){
+                places = filterPlacesByCategories(places, getRestaurantsCategories(), true);
+            }
         }
 
         for(Place p : places) {
@@ -104,6 +116,27 @@ public final class GlobalDataServicePlaceHelper {
                 boolean contains = categoriesString.contains(cat); 
                 if(contains && !negate || !contains && negate) {
                     filtered.add(c);
+                    continue outer;
+                }
+            }            
+        }
+        return filtered;
+    }
+    
+    private List<Place> filterPlacesByCategories(
+            List<Place> places, String categories, boolean negate) {
+        if(categories == null || categories.isEmpty() || places.isEmpty()) {            
+            return places;
+        }
+        
+        List<Place> filtered = new ArrayList<>(places.size());
+        Set<String> cats = StringUtils.split(categories, ",", true);
+        outer: for(Place place : places) {
+            String categoriesString = CollectionUtils.join(place.getCategoryNames()).toLowerCase();
+            for(String c : cats) {
+                boolean contains = categoriesString.contains(c); 
+                if(contains && !negate || !contains && negate) {
+                    filtered.add(place);
                     continue outer;
                 }
             }            
