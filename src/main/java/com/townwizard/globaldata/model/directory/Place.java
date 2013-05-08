@@ -49,7 +49,6 @@ public class Place implements DistanceComparable {
     }
     
     @Id @GeneratedValue @Column(nullable = false, updatable = false)
-    @JsonIgnore
     private Long id;
     @JsonIgnore
     private Date created;
