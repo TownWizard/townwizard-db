@@ -89,7 +89,10 @@ public class GlobalDataResource extends ResourceSupport {
     @Produces(MediaType.APPLICATION_JSON)
     public Response placeCategories(@QueryParam ("cat") String mainCategory) {
         try {
+            long start = System.currentTimeMillis();
             List<String> categories = globalDataService.getPlaceCategories(mainCategory);
+            long end = System.currentTimeMillis();
+            Log.debug("Served categories in " + (end - start) + " ms");
             return Response.status(Status.OK).entity(categories).build();
         } catch(Exception e) {
             handleGenericException(e);

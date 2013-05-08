@@ -12,7 +12,6 @@ import org.codehaus.jettison.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.JSONUtils;
 import com.townwizard.globaldata.connector.FacebookConnector;
@@ -82,7 +81,6 @@ public class FacebookServiceImpl implements FacebookService {
             if(first) first = false;
         }
         String fql = sb.toString();
-        if(Log.isDebugEnabled()) Log.debug(fql);
         return fql;
     }
 
