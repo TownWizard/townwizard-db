@@ -8,9 +8,12 @@
     <param-value>classpath:/application.xml</param-value>
   </context-param>
    
-  <listener> 
+  <listener>
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
+  <listener>
+    <listener-class>com.townwizard.db.application.ContextLoaderListener</listener-class>
+  </listener>  
    
   <servlet>
     <servlet-name>Jersy Spring Web Application</servlet-name>

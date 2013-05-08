@@ -34,6 +34,8 @@ public final class PlaceIngester {
         queueMonitor.submit(new IngestQueueMonitor());
     }
     
+    private static boolean shutdownFlag = false;
+    
     //This executor is responsible for saving ingests in the DB.
     private static final ExecutorService dbExecutor = Executors.newFixedThreadPool(1);
     
@@ -76,6 +78,7 @@ public final class PlaceIngester {
 
         @Override
         public void run() {
+            if(shutdownFlag) return;
             try {
                 List<Place> places = null;
                 try {
@@ -104,6 +107,10 @@ public final class PlaceIngester {
         @Override
         public void run() {
             while(true) {
+                if(shutdownFlag) {
+                    Log.info("Exiting place ingest DB executor...");
+                    return;
+                }
                 try {
                     IngestItem item = ingestQueue.poll();
                     if(item != null) {
@@ -119,7 +126,12 @@ public final class PlaceIngester {
                             }
                         }
                     } else {
-                        Thread.sleep(500);
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException ie) {
+                            Log.info("Exiting place ingest DB executor...");
+                            return;
+                        }
                     }
                 } catch (Exception e) {
                     Log.exception(e);
@@ -140,6 +152,10 @@ public final class PlaceIngester {
         @Override
         public void run() {
             while(true) {
+                if(shutdownFlag) {
+                    Log.info("Exiting place ingest queue monitor...");
+                    return;
+                }
                 try {
                     int queueSize = ingestQueue.size();
                     if(queueSize > 0) {
@@ -147,12 +163,45 @@ public final class PlaceIngester {
                             Log.info("Ingest queue size: " + queueSize);
                         }
                     }
-                    Thread.sleep(10000);
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException ie) {
+                        Log.info("Exiting place ingest queue monitor...");
+                        return;
+                    }
                 } catch (Exception e) {
                     Log.exception(e);
                 }
             }                
         }        
+    }
+    
+    public static void shutdownIngestThreads() {
+        shutdownFlag = true;
+        
+        Log.info("About to shutdown executors...");        
+        PlaceIngester.httpExecutors.shutdownNow();
+        PlaceIngester.queueMonitor.shutdownNow();        
+        PlaceIngester.dbExecutor.shutdownNow();
+        
+        int attempt = 1;
+        while(attempt++ <= 5 || 
+             !(httpExecutors.isTerminated() && dbExecutor.isTerminated() && queueMonitor.isTerminated())) {
+            try { Thread.sleep(1000); } catch(InterruptedException e) {
+                Log.warning("Executors shutdown interrupted");
+            }
+            Log.info("Waiting for place ingest executors to exit...");
+        }
+
+        if(!httpExecutors.isTerminated()) {
+            Log.error("Failed to shutdown place ingest http executors");
+        }
+        if(!dbExecutor.isTerminated()) {
+            Log.error("Failed to shutdown place ingest DB executor");
+        }
+        if(!queueMonitor.isTerminated()) {
+            Log.error("Failed to shutdown place ingest queue monitor");
+        }
     }
     
     public void ingestByZip(String zipCode, String countryCode) {
