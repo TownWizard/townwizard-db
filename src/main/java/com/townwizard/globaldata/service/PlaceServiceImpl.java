@@ -33,7 +33,7 @@ public final class PlaceServiceImpl implements PlaceService {
             return null;
         }
         
-        PlaceIngest ingest = placeDao.getPlaceIngest(zipCode, countryCode, categoryOrTerm);
+        PlaceIngest ingest = placeDao.getIngest(zipCode, countryCode, categoryOrTerm);
         
         if(ingest != null && isIngestInvalid(ingest)) {
             placeDao.deleteIngest(ingest);

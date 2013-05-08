@@ -68,7 +68,7 @@ public class Place implements DistanceComparable {
     @JsonIgnore @Transient
     private String categoriesStr;      //categories concatenated in pipe-separated string, not saved in DB
     @JsonIgnore
-    @ManyToMany (mappedBy = "places", fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    @ManyToMany (mappedBy = "places", fetch=FetchType.LAZY, cascade=CascadeType.ALL)
     private Set<PlaceCategory> categories;
     @JsonIgnore
     @ManyToMany (mappedBy = "places", fetch=FetchType.LAZY)

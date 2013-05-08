@@ -27,7 +27,7 @@ public interface PlaceDao extends AbstractDao {
      * Get place ingest by zip, country code, and category or term.
      * First, search for a category, then, search for a term.
      */
-    PlaceIngest getPlaceIngest(String zip, String countryCode, String categoryOrTerm);
+    PlaceIngest getIngest(String zip, String countryCode, String categoryOrTerm);
     
     /**
      * Get places for a given ingest
