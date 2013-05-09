@@ -45,7 +45,11 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
         @SuppressWarnings("cast")
         PlaceIngest fromDB = (PlaceIngest)getById(PlaceIngest.class, ingest.getId());
         Set<Place> ingestPlaces = fromDB.getPlaces();
-        for(Place p : ingestPlaces) p.getCategories(); //explicitely populate categories for the relationship is lazy
+        for(Place p : ingestPlaces) { //explicitely populate categories for the relationship is lazy
+            Set<PlaceCategory> categories = new HashSet<>();
+            categories.addAll(p.getCategories());
+            p.setCategories(categories);
+        }
         List<Place> places = new ArrayList<>(ingestPlaces.size());
         places.addAll(ingestPlaces);
         return places;
