@@ -43,7 +43,7 @@ public final class PlaceIngester {
     private static final ExecutorService queueMonitor = Executors.newFixedThreadPool(1);    
     
     //These executors will bring places from the source in parallel.
-    private static final ExecutorService httpExecutors = Executors.newFixedThreadPool(5);
+    private static final ExecutorService httpExecutors = Executors.newFixedThreadPool(4);
     
     //The http executors will be placing category ingests in this queue, and the 
     //db thread will be taking ingest from it and save ingests in the DB
