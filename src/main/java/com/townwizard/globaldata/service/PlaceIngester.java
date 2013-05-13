@@ -13,6 +13,9 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.townwizard.db.configuration.ConfigurationKey;
+import com.townwizard.db.configuration.ConfigurationListener;
+import com.townwizard.db.configuration.ConfigurationService;
 import com.townwizard.db.logger.Log;
 import com.townwizard.globaldata.model.directory.Ingest;
 import com.townwizard.globaldata.model.directory.Place;
@@ -21,29 +24,38 @@ import com.townwizard.globaldata.model.directory.ZipIngest;
 import com.townwizard.globaldata.service.provider.YellowPagesService;
 
 @Component("placeIngester")
-public final class PlaceIngester {
+public final class PlaceIngester implements ConfigurationListener {
     
     @Autowired
     private YellowPagesService yellowPagesService;
     @Autowired
     private PlaceService placeService;
+    @Autowired
+    private ConfigurationService configurationService;
     
     @PostConstruct
-    public void init() {
+    public void init() {         
+        dbExecutor = Executors.newFixedThreadPool(1);
+        queueMonitor = Executors.newFixedThreadPool(1);
+        
+        httpExecutors = Executors.newFixedThreadPool(
+                configurationService.getIntValue(ConfigurationKey.PLACE_INGEST_NUM_HTTP_EXECUTORS));
+        
         dbExecutor.submit(new DbExecutor());
         queueMonitor.submit(new IngestQueueMonitor());
     }
     
     private static boolean shutdownFlag = false;
+    private static boolean stoppedFlag = false;
     
     //This executor is responsible for saving ingests in the DB.
-    private static final ExecutorService dbExecutor = Executors.newFixedThreadPool(1);
+    private static ExecutorService dbExecutor;
     
     //This executor is responsible for monitoring the queue.
-    private static final ExecutorService queueMonitor = Executors.newFixedThreadPool(1);    
+    private static ExecutorService queueMonitor;    
     
     //These executors will bring places from the source in parallel.
-    private static final ExecutorService httpExecutors = Executors.newFixedThreadPool(4);
+    private static ExecutorService httpExecutors;
     
     //The http executors will be placing category ingests in this queue, and the 
     //db thread will be taking ingest from it and save ingests in the DB
@@ -78,7 +90,7 @@ public final class PlaceIngester {
 
         @Override
         public void run() {
-            if(shutdownFlag) return;
+            if(stoppedFlag || shutdownFlag) return;
             try {
                 List<Place> places = null;
                 try {
@@ -204,7 +216,31 @@ public final class PlaceIngester {
         }
     }
     
+    private final ConfigurationKey[] keysOfInterest = {
+            ConfigurationKey.PLACE_INGEST_NUM_HTTP_EXECUTORS,
+            ConfigurationKey.PLACE_INGEST_STOPPED
+    };
+    
+    @Override
+    public ConfigurationKey[] keysOfInterest() {
+        return keysOfInterest;        
+    }
+
+    @Override
+    public void configurationChanged(ConfigurationKey key) {
+        if(key == ConfigurationKey.PLACE_INGEST_NUM_HTTP_EXECUTORS) {
+            synchronized (httpExecutors) {
+                httpExecutors.shutdown();
+                httpExecutors = Executors.newFixedThreadPool(configurationService.getIntValue(key));
+            }
+        } else if(key == ConfigurationKey.PLACE_INGEST_STOPPED) {
+            stoppedFlag = true;
+        }
+    }    
+    
     public void ingestByZip(String zipCode, String countryCode) {
+        if(stoppedFlag) return;
+        
         ZipIngest ingest = placeService.getZipIngest(zipCode, countryCode);
         if(ingest == null || ingest.getStatus() != ZipIngest.Status.N) return;
         

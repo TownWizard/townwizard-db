@@ -1,11 +1,17 @@
 package com.townwizard.db.configuration;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.townwizard.db.logger.Log;
 
 @Component("ConfigurationService")
+@Transactional
 public class ConfigurationServiceImpl implements ConfigurationService {
     
     @Autowired
@@ -13,17 +19,25 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Autowired
     private ConfigurationCache configurationCache;
     
-
+    private List<ConfigurationListener> listeners = new ArrayList<>();
+    
+    @Override
+    public void addConfigurationListener(ConfigurationListener listener) {
+        listeners.add(listener);
+    }
+    
     @Override
     public void save(String key, String value) {
         configurationDao.save(key, value);
         configurationCache.remove(key);
+        notifyListeners(key);
     }
 
     @Override
     public void delete(String key) {
         configurationDao.delete(key);
         configurationCache.remove(key);
+        notifyListeners(key);
     }
 
     @Override
@@ -78,6 +92,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             configurationCache.put(key, value);
         }
         return value;
+    }
+    
+    private void notifyListeners(String key) {
+        ConfigurationKey cKey = ConfigurationKey.byKey(key);
+        for(ConfigurationListener l : listeners) {
+            if(Arrays.asList(l.keysOfInterest()).contains(cKey)) {
+                l.configurationChanged(cKey);
+            }
+        }
     }
     
 }

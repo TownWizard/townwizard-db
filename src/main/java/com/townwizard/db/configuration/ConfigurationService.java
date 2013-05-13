@@ -8,5 +8,7 @@ public interface ConfigurationService {
     String getStringValue(ConfigurationKey key);
     int getIntValue(ConfigurationKey key);
     boolean getBooleanValue(ConfigurationKey key);
+    
+    void addConfigurationListener(ConfigurationListener listener);
 
 }

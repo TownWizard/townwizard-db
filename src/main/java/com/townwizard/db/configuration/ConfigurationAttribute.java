@@ -17,6 +17,8 @@ public class ConfigurationAttribute {
     @Column(name="`value`")
     private String value;
     
+    public ConfigurationAttribute(){}
+    
     public ConfigurationAttribute(String key, String value) {
         this.key = key;
         this.value = value;
