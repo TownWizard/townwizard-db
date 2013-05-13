@@ -20,5 +20,6 @@
     <mapping class="com.townwizard.db.model.Rating"/>
     <mapping class="com.townwizard.db.model.Event"/>
     <mapping class="com.townwizard.db.model.EventResponse"/>
+    <mapping class="com.townwizard.db.configuration.ConfigurationAttribute"/>
   </session-factory>
 </hibernate-configuration>

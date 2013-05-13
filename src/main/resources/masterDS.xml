@@ -28,6 +28,7 @@
       <list>
         <value>com.townwizard.db.model</value>
         <value>com.townwizard.globaldata.model</value>
+        <value>com.townwizard.db.configuration</value>
       </list>
     </property>
     <property name="hibernateProperties">
@@ -62,5 +63,8 @@
   <bean id="globalDataDao" class="com.townwizard.globaldata.dao.GlobalDataDaoHibernateImpl">
     <property name="sessionFactory" ref="masterSessionFactory"/>
   </bean>
+  <bean id="configurationDao" class="com.townwizard.db.configuration.ConfigurationDaoImpl">
+    <property name="sessionFactory" ref="masterSessionFactory"/>
+  </bean>  
       
 </beans>
