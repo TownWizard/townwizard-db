@@ -197,9 +197,9 @@ public final class PlaceIngester implements ConfigurationListener {
         shutdownFlag = true;
         
         Log.info("About to shutdown executors...");        
-        PlaceIngester.httpExecutors.shutdownNow();
-        PlaceIngester.queueMonitor.shutdownNow();        
-        PlaceIngester.dbExecutor.shutdownNow();
+        if(PlaceIngester.httpExecutors != null) PlaceIngester.httpExecutors.shutdownNow();
+        if(PlaceIngester.queueMonitor != null) PlaceIngester.queueMonitor.shutdownNow();        
+        if(PlaceIngester.dbExecutor != null) PlaceIngester.dbExecutor.shutdownNow();
         
         int attempt = 1;
         while(!(httpExecutors.isTerminated() && dbExecutor.isTerminated() && queueMonitor.isTerminated())) {
