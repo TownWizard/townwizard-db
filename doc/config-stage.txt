@@ -10,7 +10,7 @@ sudo apt-get install oracle-java7-installer
 #######################################
 
 cd ~
-wget http://apache.petsads.us/tomcat/tomcat-7/v7.0.34/bin/apache-tomcat-7.0.34.tar.gz
+wget http://archive.apache.org/dist/tomcat/tomcat-7/v7.0.34/bin/apache-tomcat-7.0.34.tar.gz
 sudo tar xvzf apache-tomcat-7.0.34.tar.gz
 sudo mv apache-tomcat-7.0.34 /opt/bitnami/tomcat7
 
@@ -47,17 +47,28 @@ sudo ln -s /etc/init.d/tomcat7 /etc/rc2.d/S99tomcat
 
 sudo chmod 777 /opt/bitnami/tomcat7/webapps
 
+# Remove Tomcat web applications
+################################
 
-# Start Tomcat
-#######################################
+sudo rm -Rf /opt/bitnami/tomcat7/webapps/*
 
-sudo /etc/init.d/tomcat7 start
+# Give Tomcat enough RAM
+########################
+sudo vim /opt/bitnami/tomcat7/bin/setenv.sh  # Add the line below and save
+
+export CATALINA_OPTS="-Xms512m -Xmx1024m"
+
 
 # Deploy application and run DB scripts
 #######################################
 
 git pull
 mvn -Pstage -Dmaven.test.skip=true -Ddeploy.server=23.21.160.121 -Ddeploy.user=townwiz -Ddeploy.password=[password here] clean install
+
+# Start Tomcat
+#######################################
+
+sudo /etc/init.d/tomcat7 start
 
 # Check Tomcat and application installation
 ###########################################
