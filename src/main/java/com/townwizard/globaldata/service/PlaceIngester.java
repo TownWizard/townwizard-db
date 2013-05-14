@@ -10,6 +10,8 @@ import java.util.concurrent.Executors;
 
 import javax.annotation.PostConstruct;
 
+import net.sf.ehcache.util.NamedThreadFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,14 +37,17 @@ public final class PlaceIngester implements ConfigurationListener {
     
     @PostConstruct
     public void init() {         
-        dbExecutor = Executors.newFixedThreadPool(1);
-        queueMonitor = Executors.newFixedThreadPool(1);
+        dbExecutor = Executors.newFixedThreadPool(1, new NamedThreadFactory("db-executor"));
+        queueMonitor = Executors.newFixedThreadPool(1, new NamedThreadFactory("queue-monitor"));
         
         httpExecutors = Executors.newFixedThreadPool(
-                configurationService.getIntValue(ConfigurationKey.PLACE_INGEST_NUM_HTTP_EXECUTORS));
+                configurationService.getIntValue(ConfigurationKey.PLACE_INGEST_NUM_HTTP_EXECUTORS),
+                new NamedThreadFactory("http-executor"));
         
         dbExecutor.submit(new DbExecutor());
         queueMonitor.submit(new IngestQueueMonitor());
+        
+        configurationService.addConfigurationListener(this);
     }
     
     private static boolean shutdownFlag = false;
@@ -230,8 +235,12 @@ public final class PlaceIngester implements ConfigurationListener {
     public void configurationChanged(ConfigurationKey key) {
         if(key == ConfigurationKey.PLACE_INGEST_NUM_HTTP_EXECUTORS) {
             synchronized (httpExecutors) {
-                httpExecutors.shutdown();
-                httpExecutors = Executors.newFixedThreadPool(configurationService.getIntValue(key));
+                List<Runnable> awaitingTasks = httpExecutors.shutdownNow();                
+                httpExecutors = Executors.newFixedThreadPool(
+                        configurationService.getIntValue(key), new NamedThreadFactory("http-executor"));
+                for(Runnable task : awaitingTasks) {
+                    httpExecutors.submit(task);
+                }
             }
         } else if(key == ConfigurationKey.PLACE_INGEST_STOPPED) {
             stoppedFlag = true;
@@ -255,7 +264,9 @@ public final class PlaceIngester implements ConfigurationListener {
             if(--countDown == 0) {
                 if(Log.isDebugEnabled()) Log.debug("Submitting zero item for zip: " +  zipCode);
             }
-            httpExecutors.submit(new HttpExecutor(zipCode, countryCode, category, countDown));
+            synchronized (httpExecutors) {
+                httpExecutors.submit(new HttpExecutor(zipCode, countryCode, category, countDown));
+            }
         }
         
     }

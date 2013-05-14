@@ -9,6 +9,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import net.sf.ehcache.util.NamedThreadFactory;
+
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -72,7 +74,8 @@ public class YellowPagesServiceImpl implements YellowPagesService {
             final int index) 
         throws Exception {
 
-        ExecutorService httpExecutors = Executors.newFixedThreadPool(5);
+        ExecutorService httpExecutors = Executors.newFixedThreadPool(
+                5, new NamedThreadFactory("yp-http-executor"));
         class Executor implements Callable<List<Place>> {
             
             private int pageNum;
@@ -100,15 +103,6 @@ public class YellowPagesServiceImpl implements YellowPagesService {
             List<Place> places = f.get(60, TimeUnit.SECONDS);
             result.addAll(places);
         }
-        
-        /*
-        int attempt = 1;
-        while(!httpExecutors.isTerminated() && attempt <= 10) {
-            Log.warning("Yellow pages request thread pool is not terminated after attempt " + attempt++);            
-            httpExecutors.shutdownNow();
-            Thread.sleep(500);
-        }
-        */
         return result;
     }
     
