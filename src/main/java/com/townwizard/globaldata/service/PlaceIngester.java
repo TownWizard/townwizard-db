@@ -202,7 +202,9 @@ public final class PlaceIngester implements ConfigurationListener {
         if(PlaceIngester.dbExecutor != null) PlaceIngester.dbExecutor.shutdownNow();
         
         int attempt = 1;
-        while(!(httpExecutors.isTerminated() && dbExecutor.isTerminated() && queueMonitor.isTerminated())) {
+        while(!((httpExecutors == null || httpExecutors.isTerminated()) &&
+                (dbExecutor == null || dbExecutor.isTerminated()) &&
+                (queueMonitor == null || queueMonitor.isTerminated()))) {
             if(attempt++ > 5) break;
             try { Thread.sleep(1000); } catch(InterruptedException e) {
                 Log.warning("Executors shutdown interrupted");
@@ -210,13 +212,13 @@ public final class PlaceIngester implements ConfigurationListener {
             Log.info("Waiting for place ingest executors to exit...");
         }
 
-        if(!httpExecutors.isTerminated()) {
+        if(!(httpExecutors != null && httpExecutors.isTerminated())) {
             Log.error("Failed to shutdown place ingest http executors");
         }
-        if(!dbExecutor.isTerminated()) {
+        if(!(dbExecutor != null && dbExecutor.isTerminated())) {
             Log.error("Failed to shutdown place ingest DB executor");
         }
-        if(!queueMonitor.isTerminated()) {
+        if(!(queueMonitor != null && queueMonitor.isTerminated())) {
             Log.error("Failed to shutdown place ingest queue monitor");
         }
     }

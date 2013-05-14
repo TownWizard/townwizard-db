@@ -42,7 +42,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public String getStringValue(ConfigurationKey key) {
-        String value = getStringValue(key.getKey());
+        String value = getValueAsString(key);
         if(value != null) {
             return value;
         }
@@ -52,7 +52,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     public int getIntValue(ConfigurationKey key) {
         int value = -999;
-        String valueStr = getStringValue(key.getKey());
+        String valueStr = getValueAsString(key);
         if(valueStr != null) {
             try {
                 value = Integer.parseInt(valueStr);
@@ -69,7 +69,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public boolean getBooleanValue(ConfigurationKey key) {
-        String valueStr = getStringValue(key.getKey());
+        String valueStr = getValueAsString(key);
         if(valueStr != null) {
             if(valueStr.equalsIgnoreCase("true") ||
                valueStr.equalsIgnoreCase("y") ||
@@ -85,11 +85,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return (Boolean)key.getDefaultValue();
     }
     
-    private String getStringValue(String key) {
-        String value = configurationCache.get(key);
+    private String getValueAsString(ConfigurationKey key) {
+        String value = configurationCache.get(key.getKey());
         if(value == null) {
-            value = configurationDao.get(key);
-            configurationCache.put(key, value);
+            value = configurationDao.get(key.getKey());
+            if(value == null) {
+                value = key.getDefaultValue().toString();
+                configurationDao.save(key.getKey(), value);
+            }
+            configurationCache.put(key.getKey(), value);  
         }
         return value;
     }
