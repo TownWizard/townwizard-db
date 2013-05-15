@@ -24,8 +24,9 @@ public interface GlobalDataService {
      * Get places by either zip info, or location, or client IP for a given category or term,
      * which is mandatory.  Return an empty list of categoryOrTerm is null or empty.
      * If the mainCategory is given, the places will be filtered by it.
+     * If optional pageNum parameter is given, only return a page of places.
      */    
-    List<Place> getPlaces(Location location, String categoryOrTerm, String mainCategory);
+    List<Place> getPlaces(Location location, String categoryOrTerm, String mainCategory, Integer pageNum);
     
     /**
      * Get sorted place categories (such as restaurants, dental, pizza, etc) from places

@@ -99,7 +99,7 @@ public final class PlaceIngester implements ConfigurationListener {
             try {
                 List<Place> places = null;
                 try {
-                    places = getPlacesFromSource(zip, countryCode, category);
+                    places = getPlacesFromSource(zip, countryCode, category, null);
                 } catch(Exception e) {
                     places = Collections.emptyList();
                     Log.exception(e);
@@ -131,8 +131,7 @@ public final class PlaceIngester implements ConfigurationListener {
                 try {
                     IngestItem item = ingestQueue.poll();
                     if(item != null) {
-                        //System.out.println("Ingesting: zip - " + item.zip + " item - " + item.countDown);
-                        doIngestByZipAndCategory(item.zip, item.countryCode, item.category, item.places);
+                        getPlacesAndOptionallyIngest(item.zip, item.countryCode, item.category, null, item.places);
                         if(item.countDown == 0) {
                             ZipIngest ingest = placeService.getZipIngest(item.zip, item.countryCode);
                             if(ingest != null) {
@@ -270,38 +269,70 @@ public final class PlaceIngester implements ConfigurationListener {
                 httpExecutors.submit(new HttpExecutor(zipCode, countryCode, category, countDown));
             }
         }
-        
     }
     
-    public Object[] ingestByZipAndCategory(String zipCode, String countryCode, String categoryOrTerm) {
-        return doIngestByZipAndCategory(zipCode, countryCode, categoryOrTerm, null);
+    public Object[] ingestByZipAndCategory(
+            String zipCode, String countryCode, String categoryOrTerm, Integer pageNum) {
+        return getPlacesAndOptionallyIngest(zipCode, countryCode, categoryOrTerm, pageNum, null);
     } 
     
-    private Object[] doIngestByZipAndCategory(
-            String zipCode, String countryCode, String categoryOrTerm, List<Place> placeList) {
+    private Object[] getPlacesAndOptionallyIngest(final String zipCode, final String countryCode,
+            final String categoryOrTerm, Integer pageNum, List<Place> placeList) {
         
-        PlaceIngest ingest = placeService.getIngest(zipCode, countryCode, categoryOrTerm);
+        final PlaceIngest ingest = placeService.getIngest(zipCode, countryCode, categoryOrTerm);
         if(ingest != null) {        
             PlaceIngest.Status status = ingest.getStatus();
             
             List<Place> places = placeList;
+            boolean fromRemoteSource = false;
+            
             if(status != PlaceIngest.Status.R) {
-                if(places == null) {
-                    places = getPlacesFromSource(zipCode, countryCode, categoryOrTerm);
+                boolean needPageOnly = (pageNum != null);
+                
+                if(needPageOnly) {
+                    if(places == null) {
+                        places = getPlacesFromSource(zipCode, countryCode, categoryOrTerm, pageNum);
+                        fromRemoteSource = true;
+                        if(status == PlaceIngest.Status.N) {                            
+                            ExecutorService exec = Executors.newFixedThreadPool(1);
+                            exec.submit(                            
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                            List<Place> allPlaces = getPlacesFromSource(
+                                                    zipCode, countryCode, categoryOrTerm, null);
+                                            placeService.saveIngest(ingest, allPlaces);
+                                    }
+                            });
+                            exec.shutdown();
+                        }
+                    }
+                } else {
+                    if(places == null) {
+                        places = getPlacesFromSource(zipCode, countryCode, categoryOrTerm, null);
+                        fromRemoteSource = true;
+                    }
+                    if(status == PlaceIngest.Status.N) {
+                        placeService.saveIngest(ingest, places);
+                    }
                 }
-                if(status == PlaceIngest.Status.N) {
-                    placeService.saveIngest(ingest, places);
+            } else {
+                if(places == null) {
+                    places = placeService.getPlaces(ingest);
                 }
             }
-            
-            return new Object[]{ingest, places};
+
+            return new Object[]{places, fromRemoteSource};
         }
         return null;
     }
     
     private List<Place> getPlacesFromSource(
-            String zipCode, String countryCode, String categoryOrTerm) {
-        List<Place> places = yellowPagesService.getPlaces(zipCode, categoryOrTerm);
+            String zipCode, String countryCode, String categoryOrTerm, Integer pageNum) {
+        List<Place> places = (pageNum == null) ? 
+                yellowPagesService.getPlaces(zipCode, categoryOrTerm) :
+                yellowPagesService.getPageOfPlaces(zipCode, categoryOrTerm, pageNum, 
+                        configurationService.getIntValue(ConfigurationKey.DIRECTORY_PAGE_SIZE));
         for(Place p : places) p.setCountryCode(countryCode);
         return places;
     }

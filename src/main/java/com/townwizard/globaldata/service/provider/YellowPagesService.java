@@ -14,4 +14,9 @@ public interface YellowPagesService {
      */
     List<Place> getPlaces(String zip, String term);
     
+    /**
+     * Get only one page of places.
+     */
+    List<Place> getPageOfPlaces(String zip, String term, int pageNum, int listingCount);
+    
 }

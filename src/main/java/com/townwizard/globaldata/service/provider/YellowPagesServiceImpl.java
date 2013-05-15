@@ -31,11 +31,22 @@ import com.townwizard.globaldata.model.directory.Place;
 public class YellowPagesServiceImpl implements YellowPagesService {
     
     private static final int NUM_THREADS = 5;
-    private static final int PLACES_IN_RESPONSE = 50;
+    private static final int NUM_PLACES_IN_RESPONSE = 50;
     private static final int MAX_PAGES = NUM_THREADS * 3;
     
     @Autowired
     private YellowPagesConnector connector;
+    
+    @Override
+    public List<Place> getPageOfPlaces(String zip, String term, int pageNum, int listingCount) {
+        try {
+            String json = connector.executePlacesRequest(
+                    term, zip, Constants.PLACE_DISTANCE_IN_MILES, pageNum, listingCount);
+            return jsonToPlaces(json);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * Executes one HTTP request to get locations
@@ -46,9 +57,6 @@ public class YellowPagesServiceImpl implements YellowPagesService {
         Exception ex = null;
         
         for(int attempt = 1; attempt <= 3; attempt++) {
-            if(attempt > 1) {
-                Log.warning("Attempt " + attempt + " to get YP places for zip " + zip + " and term '" + term + "'");
-            }
             try {
                 List<Place> result = null;
                 int pages = 0;
@@ -56,7 +64,12 @@ public class YellowPagesServiceImpl implements YellowPagesService {
                     result = getPagesOfPlaces(zip, Constants.PLACE_DISTANCE_IN_MILES, term, pages);
                     finalResult.addAll(result);
                     pages += NUM_THREADS;
-                } while(pages < MAX_PAGES  && result.size() >= NUM_THREADS * PLACES_IN_RESPONSE);
+                } while(pages < MAX_PAGES  && result.size() >= NUM_THREADS * NUM_PLACES_IN_RESPONSE);
+                
+                if(attempt > 1) {
+                    Log.warning("Successfully retrieved places for zip '" + zip + 
+                            "' and term '" + term  + "'" + " after attempt " + attempt);
+                }
                 
                 return finalResult;
             } catch (Exception e) {
@@ -75,7 +88,7 @@ public class YellowPagesServiceImpl implements YellowPagesService {
         throws Exception {
 
         ExecutorService httpExecutors = Executors.newFixedThreadPool(
-                5, new NamedThreadFactory("yp-http-executor"));
+                NUM_THREADS, new NamedThreadFactory("yp-http-executor"));
         class Executor implements Callable<List<Place>> {
             
             private int pageNum;
@@ -85,10 +98,8 @@ public class YellowPagesServiceImpl implements YellowPagesService {
 
             @Override
             public List<Place> call() throws Exception {
-                String json = connector.executePlacesRequest(term, zip, distanceInMiles, pageNum);
-                List<YellowPages.Location> gObjects = jsonToObjects(json, YellowPages.Location.class);
-                List<Place> objects = ServiceUtils.convertList(gObjects);
-                return objects;
+                String json = connector.executePlacesRequest(term, zip, distanceInMiles, pageNum, null);
+                return jsonToPlaces(json);
             }            
         }
         
@@ -118,6 +129,11 @@ public class YellowPagesServiceImpl implements YellowPagesService {
             }
         }
         return Collections.emptyList();
+    }
+    
+    private List<Place> jsonToPlaces(String json) throws Exception {
+        List<YellowPages.Location> gObjects = jsonToObjects(json, YellowPages.Location.class);
+        return ServiceUtils.convertList(gObjects);        
     }
 
 }

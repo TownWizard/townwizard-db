@@ -2,6 +2,9 @@ package com.townwizard.db.configuration;
 
 public enum ConfigurationKey {
     
+    DIRECTORY_USE_PAGING("DIRECTORY_USE_PAGING", true),
+    DIRECTORY_PAGE_SIZE("DIRECTORY_PAGE_SIZE", 30),
+    
     PLACE_INGEST_NUM_HTTP_EXECUTORS("PLACE_INGEST_NUM_HTTP_EXECUTORS", 5),
     PLACE_INGEST_STOPPED("PLACE_INGEST_STOPPED", false);
     

@@ -8,6 +8,8 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.townwizard.db.configuration.ConfigurationKey;
+import com.townwizard.db.configuration.ConfigurationService;
 import com.townwizard.db.constants.Constants;
 import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.StringUtils;
@@ -16,7 +18,6 @@ import com.townwizard.globaldata.model.CityLocation;
 import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.directory.Place;
-import com.townwizard.globaldata.model.directory.PlaceIngest;
 import com.townwizard.globaldata.service.geo.LocationService;
 
 @Component("placeHelper")
@@ -25,30 +26,32 @@ public final class GlobalDataServicePlaceHelper {
     @Autowired private LocationService locationService;
     @Autowired private GlobalDataDao globalDataDao;
     @Autowired private PlaceService placeService;
-    @Autowired private PlaceIngester placeIngester;    
+    @Autowired private PlaceIngester placeIngester;
+    @Autowired private ConfigurationService configurationService;
     
     public List<Place> getPlacesByZipInfo(
-            String zip, String countryCode, String categoryOrTerm, String mainCategory) {
+            String zip, String countryCode, String categoryOrTerm, String mainCategory, Integer pageNum) {
         Location origin = locationService.getPrimaryLocation(zip, countryCode);
-        return getPlaces(zip, countryCode, categoryOrTerm, mainCategory, origin);
+        return getPlaces(zip, countryCode, categoryOrTerm, mainCategory, origin, pageNum);
     }
 
     public List<Place> getPlacesByLocation(
-            double latitude, double longitude, String categoryOrTerm, String mainCategory) {
+            double latitude, double longitude, String categoryOrTerm, String mainCategory, Integer pageNum) {
         Location orig = locationService.getLocation(latitude, longitude);
-        return getPlaces(orig.getZip(), orig.getCountryCode(), categoryOrTerm, mainCategory, orig);
+        return getPlaces(
+                orig.getZip(), orig.getCountryCode(), categoryOrTerm, mainCategory, orig, pageNum);
     }
     
-    public List<Place> getPlacesByIp(String ip, String categoryOrTerm, String mainCategory) {
+    public List<Place> getPlacesByIp(String ip, String categoryOrTerm, String mainCategory, Integer pageNum) {
         CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
         if(cityLocation != null) {
             if(cityLocation.hasPostalCodeAndCountry()) {
                 return getPlacesByZipInfo(cityLocation.getPostalCode(), cityLocation.getCountryCode(),
-                        categoryOrTerm, mainCategory);
+                        categoryOrTerm, mainCategory, pageNum);
             }
             if(cityLocation.hasLocation()) {
                 return getPlacesByLocation(cityLocation.getLatitude(), cityLocation.getLongitude(),
-                        categoryOrTerm, mainCategory);
+                        categoryOrTerm, mainCategory, pageNum);
             }             
         }
         return Collections.emptyList();
@@ -72,18 +75,16 @@ public final class GlobalDataServicePlaceHelper {
     ///////////////////////// private methods //////////////////////////
     
     private List<Place> getPlaces(String zip, String countryCode, String categoryOrTerm, 
-            String mainCategory, Location origin) {
+            String mainCategory, Location origin, Integer pageNum) {
 
-        Object[] ingestWithPlaces = placeIngester.ingestByZipAndCategory(zip, countryCode, categoryOrTerm);
+        Object[] placesWithRemoteIndicator = 
+                placeIngester.ingestByZipAndCategory(zip, countryCode, categoryOrTerm, pageNum);
         
-        if(ingestWithPlaces != null) {
-            PlaceIngest ingest = (PlaceIngest)ingestWithPlaces[0];        
+        if(placesWithRemoteIndicator != null) {
             
             @SuppressWarnings("unchecked")
-            List<Place> places = (List<Place>)ingestWithPlaces[1];
-            if(places == null) {
-                places = placeService.getPlaces(ingest);
-            }
+            List<Place> places = (List<Place>)placesWithRemoteIndicator[0];
+            boolean remote = (Boolean)placesWithRemoteIndicator[1];
             
             if(mainCategory != null && !mainCategory.isEmpty()) {
                 if(Constants.RESTAURANTS.equals(mainCategory)) {
@@ -99,6 +100,22 @@ public final class GlobalDataServicePlaceHelper {
             }
             
             Collections.sort(places, new DistanceComparator());
+            
+            if(!remote && pageNum != null && pageNum >0 && configurationService.getBooleanValue(ConfigurationKey.DIRECTORY_USE_PAGING)) {
+                int pageSize = configurationService.getIntValue(ConfigurationKey.DIRECTORY_PAGE_SIZE);                
+                int start = (pageNum - 1) * pageSize;
+                int end = start + pageSize;                
+                int size = places.size();
+                
+                if(start > size) {
+                    places = Collections.emptyList();
+                } else {
+                    if(end > size) {
+                        end = size;
+                    }
+                    places = places.subList(start, end);
+                }
+            }
             
             placeIngester.ingestByZip(zip, countryCode);
             
