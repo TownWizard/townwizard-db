@@ -50,4 +50,8 @@
     <property name="sessionFactory" ref="directorySessionFactory"/>
   </bean>
   
+  <bean id="lockDao" class="com.townwizard.globaldata.dao.LockDaoHibernateImpl">
+    <property name="sessionFactory" ref="directorySessionFactory"/>
+  </bean>  
+  
 </beans>

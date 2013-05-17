@@ -1,6 +1,7 @@
 package com.townwizard.globaldata.dao;
 
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -41,17 +42,22 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
     }
     
     @Override
-    public List<Place> getPlaces(PlaceIngest ingest) {        
+    public List<Place> getPlaces(PlaceIngest ingest) {
         @SuppressWarnings("cast")
         PlaceIngest fromDB = (PlaceIngest)getById(PlaceIngest.class, ingest.getId());
         Set<Place> ingestPlaces = fromDB.getPlaces();
+        /*
         for(Place p : ingestPlaces) { //explicitely populate categories for the relationship is lazy
             Set<PlaceCategory> categories = new HashSet<>();
             categories.addAll(p.getCategories());
             p.setCategories(categories);
         }
+        */
         List<Place> places = new ArrayList<>(ingestPlaces.size());
-        places.addAll(ingestPlaces);
+        if(!ingestPlaces.isEmpty()) {
+            places.addAll(ingestPlaces);
+            populatePlacesWithCategories(places);
+        }
         return places;
     }
     
@@ -84,69 +90,70 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
             }
         }
         session.delete(ingest);
+        session.flush();
     }
     
     @Override
     public void saveIngest(PlaceIngest ingest, List<Place> locationList) {
-        if(locationList.isEmpty()) return;
-        
-        Set<Place> locations = new TreeSet<>(new Comparator<Place>() {
-            @Override
-            public int compare(Place o1, Place o2) {
-                return o1.getExternalId().compareTo(o2.getExternalId());
-            }            
-        });
-        locations.addAll(locationList);
-
-        List<String> externalIds = new ArrayList<>(locations.size());
-        for(Place location : locations) {
-            externalIds.add(location.getExternalId());
-        }
-        
-        Map<String, List<Place>> locationsFromDb = getLocationsByExternalIds(externalIds);
-        
-        List<Place> oldLocations = new ArrayList<>();
-        List<Place> newLocations = new ArrayList<>();
-        
-        for(Place location : locations) {
-            String externalId = location.getExternalId();
-            List<Place> locationsById = locationsFromDb.get(externalId);
-            if(locationsById == null) {
-                newLocations.add(location);                
-            } else {
-                boolean exists = false;
-                for(Place fromDb : locationsById) {
-                    if(fromDb.getSource().equals(location.getSource())) {
-                        exists = true;
-                        oldLocations.add(fromDb);
-                        break;
+        if(!locationList.isEmpty()) {
+            Set<Place> locations = new TreeSet<>(new Comparator<Place>() {
+                @Override
+                public int compare(Place o1, Place o2) {
+                    return o1.getExternalId().compareTo(o2.getExternalId());
+                }            
+            });
+            locations.addAll(locationList);
+    
+            List<String> externalIds = new ArrayList<>(locations.size());
+            for(Place location : locations) {
+                externalIds.add(location.getExternalId());
+            }
+            
+            Map<String, List<Place>> locationsFromDb = getLocationsByExternalIds(externalIds);
+            
+            List<Place> oldLocations = new ArrayList<>();
+            List<Place> newLocations = new ArrayList<>();
+            
+            for(Place location : locations) {
+                String externalId = location.getExternalId();
+                List<Place> locationsById = locationsFromDb.get(externalId);
+                if(locationsById == null) {
+                    newLocations.add(location);                
+                } else {
+                    boolean exists = false;
+                    for(Place fromDb : locationsById) {
+                        if(fromDb.getSource().equals(location.getSource())) {
+                            exists = true;
+                            oldLocations.add(fromDb);
+                            break;
+                        }
+                    }
+                    if(!exists) {
+                        newLocations.add(location);
                     }
                 }
-                if(!exists) {
-                    newLocations.add(location);
-                }
             }
-        }
-        
-        for(Place l : oldLocations) {
-            l.addIngest(ingest);
-            update(l);
-        }
-        
-        if(!newLocations.isEmpty()) {
-            createMissingCategories(newLocations);
             
-            Map<String, PlaceCategory> allCategories = getLocationCategoriesMap();
+            for(Place l : oldLocations) {
+                l.addIngest(ingest);
+                update(l);
+            }
             
-            Date now = new Date();
-            for(Place location : newLocations) {
-                for(String categoryName : location.extractCategoryNames()) {
-                    PlaceCategory c = allCategories.get(categoryName);
-                    location.addCategory(c);
+            if(!newLocations.isEmpty()) {
+                createMissingCategories(newLocations);
+                
+                Map<String, PlaceCategory> allCategories = getLocationCategoriesMap();
+                
+                Date now = new Date();
+                for(Place location : newLocations) {
+                    for(String categoryName : location.extractCategoryNames()) {
+                        PlaceCategory c = allCategories.get(categoryName);
+                        location.addCategory(c);
+                    }
+                    location.addIngest(ingest);
+                    location.setCreated(now);
+                    create(location);
                 }
-                location.addIngest(ingest);
-                location.setCreated(now);
-                create(location);
             }
         }
 
@@ -182,6 +189,46 @@ public class PlaceDaoHibernateImpl extends AbstractDaoHibernateImpl implements P
             locationsById.add(l);
         }
         return result;
+    }
+    
+    private void populatePlacesWithCategories(List<Place> places) {
+        List<Long> placeIds = new ArrayList<>(places.size());
+        for(Place p : places) placeIds.add(p.getId());
+            
+        Session session = getSession();
+        
+        @SuppressWarnings("unchecked")
+        List<Object[]> idMap = session.createSQLQuery("SELECT location_id, category_id FROM Location_Category " +  
+                "WHERE location_id IN (" + CollectionUtils.join(placeIds) + ")").list();
+        
+        Set<Long> categoryIds = new HashSet<>();
+        Map<Long, List<Long>> placeToCategories = new HashMap<>();
+        for(Object[] o : idMap) {
+            Long locationId = ((BigInteger)o[0]).longValue();
+            Long categoryId = ((BigInteger)o[1]).longValue();
+            categoryIds.add(categoryId);
+            
+            List<Long> categoriesForLocation = placeToCategories.get(locationId);
+            if(categoriesForLocation == null) {
+                categoriesForLocation = new ArrayList<>();                
+                placeToCategories.put(locationId, categoriesForLocation);
+            }
+            categoriesForLocation.add(categoryId);
+        }
+        
+        @SuppressWarnings("unchecked")
+        List<PlaceCategory> categories = session.createQuery("from PlaceCategory where id in (" 
+                + CollectionUtils.join(categoryIds) + ")").list();
+        Map<Long, PlaceCategory> idToCategory = new HashMap<>();
+        for(PlaceCategory c : categories) idToCategory.put(c.getId(), c);
+        
+        for(Place p : places) {
+            p.setCategories(new HashSet<PlaceCategory>());
+            List<Long> placeCategoryIds = placeToCategories.get(p.getId());
+            for(Long placeCategoryId : placeCategoryIds) {
+                p.getCategories().add(idToCategory.get(placeCategoryId));
+            }            
+        }
     }
     
     private Map<String, PlaceCategory> getLocationCategoriesMap() {

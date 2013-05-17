@@ -66,11 +66,11 @@ public final class PlaceIngester implements ConfigurationListener {
     //db thread will be taking ingest from it and save ingests in the DB
     //private static final BlockingQueue<IngestItem> ingestQueue = new LinkedBlockingQueue<>();
     private static final Queue<IngestItem> ingestQueue = new ConcurrentLinkedQueue<>();
-    
+        
     private final static class IngestItem {
         String zip, countryCode, category;
         List<Place> places;
-        int countDown;
+        int countDown;        
         
         IngestItem(String zip, String countryCode, String category, List<Place> places, int countDown) {
             this.zip = zip;
@@ -105,7 +105,7 @@ public final class PlaceIngester implements ConfigurationListener {
                     Log.exception(e);
                     e.printStackTrace();
                 }
-                ingestQueue.add(new IngestItem(zip, countryCode, category, places, countDown));                
+                ingestQueue.add(new IngestItem(zip, countryCode, category, places, countDown));
             } catch(Exception e) {
                 Log.exception(e);
                 e.printStackTrace();
@@ -262,9 +262,6 @@ public final class PlaceIngester implements ConfigurationListener {
         List<String> categories = placeService.getAllPlaceCategoryNames();
         int countDown = categories.size();
         for(String category : categories) {
-            if(--countDown == 0) {
-                if(Log.isDebugEnabled()) Log.debug("Submitting zero item for zip: " +  zipCode);
-            }
             synchronized (httpExecutors) {
                 httpExecutors.submit(new HttpExecutor(zipCode, countryCode, category, countDown));
             }
@@ -293,18 +290,22 @@ public final class PlaceIngester implements ConfigurationListener {
                     if(places == null) {
                         places = getPlacesFromSource(zipCode, countryCode, categoryOrTerm, pageNum);
                         fromRemoteSource = true;
-                        if(status == PlaceIngest.Status.N) {                            
+                        if(status == PlaceIngest.Status.N) {
                             ExecutorService exec = Executors.newFixedThreadPool(1);
                             exec.submit(                            
-                                new Runnable() {
+                                new Runnable() {                                    
                                     @Override
                                     public void run() {
+                                        try {
                                             List<Place> allPlaces = getPlacesFromSource(
                                                     zipCode, countryCode, categoryOrTerm, null);
                                             placeService.saveIngest(ingest, allPlaces);
+                                        } catch (Exception e) {
+                                            Log.exception(e);
+                                        }
                                     }
                             });
-                            exec.shutdown();
+                            exec.shutdown();                            
                         }
                     }
                 } else {

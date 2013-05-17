@@ -1,7 +1,7 @@
 package com.townwizard.db.util;
 
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Collection utils
@@ -14,7 +14,7 @@ public final class CollectionUtils {
      * Return a comma separated string, 
      * which is the result of concatenation of the list items 
      */
-    public static String join(List<?> list) {
+    public static String join(Collection<?> list) {
         return join(list, null, null);
     }
     
@@ -24,7 +24,7 @@ public final class CollectionUtils {
      * If separator is null, comma is used.
      * If encloser is null, an empty string is used. 
      */
-    public static String join(List<?> list, String separator, String encloser) {        
+    public static String join(Collection<?> list, String separator, String encloser) {        
         if(list == null || list.isEmpty()) return "";
         String sep = separator != null ? separator : ",";
         String enc = encloser != null ? encloser : "";

@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.townwizard.db.constants.Constants;
 import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.DateUtils;
+import com.townwizard.globaldata.dao.LockDao;
 import com.townwizard.globaldata.dao.PlaceDao;
 import com.townwizard.globaldata.model.directory.Ingest;
 import com.townwizard.globaldata.model.directory.Place;
@@ -25,6 +26,8 @@ public final class PlaceServiceImpl implements PlaceService {
     
     @Autowired
     private PlaceDao placeDao;
+    @Autowired
+    private LockDao lockDao;    
     
     @Override
     public PlaceIngest getIngest(String zipCode, String countryCode, String categoryOrTerm) {
@@ -33,9 +36,15 @@ public final class PlaceServiceImpl implements PlaceService {
             return null;
         }
         
+        lockDao.lock();
+        
         PlaceIngest ingest = placeDao.getIngest(zipCode, countryCode, categoryOrTerm);
         
-        if(ingest != null && isIngestInvalid(ingest)) {
+        if(ingest != null && (isIngestInvalid(ingest) || Ingest.Status.N.equals(ingest.getStatus()))) {
+            //normally, the DB ingest status should be never N
+            //the N status is an indicator for the current thread
+            //that ingest has been created by the current thread
+            //if the DB has an ingest with such status, it's an error, and let's reingest it
             placeDao.deleteIngest(ingest);
             ingest = null;
         }
@@ -51,6 +60,8 @@ public final class PlaceServiceImpl implements PlaceService {
     @Override
     public ZipIngest getZipIngest(String zip, String countryCode) {
         if(zip == null || countryCode == null) return null;
+        
+        //lockDao.lock();
         
         ZipIngest ingest = placeDao.getZipIngest(zip, countryCode);
         
