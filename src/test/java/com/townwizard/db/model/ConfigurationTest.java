@@ -36,7 +36,7 @@ public class ConfigurationTest extends TestSupport {
     
     @Test
     public void testConfiguration() {
-        ConfigurationAttribute a = new ConfigurationAttribute("TEST_KEY", "TEST_VALUE");
+        ConfigurationAttribute a = new ConfigurationAttribute("TEST_KEY", "TEST_VALUE", "TEST_DESCRIPTION");
         session.save(a);
         session.flush();
         

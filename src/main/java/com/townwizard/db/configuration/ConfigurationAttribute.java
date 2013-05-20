@@ -16,12 +16,14 @@ public class ConfigurationAttribute {
     private String key;
     @Column(name="`value`")
     private String value;
+    private String description;
     
     public ConfigurationAttribute(){}
     
-    public ConfigurationAttribute(String key, String value) {
+    public ConfigurationAttribute(String key, String value, String description) {
         this.key = key;
         this.value = value;
+        this.description = description;
     }
 
     public Integer getId() {
@@ -41,6 +43,12 @@ public class ConfigurationAttribute {
     }
     public void setValue(String value) {
         this.value = value;
+    }
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

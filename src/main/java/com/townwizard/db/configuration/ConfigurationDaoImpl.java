@@ -10,11 +10,22 @@ public class ConfigurationDaoImpl extends AbstractDaoHibernateImpl implements Co
 
     @Override
     public void save(String key, String value) {
+        ConfigurationKey cKey = ConfigurationKey.byKey(key);
+        String description = null;
+        if(cKey != null) {
+            description = cKey.getDescription();
+        }        
+        save(key, value, description);       
+    }
+    
+    @Override
+    public void save(String key, String value, String description) {
         ConfigurationAttribute a = getAttribute(key);
         if(a == null) {
-            a = new ConfigurationAttribute(key, value);
+            a = new ConfigurationAttribute(key, value, description);
         } else {
             a.setValue(value);
+            a.setDescription(description);
         }
         getSession().save(a);        
     }

@@ -91,7 +91,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             value = configurationDao.get(key.getKey());
             if(value == null) {
                 value = key.getDefaultValue().toString();
-                configurationDao.save(key.getKey(), value);
+                configurationDao.save(key.getKey(), value, key.getDescription());
             }
             configurationCache.put(key.getKey(), value);  
         }
