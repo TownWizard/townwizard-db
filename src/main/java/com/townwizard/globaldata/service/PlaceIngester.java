@@ -288,30 +288,34 @@ public final class PlaceIngester implements ConfigurationListener {
                 
                 if(needPageOnly) {
                     if(places == null) {
+                        boolean error = false;
                         try {
                             places = getPlacesFromSource(zipCode, countryCode, categoryOrTerm, pageNum);
                         } catch (Exception e) {
                             Log.exception(e);
                             places = Collections.emptyList();
+                            error = true;
                         }
                         fromRemoteSource = true;
                         
-                        if(status == PlaceIngest.Status.N) {
-                            ExecutorService exec = Executors.newFixedThreadPool(1);
-                            exec.submit(                            
-                                new Runnable() {                                    
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            List<Place> allPlaces = getPlacesFromSource(
-                                                    zipCode, countryCode, categoryOrTerm, null);
-                                            placeService.saveIngest(ingest, allPlaces);
-                                        } catch (Exception e) {
-                                            Log.exception(e);
+                        if(!error) {
+                            if(status == PlaceIngest.Status.N) {
+                                ExecutorService exec = Executors.newFixedThreadPool(1);
+                                exec.submit(                            
+                                    new Runnable() {                                    
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                List<Place> allPlaces = getPlacesFromSource(
+                                                        zipCode, countryCode, categoryOrTerm, null);
+                                                placeService.saveIngest(ingest, allPlaces);
+                                            } catch (Exception e) {
+                                                Log.exception(e);
+                                            }
                                         }
-                                    }
-                            });
-                            exec.shutdown();                            
+                                });
+                                exec.shutdown();                            
+                            }
                         }
                     }
                 } else {

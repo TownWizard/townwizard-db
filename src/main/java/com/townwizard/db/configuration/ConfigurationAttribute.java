@@ -6,6 +6,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+/**
+ * Hibernate mapped class, representing configuration parameter
+ */
 @Entity
 @Table(name="Configuration")
 public class ConfigurationAttribute {
