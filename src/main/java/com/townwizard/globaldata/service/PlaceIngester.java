@@ -288,8 +288,14 @@ public final class PlaceIngester implements ConfigurationListener {
                 
                 if(needPageOnly) {
                     if(places == null) {
-                        places = getPlacesFromSource(zipCode, countryCode, categoryOrTerm, pageNum);
+                        try {
+                            places = getPlacesFromSource(zipCode, countryCode, categoryOrTerm, pageNum);
+                        } catch (Exception e) {
+                            Log.exception(e);
+                            places = Collections.emptyList();
+                        }
                         fromRemoteSource = true;
+                        
                         if(status == PlaceIngest.Status.N) {
                             ExecutorService exec = Executors.newFixedThreadPool(1);
                             exec.submit(                            
