@@ -65,9 +65,10 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("cat") String mainCategory,
             @QueryParam ("page") Integer pageNum) {
         try {
+            Integer page = (pageNum == null || pageNum <= 0) ? 1 : 0;
             List<Place> places = globalDataService.getPlaces(
                     new Location(zip, DEFAULT_COUNTRY_CODE, location, ip),
-                    categoryOrTerm, mainCategory, pageNum);
+                    categoryOrTerm, mainCategory, page);
             return Response.status(Status.OK).entity(places).build();
         } catch(Exception e) {
             handleGenericException(e);
