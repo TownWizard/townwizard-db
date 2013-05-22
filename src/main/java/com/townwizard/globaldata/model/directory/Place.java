@@ -22,6 +22,7 @@ import javax.persistence.Transient;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import com.townwizard.db.constants.Constants;
+import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.model.DistanceComparable;
 
@@ -258,7 +259,8 @@ public class Place implements DistanceComparable {
     
     @Override
     public String toString() {
-        return "[" + latitude + "," + longitude + "," + zip + "," + countryCode + "] - " + city;
+        //return "[" + latitude + "," + longitude + "," + zip + "," + countryCode + "] - " + city;
+        return name + "(" + CollectionUtils.join(getCategoryNames()) + ")";
     }
 
 }
