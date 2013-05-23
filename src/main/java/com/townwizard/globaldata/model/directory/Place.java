@@ -1,6 +1,7 @@
 package com.townwizard.globaldata.model.directory;
 
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -261,6 +262,17 @@ public class Place implements DistanceComparable {
     public String toString() {
         //return "[" + latitude + "," + longitude + "," + zip + "," + countryCode + "] - " + city;
         return name + "(" + CollectionUtils.join(getCategoryNames()) + ")";
+    }
+    
+    public static class SourceAndExternalIdComparator implements Comparator<Place> {
+        @Override
+        public int compare(Place p1, Place p2) {
+            int sourceComparisonResult = p1.getSource().compareTo(p2.getSource());
+            if(sourceComparisonResult == 0) {
+                return p1.getExternalId().compareTo(p2.getExternalId());
+            }
+            return sourceComparisonResult;
+        }        
     }
 
 }
