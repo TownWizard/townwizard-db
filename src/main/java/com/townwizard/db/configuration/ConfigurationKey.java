@@ -4,7 +4,7 @@ public enum ConfigurationKey {
     
     DIRECTORY_USE_PAGING("DIRECTORY_USE_PAGING", true,
             "Use paging when serving directory listings if yes"),
-    DIRECTORY_PAGE_SIZE("DIRECTORY_PAGE_SIZE", 30,
+    DIRECTORY_PAGE_SIZE("DIRECTORY_PAGE_SIZE", 50,
             "Number of locations in the directory listing when paging is used"),    
     PLACE_INGEST_NUM_HTTP_EXECUTORS("PLACE_INGEST_NUM_HTTP_EXECUTORS", 5,
             "Number of threads executing HTTP requests to directory providers (such as Yellow Pages)"),
