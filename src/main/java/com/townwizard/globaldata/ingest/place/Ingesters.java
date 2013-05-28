@@ -1,10 +1,11 @@
 package com.townwizard.globaldata.ingest.place;
 
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -14,57 +15,226 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.logger.Log;
+import com.townwizard.globaldata.dao.PlaceDao;
+import com.townwizard.globaldata.model.directory.Ingest;
 import com.townwizard.globaldata.model.directory.PlaceCategory;
+import com.townwizard.globaldata.model.directory.ZipIngest;
+import com.townwizard.globaldata.service.PlaceService;
 
 @Component("placeIngesters")
-public final class Ingesters implements Runnable {
+public final class Ingesters {
 
-    private static final String THREAD_NAME_PREFIX = "ingester"; 
+    private static final int HTTP_TASK_BATCH_SIZE = 10;
 
     private static ExecutorService ingestersLoop;
+    private static ExecutorService dbLoop;
     
-    private Map<String, Ingester> ingesters = new HashMap<>();
+    private List<Ingester> ingesters = new CopyOnWriteArrayList<>();
+    private List<Ingester> highPriorityIngesters = new CopyOnWriteArrayList<>();
+    private List<Ingester> processedHighPriorityIngesters = new CopyOnWriteArrayList<>();
+    private int currentIngesterIndex;
 
-    @Autowired
-    private IngestQueue placeIngestQueue;
+    @Autowired private IngestQueue placeIngestQueue;
+    @Autowired private PlaceDao placeDao;
+    @Autowired private PlaceService placeService;
+    @Autowired private IngestHttpExecutors placeIngestHttpExecutors;
 
     @PostConstruct
     public void init() {
-        ingestersLoop = Executors.newFixedThreadPool(1, new NamedThreadFactory(THREAD_NAME_PREFIX));
-        ingestersLoop.submit(this);
+        ingestersLoop = Executors.newFixedThreadPool(1, new NamedThreadFactory("ingesters-loop"));
+        ingestersLoop.submit(new IngestersLoop());
         Log.info("Place ingesters loop started");
+        
+        dbLoop = Executors.newFixedThreadPool(1, new NamedThreadFactory("db-loop"));
+        dbLoop.submit(new DbLoop());
+        Log.info("Place ingest db loop started");
     }
 
-    public void startIngest(String zipCode, String countryCode, List<PlaceCategory> categories) {
-        String key = countryCode + "_" + zipCode;
-        if(!ingesters.containsKey(key)) {
-            ingesters.put(key, IngesterFactory.getIngester(zipCode, countryCode, categories));
+    public void submitIngest(String zipCode, String countryCode, List<PlaceCategory> categories) {
+        if(!ingestInProgress(zipCode, countryCode)) {
+            ingesters.add(createIngester(zipCode, countryCode, categories, null));
         }
     }
     
-    @Override
-    public void run() {
-        while(true) {
-            try {
-                IngestTask task = placeIngestQueue.dequeue();
-                if(task != null) {
-                    String key = task.getCountryCode() + "_" + task.getZipCode();
-                    Ingester ingester = ingesters.get(key);
-                    if(ingester != null) {
-                        ingester.addProcessedIngestTaskResult(task);
+    public void submitHighPriorityIngest(String zipCode, String countryCode, String categoryOrTerm, 
+            List<PlaceCategory> categories) {
+        if(!hightPriorityInProgress(zipCode, countryCode, categoryOrTerm)) {
+            highPriorityIngesters.add(createIngester(zipCode, countryCode, categories, categoryOrTerm));
+        }
+    }
+    
+    private Ingester getNextIngester() {
+        if(!ingesters.isEmpty()) {
+            if(++currentIngesterIndex >= ingesters.size()) {
+                currentIngesterIndex = 0;
+            }
+            return ingesters.get(currentIngesterIndex);
+        }
+        return null;
+    }
+        
+    private final class IngestersLoop implements Runnable {
+        @Override
+        public void run() {
+            while(true) {
+                if(Thread.interrupted()) return;
+                try {
+                    boolean doneSomeWork = false;
+                    if(!highPriorityIngesters.isEmpty()) {
+                        for(Ingester ingester : highPriorityIngesters) {
+                            placeIngestQueue.addHttpTask(
+                                    new IngestTask(ingester.getZipCode(), ingester.getCountryCode(),
+                                            ingester.getNextCategory(), true, null));
+                        }
+                        processedHighPriorityIngesters.addAll(highPriorityIngesters);
+                        highPriorityIngesters.clear();
+                        doneSomeWork = true;
                     }
-                } else {
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException ie) {
-                        Log.info("Exiting place ingesters loop...");
-                        return;
+                    
+                    if(!processedHighPriorityIngesters.isEmpty()) {
+                        for(Ingester ingester : processedHighPriorityIngesters) {
+                            if(ingester.allDone()) {
+                                processedHighPriorityIngesters.remove(ingester);
+                                doneSomeWork = true;
+                            }
+                        }
                     }
+                    
+                    if(placeIngestQueue.submittedHttpTasks() < HTTP_TASK_BATCH_SIZE) {
+                        int k = 0;
+                        while(k++ < HTTP_TASK_BATCH_SIZE) {
+                            Ingester i = getNextIngester();
+                            if(i != null) {
+                                if(i.hasNextCategory()) {
+                                    String next = i.getNextCategory();
+                                    placeIngestQueue.addHttpTask(
+                                            new IngestTask(i.getZipCode(), i.getCountryCode(), next, false, null));
+                                    doneSomeWork = true;
+                                }
+                            }
+                        }
+                    }
+                    
+                    for(Ingester ingester : ingesters) {
+                        if(ingester.allDone()) {
+                            ZipIngest zipIngest = placeService.getZipIngest(
+                                    ingester.getZipCode(), ingester.getCountryCode());
+                            zipIngest.setStatus(Ingest.Status.R);
+                            zipIngest.setFinished(new Date());
+                            placeService.updateZipIngest(zipIngest);
+                            Log.info("Finished place ingest for zip: (" + 
+                                    ingester.getZipCode() + ", " + ingester.getCountryCode() + ")");
+                            ingesters.remove(ingester);
+                            doneSomeWork = true;
+                        }
+                    }
+                    
+                    if(!doneSomeWork){
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException ie) {
+                            Log.info("Exiting place ingesters loop...");
+                            return;
+                        }                    
+                    }
+                } catch (Exception e) {
+                    Log.exception(e);
                 }
-            } catch (Exception e) {
-                Log.exception(e);
             }
         }
     }
     
+    private final class DbLoop implements Runnable {
+        @Override
+        public void run() {
+            while(true) {
+                if(Thread.interrupted()) return;
+                try {
+                    IngestTask task = placeIngestQueue.getDbTask();
+                    if(task != null) {                        
+                        Ingester ingester = findIngester(task);
+                        ingester.ingest(task);
+                    } else {
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException ie) {
+                            Log.info("Exiting place db loop...");
+                            return;
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.exception(e);
+                }
+            }
+        }
+    }
+    
+    public static void shutdownThreads() {
+        if(ingestersLoop != null) {        
+            Log.info("About to shutdown place ingesters loop ...");
+            ingestersLoop.shutdownNow();
+            try {
+                if(!ingestersLoop.awaitTermination(30, TimeUnit.SECONDS)) {
+                    Log.warning("Cannot terminate place ingesters loop");
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }            
+        }
+        if(dbLoop != null) {
+            Log.info("About to shutdown place ingest db loop ...");
+            dbLoop.shutdownNow();
+            try {
+                if(!dbLoop.awaitTermination(30, TimeUnit.SECONDS)) {
+                    Log.warning("Cannot terminate place ingest db loop");
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }            
+        }
+    }
+    
+    private Ingester findIngester(IngestTask task) {
+        Ingester result = null;
+        if(task.isHighPriority()) {
+            for(Ingester i : highPriorityIngesters) {
+                if(i.getZipCode().equals(task.getZipCode()) && 
+                   i.getCountryCode().equals(task.getCountryCode()) &&
+                   i.getNextCategory().equals(task.getCategory())) {
+                    result = i;
+                    break;
+                }
+            }            
+            for(Ingester i : processedHighPriorityIngesters) {
+                if(i.getZipCode().equals(task.getZipCode()) && 
+                   i.getCountryCode().equals(task.getCountryCode()) &&
+                   i.getNextCategory().equals(task.getCategory())) {
+                    result = i;
+                    break;
+                }
+            }
+        } else {
+            for(Ingester i : ingesters) {
+                if(i.getZipCode().equals(task.getZipCode()) &&
+                   i.getCountryCode().equals(task.getCountryCode())) {
+                    result = i;
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+    
+    private boolean ingestInProgress(String zipCode, String countryCode) {
+        return findIngester(new IngestTask(zipCode, countryCode, null, false, null)) != null;
+    }
+    
+    private boolean hightPriorityInProgress(String zipCode, String countryCode, String categoryOrTerm) {
+        return findIngester(new IngestTask(zipCode, countryCode, categoryOrTerm, true, null)) != null;
+    }    
+    
+    private Ingester createIngester(String zipCode, String countryCode, List<PlaceCategory> categories,
+            String categoryOrTerm) {
+        return new JdbcIngester(zipCode, countryCode, categories, categoryOrTerm, placeDao);
+    }
 }

@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import net.sf.ehcache.util.NamedThreadFactory;
 
@@ -52,7 +54,7 @@ public class YellowPagesServiceImpl implements YellowPagesService {
      * Executes one HTTP request to get locations
      */
     @Override
-    public List<Place> getPlaces(String zip, String term) {
+    public List<Place> getPlaces(String zip, String term) throws Exception {
         List<Place> finalResult = new ArrayList<>();
         Exception ex = null;
         
@@ -72,25 +74,27 @@ public class YellowPagesServiceImpl implements YellowPagesService {
                 }
                 
                 return finalResult;
-            } catch (Exception e) {
+            } catch (TimeoutException e) {
                 Log.warning("Exception happend while getting YP places for zip " + zip + 
                         " and term '" + term + "' " + "on attempt " + attempt);
                 ex = e;
+            } catch (Exception e) {
+                throw e;
             }
         }
-        
+
         Log.warning("Could not get YP places for zip " + zip + " and term '" + term + "'");
         throw new RuntimeException(ex);
     }
     
     private List<Place> getPagesOfPlaces(final String zip, final double distanceInMiles, final String term,
             final int index) 
-        throws Exception {
+        throws TimeoutException, ExecutionException, InterruptedException {
 
         ExecutorService httpExecutors = Executors.newFixedThreadPool(
                 NUM_THREADS, new NamedThreadFactory("yp-http-executor"));
+        
         class Executor implements Callable<List<Place>> {
-            
             private int pageNum;
             Executor(int pageNum){
                 this.pageNum = pageNum;

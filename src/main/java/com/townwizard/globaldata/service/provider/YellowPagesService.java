@@ -12,7 +12,7 @@ public interface YellowPagesService {
     /**
      * Get Yellow Pages places by search term and zip
      */
-    List<Place> getPlaces(String zip, String term);
+    List<Place> getPlaces(String zip, String term) throws Exception;
     
     /**
      * Get only one page of places.

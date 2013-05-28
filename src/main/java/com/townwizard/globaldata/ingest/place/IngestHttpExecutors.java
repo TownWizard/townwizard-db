@@ -3,6 +3,7 @@ package com.townwizard.globaldata.ingest.place;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -19,7 +20,7 @@ import com.townwizard.globaldata.model.directory.Place;
 import com.townwizard.globaldata.service.provider.YellowPagesService;
 
 @Component("placeIngestHttpExecutors")
-public class IngestHttpExecutors implements ConfigurationListener {
+public class IngestHttpExecutors implements Runnable, ConfigurationListener {
     
     private static final String THREAD_NAME_PREFIX = "http-executor"; 
     
@@ -31,27 +32,48 @@ public class IngestHttpExecutors implements ConfigurationListener {
     private static boolean stoppedFlag = false;
     private static boolean shutdownFlag = false;
     
-    public void submit(final String zipCode, final String countryCode, final String category) {
-        httpExecutors.submit(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        if(stoppedFlag || shutdownFlag) return;
-                        try {
-                            List<Place> places = getPlacesFromSource(zipCode, countryCode, category);
-                            placeIngestQueue.enqueue(new IngestTask(zipCode, countryCode, category, places));
-                        } catch(Exception e) {
-                            Log.exception(e);
-                        }
+    @Override
+    public void run() {        
+        while (true) {
+            if(stoppedFlag || shutdownFlag) return;
+            IngestTask task = null;
+            try {
+                task = placeIngestQueue.getHighPriorityHttpTask();
+                if(task == null) {
+                    task = placeIngestQueue.getHttpTask();
+                }
+                if(task != null) {
+                    List<Place> places = getPlacesFromSource(
+                            task.getZipCode(), task.getCountryCode(), task.getCategory());
+                    placeIngestQueue.addDbTask(
+                            new IngestTask(task.getZipCode(), task.getCountryCode(), task.getCategory(),
+                                    task.isHighPriority(), places));                    
+                } else {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ie) {
+                        Log.info("Exiting http executor " + Thread.currentThread().getName());
+                        return;
                     }
-                });
+                }
+            } catch (Exception e) {
+                if(task != null) {
+                    placeIngestQueue.addHttpTask(task);
+                }
+                if(e instanceof InterruptedException) {
+                    Log.info("Exiting http executor " + Thread.currentThread().getName());
+                    return;
+                }
+                Log.exception(e);
+            }
+        }
     }
     
     @PostConstruct
     public void init() {
-        httpExecutors = Executors.newFixedThreadPool(
-                configurationService.getIntValue(ConfigurationKey.PLACE_INGEST_NUM_HTTP_EXECUTORS),
-                new NamedThreadFactory(THREAD_NAME_PREFIX));        
+        int numExecutors = configurationService.getIntValue(ConfigurationKey.PLACE_INGEST_NUM_HTTP_EXECUTORS); 
+        httpExecutors = Executors.newFixedThreadPool(numExecutors, new NamedThreadFactory(THREAD_NAME_PREFIX));
+        for(int i = 0; i < numExecutors; i++) httpExecutors.submit(this);
         configurationService.addConfigurationListener(this);
         Log.info("Place ingest http executors service started");
     }
@@ -70,20 +92,44 @@ public class IngestHttpExecutors implements ConfigurationListener {
     public void configurationChanged(ConfigurationKey key) {
         if(key == ConfigurationKey.PLACE_INGEST_NUM_HTTP_EXECUTORS) {
             synchronized (httpExecutors) {
-                List<Runnable> awaitingTasks = httpExecutors.shutdownNow();                
-                httpExecutors = Executors.newFixedThreadPool(
-                        configurationService.getIntValue(key),
-                        new NamedThreadFactory(THREAD_NAME_PREFIX));
-                for(Runnable task : awaitingTasks) {
-                    httpExecutors.submit(task);
+                httpExecutors.shutdownNow();
+                try {
+                    if(!httpExecutors.awaitTermination(30, TimeUnit.SECONDS)) {
+                        Log.warning("Cannot terminate http executors...");
+                        return;
+                    }
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
                 }
+
+                int numExecutors = configurationService.getIntValue(key); 
+                httpExecutors = Executors.newFixedThreadPool(
+                        numExecutors, new NamedThreadFactory(THREAD_NAME_PREFIX));
+                for(int i = 0; i < numExecutors; i++) httpExecutors.submit(this);
+                Log.info("Place ingest http executors pool size changed to: " + numExecutors);
             }
         } else if(key == ConfigurationKey.PLACE_INGEST_STOPPED) {
-            stoppedFlag = true;
+            stoppedFlag = configurationService.getBooleanValue(ConfigurationKey.PLACE_INGEST_STOPPED);
         }
     }
     
-    private List<Place> getPlacesFromSource(String zipCode, String countryCode, String category) {
+    public static void shutdownThreads() {
+        if(httpExecutors != null) {
+            Log.info("About to shutdown place ingest http executors...");
+            httpExecutors.shutdownNow();
+            
+            try {
+                if(!httpExecutors.awaitTermination(30, TimeUnit.SECONDS)) {
+                    Log.warning("Cannot terminate http executors...");
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+    
+    private List<Place> getPlacesFromSource(String zipCode, String countryCode, String category) 
+            throws Exception {
         List<Place> places = yellowPagesService.getPlaces(zipCode, category);
         for(Place p : places) p.setCountryCode(countryCode);
         return places;
