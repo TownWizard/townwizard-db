@@ -34,8 +34,6 @@ public final class PlaceIngester implements ConfigurationListener {
     }
     private static boolean stoppedFlag = false;
 
-
-
     private final ConfigurationKey[] keysOfInterest = {        
             ConfigurationKey.PLACE_INGEST_STOPPED
     };
@@ -65,8 +63,6 @@ public final class PlaceIngester implements ConfigurationListener {
         
         List<PlaceCategory> categories = placeService.getAllPlaceCategories();
         
-        //Collections.reverse(categories);
-        //categories = categories.subList(0, 500);
         placeIngesters.submitIngest(zipCode, countryCode, categories);
     }
     
@@ -117,7 +113,8 @@ public final class PlaceIngester implements ConfigurationListener {
                         fromRemoteSource = true;
                     }
                     if(status == PlaceIngest.Status.N) {
-                        placeService.saveIngest(ingest, places);
+                        placeIngesters.submitHighPriorityIngest(zipCode, countryCode,
+                                categoryOrTerm, placeService.getAllPlaceCategories());
                     }
                 }
             } else {
