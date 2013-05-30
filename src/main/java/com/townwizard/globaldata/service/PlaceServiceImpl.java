@@ -54,18 +54,21 @@ public final class PlaceServiceImpl implements PlaceService {
         
         ZipIngest ingest = placeDao.getZipIngest(zip, countryCode);
         
-        if(ingest != null && isZipIngestInvalid(ingest)) {
-            if(ingest.getStatus() == Ingest.Status.R) {
+        if(ingest != null) {
+            if(isZipIngestInvalid(ingest)) {                
+                placeDao.delete(ingest);
+                ingest = null;
+            } else if(isZipIngestExpired(ingest)) {
                 Log.info("About to delete zip ingest for " + ingest.getZip() + 
                         ". Ingest create time: " + ingest.getStarted());
                 long start = System.currentTimeMillis();
                 placeDao.deleteZipIngest(ingest);
                 long end = System.currentTimeMillis();
                 Log.info("Deleted zip ingest for " + ingest.getZip() + " in " + (end - start) + " ms");
+                ingest = null;                
             }
-            ingest = null;
         }
-        
+
         if(ingest == null) {
             ingest = createZipIngest(zip, countryCode);
         }
@@ -130,16 +133,21 @@ public final class PlaceServiceImpl implements PlaceService {
     }
     
     /*
-     * Zip ingest is invalid if:
-     * 1) It's in progress for longer than 3 days
-     * 2) It's ready but was created long ago
+     * Invalid if in progress longer than a day
      */
     private boolean isZipIngestInvalid(ZipIngest ingest) {
-        Ingest.Status status = ingest.getStatus();
-        return status == Ingest.Status.I &&
-                DateUtils.addDays(ingest.getStarted(), 1).before(new Date()) ||
-                status == Ingest.Status.R &&
-                DateUtils.addDays(ingest.getStarted(), Constants.REFRESH_PLACE_INGEST_PERIOD_IN_DAYS).before(new Date()); 
+        return ingest.getStatus() == Ingest.Status.I && 
+               DateUtils.addDays(ingest.getStarted(), 1).before(new Date());
+    }
+    
+    /*
+     * Expired if finished long ago
+     */
+    private boolean isZipIngestExpired(ZipIngest ingest) {        
+        return ingest.getStatus() == Ingest.Status.R && 
+               DateUtils.addDays(ingest.getStarted(), 
+                       Constants.REFRESH_PLACE_INGEST_PERIOD_IN_DAYS).before(new Date()); 
+
     }
     
     private ZipIngest createZipIngest(String zipCode, String countryCode) {        
