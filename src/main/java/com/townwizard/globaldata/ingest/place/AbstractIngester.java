@@ -103,17 +103,18 @@ public abstract class AbstractIngester implements Ingester {
             
             if(highPriorityIngest) {
                 highPriorityIngestDone = true;
-                Log.debug("Ingested category '" + task.getCategory() + "' for zip " + task.getZipCode());
+                if(Log.isDebugEnabled()) {
+                    Log.debug("Ingested category '" + task.getCategory() + "' for zip " + task.getZipCode());
+                }
             } else {
                 processedCategories.add(task.getCategory());
-                /*
-                if(Log.isDebugEnabled()) {
-                    Log.debug("Zip " + task.getZipCode() + ": " + 
-                        (categoryNameToCategory.size() - processedCategories.size()) + 
-                        " categories left after ingesting " + task.getPlaces().size() + 
-                        " places for '" + task.getCategory() + "'");
+                int processed = processedCategories.size(); 
+                if(processed % 10 == 0) {
+                    if(Log.isDebugEnabled()) {                        
+                        Log.debug("Processed " + processed + " categories out of " +
+                                categoryNameToCategory.size() +  " for zip " + task.getZipCode()); 
+                    }
                 }
-                */
             }
         } catch (Exception e) {
             Log.exception(e);
