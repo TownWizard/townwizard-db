@@ -117,7 +117,7 @@ public abstract class AbstractIngester implements Ingester {
             }
         } catch (Exception e) {
             Log.exception(e);
-            onError();
+            onError(e, task);
         } finally {
             afterIngest();
         }
@@ -131,7 +131,7 @@ public abstract class AbstractIngester implements Ingester {
     protected abstract void markIngestReady(PlaceIngest ingest);
     protected abstract void beforeIngest();
     protected abstract void afterIngest();
-    protected abstract void onError();
+    protected abstract void onError(Exception e, IngestTask task);
     
     private  PlaceIngest createIngest(IngestTask task) {
         PlaceIngest ingest = new PlaceIngest();

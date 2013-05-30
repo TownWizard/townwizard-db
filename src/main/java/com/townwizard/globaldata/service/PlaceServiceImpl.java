@@ -55,11 +55,14 @@ public final class PlaceServiceImpl implements PlaceService {
         ZipIngest ingest = placeDao.getZipIngest(zip, countryCode);
         
         if(ingest != null && isZipIngestInvalid(ingest)) {
-            Log.info("About to delete zip ingest for " + ingest.getZip());
-            long start = System.currentTimeMillis();
-            placeDao.deleteZipIngest(ingest);
-            long end = System.currentTimeMillis();
-            Log.info("Deleted zip ingest for " + ingest.getZip() + " in " + (end - start) + " ms");
+            if(ingest.getStatus() == Ingest.Status.R) {
+                Log.info("About to delete zip ingest for " + ingest.getZip() + 
+                        ". Ingest create time: " + ingest.getStarted());
+                long start = System.currentTimeMillis();
+                placeDao.deleteZipIngest(ingest);
+                long end = System.currentTimeMillis();
+                Log.info("Deleted zip ingest for " + ingest.getZip() + " in " + (end - start) + " ms");
+            }
             ingest = null;
         }
         
@@ -134,7 +137,7 @@ public final class PlaceServiceImpl implements PlaceService {
     private boolean isZipIngestInvalid(ZipIngest ingest) {
         Ingest.Status status = ingest.getStatus();
         return status == Ingest.Status.I &&
-                DateUtils.addDays(ingest.getStarted(), 3).before(new Date()) ||
+                DateUtils.addDays(ingest.getStarted(), 1).before(new Date()) ||
                 status == Ingest.Status.R &&
                 DateUtils.addDays(ingest.getStarted(), Constants.REFRESH_PLACE_INGEST_PERIOD_IN_DAYS).before(new Date()); 
     }

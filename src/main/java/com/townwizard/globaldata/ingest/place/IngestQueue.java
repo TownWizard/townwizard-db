@@ -59,6 +59,11 @@ public final class IngestQueue {
         return httpExecutorsQueue.size();
     }
     
+    public void clear() {
+        httpExecutorsQueue.clear();
+        dbIngestQueue.clear();
+    }
+    
     @PostConstruct
     public void init() {
         queueMonitor = Executors.newFixedThreadPool(1, new NamedThreadFactory("queue-monitor"));

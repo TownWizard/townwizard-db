@@ -110,7 +110,10 @@ public final class Ingesters implements ConfigurationListener {
         public void run() {
             while(true) {
                 if(Thread.interrupted()) return;
-                if(stoppedFlag) ingesters.clear();
+                if(stoppedFlag) {                    
+                    ingesters.clear();
+                    placeIngestQueue.clear();
+                }
                 try {
                     boolean doneSomeWork = false;
                     if(!highPriorityIngesters.isEmpty()) {
@@ -186,7 +189,9 @@ public final class Ingesters implements ConfigurationListener {
                     IngestTask task = placeIngestQueue.getDbTask();
                     if(task != null) {                        
                         Ingester ingester = findIngester(task);
-                        ingester.ingest(task);
+                        if(ingester != null) {
+                            ingester.ingest(task);
+                        }
                     } else {
                         try {
                             Thread.sleep(500);

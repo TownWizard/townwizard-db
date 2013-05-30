@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 import com.townwizard.db.dao.AbstractDao;
 import com.townwizard.db.dao.AbstractDaoHibernateImpl;
@@ -191,28 +190,21 @@ public class JdbcIngester extends AbstractIngester {
     protected void beforeIngest() {
         if(session == null || !session.isOpen()) {
             session = ((AbstractDaoHibernateImpl)dao).getSessionFactory().openSession();
-            session.beginTransaction();
         }
     }
     
     @Override
     protected void afterIngest() {
         if(session != null) {
-            Transaction t = session.getTransaction();
-            if(!t.wasRolledBack()) {
-                t.commit();
-            }
             session.close();
         }
     }
     
     @Override
-    protected void onError() {
-        if(session != null) {
-            session.getTransaction().rollback();
-        }
+    protected void onError(Exception e, IngestTask task) {
+        Log.error("Error processing ingest for (" + 
+                task.getZipCode() + ", " + task.getCategory() + ") :" + e.getMessage());
     }
-
     
     private StringBuilder appendString(StringBuilder sb, String s) {
         return sb.append("'").append(s).append("'");
