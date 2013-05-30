@@ -18,13 +18,7 @@
     <property name="user" value="${jdbc.username}"></property>
     <property name="password" value="${jdbc.password}"></property>
     
-    <!-- c3p0- properties -->
-    <!--  
-    <property name="acquireIncrement" value="1" />
-    <property name="minPoolSize" value="5" />
-    <property name="maxPoolSize" value="20" />
-    <property name="maxIdleTime" value="25" />
-     -->
+    <!-- non-default c3p0 properties should go below this line -->
   </bean>
 
   <bean id="directorySessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
