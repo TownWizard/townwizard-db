@@ -7,7 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.townwizard.db.logger.Log;
@@ -19,26 +18,27 @@ public abstract class AbstractIngester implements Ingester {
     
     private String zipCode;
     private String countryCode;
-    private Map<String, PlaceCategory> categoryNameToCategory;
-    private LinkedList<String> submittionList;
-    private SortedSet<String> processedCategories;
     private String categoryOrTerm;
     private boolean highPriorityIngest;
     private boolean highPriorityIngestDone;
-
+    private Map<String, PlaceCategory> categoryNameToCategory;
+    private LinkedList<String> submittionList;
+    private Set<String> processedCategories;
+    
     public AbstractIngester(
             String zipCode, String countryCode, List<PlaceCategory> categories, String categoryOrTerm) {
         this.zipCode = zipCode;
         this.countryCode = countryCode;
         this.categoryOrTerm = categoryOrTerm;
         highPriorityIngest = categoryOrTerm != null;
+    
         categoryNameToCategory = new HashMap<>();
-        submittionList = new LinkedList<>();
-        processedCategories = new TreeSet<>();        
         for(PlaceCategory c : categories) {
             categoryNameToCategory.put(c.getName(), c);
-            submittionList.add(c.getName());            
         }
+        submittionList = new LinkedList<>();
+        submittionList.addAll(categoryNameToCategory.keySet());
+        processedCategories = new HashSet<>();        
     }
     
     @Override
@@ -72,47 +72,53 @@ public abstract class AbstractIngester implements Ingester {
     @Override
     public void ingest(IngestTask task) {
         try {
-            beforeIngest();
-            PlaceIngest ingest = createIngest(task);
-            markIngestInProgress(ingest);
-            
-            mergePlaces(task.getPlaces());
-            
-            mapPlacesToIngest(ingest);
-            
-            Map<PlaceCategory, Set<Place>> categoryToPlaces = new HashMap<>();
+            //go through places category names and
+            //1) collect new categories
+            //2) create a map of categories (including new ones) to places
+            Map<String, Set<Place>> categoryToPlaces = new HashMap<>();
             Set<String> newCategories = new HashSet<>();
-            
             for(Place p : task.getPlaces()) {
                 for(String cName : p.extractCategoryNames()) {
-                    PlaceCategory c = categoryNameToCategory.get(cName);
-                    if(c != null) {
-                        Set<Place> categoryPlaces = categoryToPlaces.get(c);
-                        if(categoryPlaces == null) {
-                            categoryPlaces = new TreeSet<>(new Place.SourceAndExternalIdComparator());
-                            categoryToPlaces.put(c, categoryPlaces);
-                        }
-                        categoryPlaces.add(p);
-                    } else {
+                    if(!categoryNameToCategory.containsKey(cName)) {
                         newCategories.add(cName);
                     }
+                    Set<Place> categoryPlaces = categoryToPlaces.get(cName);
+                    if(categoryPlaces == null) {
+                        categoryPlaces = new TreeSet<>(new Place.SourceAndExternalIdComparator());
+                        categoryToPlaces.put(cName, categoryPlaces);
+                        }
+                    categoryPlaces.add(p);
                 }
             }
-            mapPlacesToCategories(categoryToPlaces);
+
+            beforeIngest();
+            PlaceIngest ingest = createIngest(task);
+            
+            markIngestInProgress(ingest);            
+            mergePlaces(task.getPlaces());            
+            mapPlacesToIngest(ingest);
             addNewCategories(newCategories);
-            markIngestReady(ingest);            
-        } finally {
+            mapPlacesToCategories(categoryToPlaces);
+            markIngestReady(ingest);
+            
             if(highPriorityIngest) {
                 highPriorityIngestDone = true;
                 Log.debug("Ingested category '" + task.getCategory() + "' for zip " + task.getZipCode());
             } else {
                 processedCategories.add(task.getCategory());
+                /*
                 if(Log.isDebugEnabled()) {
                     Log.debug("Zip " + task.getZipCode() + ": " + 
                         (categoryNameToCategory.size() - processedCategories.size()) + 
-                        " categories left after processing '" + task.getCategory() + "'");
+                        " categories left after ingesting " + task.getPlaces().size() + 
+                        " places for '" + task.getCategory() + "'");
                 }
+                */
             }
+        } catch (Exception e) {
+            Log.exception(e);
+            onError();
+        } finally {
             afterIngest();
         }
     }
@@ -120,11 +126,12 @@ public abstract class AbstractIngester implements Ingester {
     protected abstract void markIngestInProgress(PlaceIngest ingest);
     protected abstract void mergePlaces(Collection<Place> places);
     protected abstract void mapPlacesToIngest(PlaceIngest ingest);
-    protected abstract void mapPlacesToCategories(Map<PlaceCategory, Set<Place>> categoryToPlaces);
+    protected abstract void mapPlacesToCategories(Map<String, Set<Place>> categoryToPlaces);
     protected abstract void addNewCategories(Set<String> newCategoryNames);
     protected abstract void markIngestReady(PlaceIngest ingest);
     protected abstract void beforeIngest();
     protected abstract void afterIngest();
+    protected abstract void onError();
     
     private  PlaceIngest createIngest(IngestTask task) {
         PlaceIngest ingest = new PlaceIngest();

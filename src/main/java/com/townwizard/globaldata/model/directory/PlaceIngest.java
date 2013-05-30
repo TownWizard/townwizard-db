@@ -77,5 +77,11 @@ public class PlaceIngest extends Ingest {
         }
         places.add(l);
     }
+    
+    @Override
+    public String toString() {
+        String category = (term == null) ? getPlaceCategory().getName() : term; 
+        return "(zip: " + getZip() + ", category " + category + ")";                
+    }
 
 }

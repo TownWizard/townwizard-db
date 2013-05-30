@@ -14,6 +14,9 @@ import net.sf.ehcache.util.NamedThreadFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.townwizard.db.configuration.ConfigurationKey;
+import com.townwizard.db.configuration.ConfigurationListener;
+import com.townwizard.db.configuration.ConfigurationService;
 import com.townwizard.db.logger.Log;
 import com.townwizard.globaldata.dao.PlaceDao;
 import com.townwizard.globaldata.model.directory.Ingest;
@@ -22,13 +25,14 @@ import com.townwizard.globaldata.model.directory.ZipIngest;
 import com.townwizard.globaldata.service.PlaceService;
 
 @Component("placeIngesters")
-public final class Ingesters {
+public final class Ingesters implements ConfigurationListener {
 
     private static final int HTTP_TASK_BATCH_SIZE = 10;
 
     private static ExecutorService ingestersLoop;
     private static ExecutorService dbLoop;
-    
+    private static boolean stoppedFlag = false;
+   
     private List<Ingester> ingesters = new CopyOnWriteArrayList<>();
     private List<Ingester> highPriorityIngesters = new CopyOnWriteArrayList<>();
     private List<Ingester> processedHighPriorityIngesters = new CopyOnWriteArrayList<>();
@@ -38,6 +42,7 @@ public final class Ingesters {
     @Autowired private PlaceDao placeDao;
     @Autowired private PlaceService placeService;
     @Autowired private IngestHttpExecutors placeIngestHttpExecutors;
+    @Autowired private ConfigurationService configurationService;
 
     @PostConstruct
     public void init() {
@@ -48,11 +53,26 @@ public final class Ingesters {
         dbLoop = Executors.newFixedThreadPool(1, new NamedThreadFactory("db-loop"));
         dbLoop.submit(new DbLoop());
         Log.info("Place ingest db loop started");
+        
+        configurationService.addConfigurationListener(this);
     }
 
-    public void submitIngest(String zipCode, String countryCode, List<PlaceCategory> categories) {
+    public void submitIngest(String zipCode, String countryCode) {
+        if(stoppedFlag) return;
+        
+        ZipIngest ingest = placeService.getZipIngest(zipCode, countryCode);
+        if(ingest == null || ingest.getStatus() != ZipIngest.Status.N) return;
+        
+        if(Log.isInfoEnabled()) {
+            Log.info("Starting ingest for zip: " + zipCode);
+        }
+        
+        List<PlaceCategory> categories = placeService.getAllPlaceCategories();        
+        
         if(!ingestInProgress(zipCode, countryCode)) {
             ingesters.add(createIngester(zipCode, countryCode, categories, null));
+        } else {
+            Log.warning("Rejected intester for zip: (" + zipCode + ", " + countryCode + ")");
         }
     }
     
@@ -62,6 +82,18 @@ public final class Ingesters {
             highPriorityIngesters.add(createIngester(zipCode, countryCode, categories, categoryOrTerm));
         }
     }
+    
+    @Override
+    public ConfigurationKey[] keysOfInterest() {
+        return new ConfigurationKey[] {ConfigurationKey.PLACE_INGEST_STOPPED};        
+    }
+
+    @Override
+    public void configurationChanged(ConfigurationKey key) {
+        if(key == ConfigurationKey.PLACE_INGEST_STOPPED) {
+            stoppedFlag = configurationService.getBooleanValue(ConfigurationKey.PLACE_INGEST_STOPPED);
+        }
+    }     
     
     private Ingester getNextIngester() {
         if(!ingesters.isEmpty()) {
@@ -78,6 +110,7 @@ public final class Ingesters {
         public void run() {
             while(true) {
                 if(Thread.interrupted()) return;
+                if(stoppedFlag) ingesters.clear();
                 try {
                     boolean doneSomeWork = false;
                     if(!highPriorityIngesters.isEmpty()) {

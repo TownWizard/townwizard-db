@@ -36,6 +36,8 @@ public class IngestHttpExecutors implements Runnable, ConfigurationListener {
     public void run() {        
         while (true) {
             if(stoppedFlag || shutdownFlag) return;
+            if(Thread.interrupted()) return;
+            
             IngestTask task = null;
             try {
                 task = placeIngestQueue.getHighPriorityHttpTask();
@@ -94,8 +96,8 @@ public class IngestHttpExecutors implements Runnable, ConfigurationListener {
             synchronized (httpExecutors) {
                 httpExecutors.shutdownNow();
                 try {
-                    if(!httpExecutors.awaitTermination(30, TimeUnit.SECONDS)) {
-                        Log.warning("Cannot terminate http executors...");
+                    if(!httpExecutors.awaitTermination(120, TimeUnit.SECONDS)) {
+                        Log.warning("////////////////// Cannot terminate http executors...");
                         return;
                     }
                 } catch (InterruptedException ex) {

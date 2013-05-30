@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import com.townwizard.db.dao.AbstractDao;
 import com.townwizard.db.dao.AbstractDaoHibernateImpl;
@@ -126,28 +127,6 @@ public class JdbcIngester extends AbstractIngester {
     }
     
     @Override
-    protected void mapPlacesToCategories(Map<PlaceCategory, Set<Place>> categoryToPlaces) {
-        //INSERT INTO Location_Category (location_id, category_id)
-        //VALUES ((SELECT id FROM Location WHERE external_id = '123456' AND source = 1), 1)
-        //ON DUPLICATE KEY UPDATE category_id = 1
-        
-        for(Map.Entry<PlaceCategory, Set<Place>> e : categoryToPlaces.entrySet()) {
-            PlaceCategory c = e.getKey();
-            for(Place p : e.getValue()) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("INSERT INTO Location_Category (location_id, category_id) ");
-                sb.append("VALUES (");
-                sb.append("(SELECT id FROM Location WHERE external_id = ");
-                appendString(sb, p.getExternalId()).append(" AND source = ").append(p.getSource().getId()).append("), ");
-                sb.append(c.getId());
-                sb.append(") ");
-                sb.append("ON DUPLICATE KEY UPDATE id = id");
-                executeSQL(sb.toString());
-            }
-        }
-    }
-    
-    @Override
     protected void addNewCategories(Set<String> newCategoryNames) {
         //INSERT INTO Category (name) VALUES ('pizza') ON DUPLICATE KEY UPDATE id = id
         
@@ -159,6 +138,30 @@ public class JdbcIngester extends AbstractIngester {
             sb.append(") ");
             sb.append("ON DUPLICATE KEY UPDATE id = id");
             executeSQL(sb.toString());
+        }
+    }
+    
+    @Override
+    protected void mapPlacesToCategories(Map<String, Set<Place>> categoryToPlaces) {
+        //INSERT INTO Location_Category (location_id, category_id)
+        //VALUES ((SELECT id FROM Location WHERE external_id = '123456' AND source = 1), 
+        //        (SELECT id FROM Category WHERE name = 'Pizza'))
+        //ON DUPLICATE KEY UPDATE category_id = 1
+        
+        for(Map.Entry<String, Set<Place>> e : categoryToPlaces.entrySet()) {
+            String c = e.getKey();
+            for(Place p : e.getValue()) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("INSERT INTO Location_Category (location_id, category_id) ");
+                sb.append("VALUES (");
+                sb.append("(SELECT id FROM Location WHERE external_id = ");
+                appendString(sb, p.getExternalId()).append(" AND source = ").append(p.getSource().getId()).append("), ");
+                sb.append("(SELECT id FROM Category WHERE name = ");
+                appendEscapedString(sb, c).append(")");
+                sb.append(") ");
+                sb.append("ON DUPLICATE KEY UPDATE id = id");
+                executeSQL(sb.toString());
+            }
         }
     }
     
@@ -188,13 +191,25 @@ public class JdbcIngester extends AbstractIngester {
     protected void beforeIngest() {
         if(session == null || !session.isOpen()) {
             session = ((AbstractDaoHibernateImpl)dao).getSessionFactory().openSession();
+            session.beginTransaction();
         }
     }
     
     @Override
     protected void afterIngest() {
         if(session != null) {
+            Transaction t = session.getTransaction();
+            if(!t.wasRolledBack()) {
+                t.commit();
+            }
             session.close();
+        }
+    }
+    
+    @Override
+    protected void onError() {
+        if(session != null) {
+            session.getTransaction().rollback();
         }
     }
 

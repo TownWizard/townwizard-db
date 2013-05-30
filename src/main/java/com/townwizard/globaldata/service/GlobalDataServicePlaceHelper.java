@@ -15,6 +15,7 @@ import com.townwizard.db.model.paging.Page;
 import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.dao.GlobalDataDao;
+import com.townwizard.globaldata.ingest.place.Ingesters;
 import com.townwizard.globaldata.model.CityLocation;
 import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Location;
@@ -27,7 +28,7 @@ public final class GlobalDataServicePlaceHelper {
     @Autowired private LocationService locationService;
     @Autowired private GlobalDataDao globalDataDao;
     @Autowired private PlaceService placeService;
-    @Autowired private PlaceIngester placeIngester;
+    @Autowired private Ingesters placeIngesters;
     @Autowired private ConfigurationService configurationService;
     
     public Page<Place> getPlacesByZipInfo(
@@ -79,7 +80,7 @@ public final class GlobalDataServicePlaceHelper {
             String mainCategory, Location origin, Integer pageNum) {
 
         Object[] placesWithRemoteIndicator = 
-                placeIngester.ingestByZipAndCategory(zip, countryCode, categoryOrTerm, pageNum);
+                placeService.getPlaces(zip, countryCode, categoryOrTerm, pageNum);
         
         if(placesWithRemoteIndicator != null) {
             
@@ -122,7 +123,7 @@ public final class GlobalDataServicePlaceHelper {
                 }
             }
             
-            placeIngester.ingestByZip(zip, countryCode);
+            placeIngesters.submitIngest(zip, countryCode);
             
             return new Page<>(places, pageNum, hasMore);
         }
