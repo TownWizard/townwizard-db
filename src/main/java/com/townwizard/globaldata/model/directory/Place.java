@@ -1,13 +1,13 @@
 package com.townwizard.globaldata.model.directory;
 
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -69,7 +69,7 @@ public class Place implements DistanceComparable {
     @JsonIgnore @Transient
     private String categoriesStr;      //categories concatenated in pipe-separated string, not saved in DB
     @JsonIgnore
-    @ManyToMany (mappedBy = "places", fetch=FetchType.LAZY, cascade=CascadeType.ALL)
+    @ManyToMany (mappedBy = "places", fetch=FetchType.LAZY)
     private Set<PlaceCategory> categories;
     @JsonIgnore
     @ManyToMany (mappedBy = "places", fetch=FetchType.LAZY)
@@ -261,6 +261,17 @@ public class Place implements DistanceComparable {
     public String toString() {
         //return "[" + latitude + "," + longitude + "," + zip + "," + countryCode + "] - " + city;
         return name + "(" + CollectionUtils.join(getCategoryNames()) + ")";
+    }
+    
+    public static class SourceAndExternalIdComparator implements Comparator<Place> {
+        @Override
+        public int compare(Place p1, Place p2) {
+            int sourceComparisonResult = p1.getSource().compareTo(p2.getSource());
+            if(sourceComparisonResult == 0) {
+                return p1.getExternalId().compareTo(p2.getExternalId());
+            }
+            return sourceComparisonResult;
+        }        
     }
 
 }

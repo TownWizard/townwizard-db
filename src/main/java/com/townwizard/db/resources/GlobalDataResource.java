@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response.Status;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.townwizard.db.model.paging.Page;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.directory.Place;
@@ -65,8 +66,8 @@ public class GlobalDataResource extends ResourceSupport {
             @QueryParam ("cat") String mainCategory,
             @QueryParam ("page") Integer pageNum) {
         try {
-            Integer page = (pageNum == null || pageNum <= 0) ? 1 : 0;
-            List<Place> places = globalDataService.getPlaces(
+            Integer page = (pageNum == null || pageNum <= 1) ? 1 : pageNum;
+            Page<Place> places = globalDataService.getPlaces(
                     new Location(zip, DEFAULT_COUNTRY_CODE, location, ip),
                     categoryOrTerm, mainCategory, page);
             return Response.status(Status.OK).entity(places).build();

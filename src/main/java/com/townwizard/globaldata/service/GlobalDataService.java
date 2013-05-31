@@ -2,6 +2,7 @@ package com.townwizard.globaldata.service;
 
 import java.util.List;
 
+import com.townwizard.db.model.paging.Page;
 import com.townwizard.globaldata.model.Event;
 import com.townwizard.globaldata.model.Location;
 import com.townwizard.globaldata.model.directory.Place;
@@ -26,7 +27,7 @@ public interface GlobalDataService {
      * If the mainCategory is given, the places will be filtered by it.
      * If optional pageNum parameter is given, only return a page of places.
      */    
-    List<Place> getPlaces(Location location, String categoryOrTerm, String mainCategory, Integer pageNum);
+    Page<Place> getPlaces(Location location, String categoryOrTerm, String mainCategory, Integer pageNum);
     
     /**
      * Get sorted place categories (such as restaurants, dental, pizza, etc) from places

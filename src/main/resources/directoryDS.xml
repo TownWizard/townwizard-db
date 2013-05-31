@@ -11,14 +11,16 @@
            http://www.springframework.org/schema/context/spring-context-3.0.xsd
            http://www.springframework.org/schema/tx
            http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
-    
-  <bean id="directoryDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
-    <property name="driverClassName" value="${jdbc.driverClassName}"></property>
-    <property name="url" value="${jdbc.directory_url}"></property>
-    <property name="username" value="${jdbc.username}"></property>
+   
+  <bean id="directoryDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+    <property name="driverClass" value="${jdbc.driverClassName}"></property>
+    <property name="jdbcUrl" value="${jdbc.directory_url}"></property>
+    <property name="user" value="${jdbc.username}"></property>
     <property name="password" value="${jdbc.password}"></property>
+    
+    <!-- non-default c3p0 properties should go below this line -->
   </bean>
-  
+
   <bean id="directorySessionFactory" class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
     <property name="dataSource" ref="directoryDataSource"></property>
     <property name="namingStrategy">
@@ -31,7 +33,7 @@
     </property>
     <property name="hibernateProperties">
       <props>
-        <prop key="hibernate.dialect">org.hibernate.dialect.MySQLInnoDBDialect</prop>
+        <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop>
         <prop key="hibernate.show_sql">false</prop>
         <prop key="hibernate.cache.use_query_cache">true</prop>
         <prop key="hibernate.cache.use_second_level_cache">true</prop>
@@ -49,9 +51,5 @@
   <bean id="placeDao" class="com.townwizard.globaldata.dao.PlaceDaoHibernateImpl">
     <property name="sessionFactory" ref="directorySessionFactory"/>
   </bean>
-  
-  <bean id="lockDao" class="com.townwizard.globaldata.dao.LockDaoHibernateImpl">
-    <property name="sessionFactory" ref="directorySessionFactory"/>
-  </bean>  
   
 </beans>

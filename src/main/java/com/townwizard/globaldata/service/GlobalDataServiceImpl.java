@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.townwizard.db.model.paging.Page;
 import com.townwizard.globaldata.dao.GlobalDataDao;
 import com.townwizard.globaldata.model.CityLocation;
 import com.townwizard.globaldata.model.Event;
@@ -45,7 +46,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
     }
     
     @Override
-    public List<Place> getPlaces(Location params, String categoryOrTerm, String mainCategory, Integer pageNum) {
+    public Page<Place> getPlaces(Location params, String categoryOrTerm, String mainCategory, Integer pageNum) {
         if(params.isZipInfoSet()) {
             return placeHelper.getPlacesByZipInfo(
                     params.getZip(), params.getCountryCode(), categoryOrTerm, mainCategory, pageNum);
@@ -55,7 +56,7 @@ public class GlobalDataServiceImpl implements GlobalDataService {
         } else if(params.isIpSet()) {
             return placeHelper.getPlacesByIp(params.getIp(), categoryOrTerm, mainCategory, pageNum);
         }
-        return Collections.emptyList();        
+        return Page.<Place>empty();        
     }
     
     @Override

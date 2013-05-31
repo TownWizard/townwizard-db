@@ -11,9 +11,11 @@ import org.springframework.stereotype.Component;
 import com.townwizard.db.configuration.ConfigurationKey;
 import com.townwizard.db.configuration.ConfigurationService;
 import com.townwizard.db.constants.Constants;
+import com.townwizard.db.model.paging.Page;
 import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.StringUtils;
 import com.townwizard.globaldata.dao.GlobalDataDao;
+import com.townwizard.globaldata.ingest.place.Ingesters;
 import com.townwizard.globaldata.model.CityLocation;
 import com.townwizard.globaldata.model.DistanceComparator;
 import com.townwizard.globaldata.model.Location;
@@ -26,23 +28,23 @@ public final class GlobalDataServicePlaceHelper {
     @Autowired private LocationService locationService;
     @Autowired private GlobalDataDao globalDataDao;
     @Autowired private PlaceService placeService;
-    @Autowired private PlaceIngester placeIngester;
+    @Autowired private Ingesters placeIngesters;
     @Autowired private ConfigurationService configurationService;
     
-    public List<Place> getPlacesByZipInfo(
+    public Page<Place> getPlacesByZipInfo(
             String zip, String countryCode, String categoryOrTerm, String mainCategory, Integer pageNum) {
         Location origin = locationService.getPrimaryLocation(zip, countryCode);
         return getPlaces(zip, countryCode, categoryOrTerm, mainCategory, origin, pageNum);
     }
 
-    public List<Place> getPlacesByLocation(
+    public Page<Place> getPlacesByLocation(
             double latitude, double longitude, String categoryOrTerm, String mainCategory, Integer pageNum) {
         Location orig = locationService.getLocation(latitude, longitude);
         return getPlaces(
                 orig.getZip(), orig.getCountryCode(), categoryOrTerm, mainCategory, orig, pageNum);
     }
     
-    public List<Place> getPlacesByIp(String ip, String categoryOrTerm, String mainCategory, Integer pageNum) {
+    public Page<Place> getPlacesByIp(String ip, String categoryOrTerm, String mainCategory, Integer pageNum) {
         CityLocation cityLocation = globalDataDao.getCityLocationByIp(ip);
         if(cityLocation != null) {
             if(cityLocation.hasPostalCodeAndCountry()) {
@@ -54,7 +56,7 @@ public final class GlobalDataServicePlaceHelper {
                         categoryOrTerm, mainCategory, pageNum);
             }             
         }
-        return Collections.emptyList();
+        return Page.<Place>empty();
     }
     
     public List<String> getPlaceCategories(String mainCategory) {        
@@ -74,11 +76,11 @@ public final class GlobalDataServicePlaceHelper {
 
     ///////////////////////// private methods //////////////////////////
     
-    private List<Place> getPlaces(String zip, String countryCode, String categoryOrTerm, 
+    private Page<Place> getPlaces(String zip, String countryCode, String categoryOrTerm, 
             String mainCategory, Location origin, Integer pageNum) {
 
         Object[] placesWithRemoteIndicator = 
-                placeIngester.ingestByZipAndCategory(zip, countryCode, categoryOrTerm, pageNum);
+                placeService.getPlaces(zip, countryCode, categoryOrTerm, pageNum);
         
         if(placesWithRemoteIndicator != null) {
             
@@ -100,8 +102,11 @@ public final class GlobalDataServicePlaceHelper {
             }
             
             Collections.sort(places, new DistanceComparator());
+
+            boolean hasMore = false;
             
-            if(!remote && pageNum != null && pageNum >0 && configurationService.getBooleanValue(ConfigurationKey.DIRECTORY_USE_PAGING)) {
+            if(!remote && pageNum != null && pageNum > 0 && 
+               configurationService.getBooleanValue(ConfigurationKey.DIRECTORY_USE_PAGING)) {
                 int pageSize = configurationService.getIntValue(ConfigurationKey.DIRECTORY_PAGE_SIZE);                
                 int start = (pageNum - 1) * pageSize;
                 int end = start + pageSize;                
@@ -114,15 +119,16 @@ public final class GlobalDataServicePlaceHelper {
                         end = size;
                     }
                     places = places.subList(start, end);
+                    hasMore = end < size;
                 }
             }
             
-            placeIngester.ingestByZip(zip, countryCode);
+            placeIngesters.submitIngest(zip, countryCode);
             
-            return places;
+            return new Page<>(places, pageNum, hasMore);
         }
         
-        return Collections.emptyList();
+        return Page.<Place>empty();
     }
     
     private List<String> filterPlaceCategories(

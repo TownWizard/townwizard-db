@@ -145,6 +145,8 @@ public class PlaceTest extends TestSupport {
             l.addCategory(c2);
             assertEquals("Place must accept non-duplicate category", 2, l.getCategories().size());
             
+            session.save(c);
+            session.save(c2);
             session.save(l);
             session.flush();
             
@@ -152,7 +154,7 @@ public class PlaceTest extends TestSupport {
             session.evict(c);
             session.evict(c2);
             
-            Place fromDb = (Place)session.load(Place.class, l.getId());            
+            Place fromDb = (Place)session.load(Place.class, l.getId());
             assertEquals("Two categories for place must exist", 2, fromDb.getCategories().size());
             for(PlaceCategory cat : fromDb.getCategories()) {
                 assertEquals("One Place for category must exist", 1, cat.getPlaces().size());

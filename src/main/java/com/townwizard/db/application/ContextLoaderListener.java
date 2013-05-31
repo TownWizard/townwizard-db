@@ -9,7 +9,9 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import com.townwizard.db.logger.Log;
-import com.townwizard.globaldata.service.PlaceIngester;
+import com.townwizard.globaldata.ingest.place.IngestHttpExecutors;
+import com.townwizard.globaldata.ingest.place.IngestQueue;
+import com.townwizard.globaldata.ingest.place.Ingesters;
 
 public class ContextLoaderListener implements ServletContextListener {
 
@@ -18,8 +20,11 @@ public class ContextLoaderListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent event) {
-        deregisterJdbcDriver();
-        PlaceIngester.shutdownIngestThreads();
+        deregisterJdbcDriver();        
+        
+        Ingesters.shutdownThreads();
+        IngestHttpExecutors.shutdownThreads();
+        IngestQueue.shutdownThreads();
     }
     
     // This manually deregisters JDBC driver, which prevents Tomcat 7 from complaining about memory leaks

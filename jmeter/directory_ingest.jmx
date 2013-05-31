@@ -4661,9 +4661,9 @@
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <intProp name="LoopController.loops">-1</intProp>
+          <stringProp name="LoopController.loops">5</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">20</stringProp>
+        <stringProp name="ThreadGroup.num_threads">50</stringProp>
         <stringProp name="ThreadGroup.ramp_time">1</stringProp>
         <longProp name="ThreadGroup.start_time">1368727002000</longProp>
         <longProp name="ThreadGroup.end_time">1368727002000</longProp>
@@ -5127,7 +5127,7 @@
               <stringProp name="88833">ZIP</stringProp>
             </collectionProp>
             <collectionProp name="UserParameters.thread_values">
-              <collectionProp name="-1006601383">
+              <collectionProp name="199515548">
                 <stringProp name="-1006601414">${ZIP_PREFIX}0</stringProp>
               </collectionProp>
             </collectionProp>
@@ -5144,10 +5144,10 @@
           <stringProp name="1589405502">LOCATIONS</stringProp>
         </collectionProp>
         <collectionProp name="UserParameters.thread_values">
-          <collectionProp name="1640191219">
-            <stringProp name="1927343524">54.234.47.47</stringProp>
+          <collectionProp name="1132891086">
+            <stringProp name="-1204607085">localhost</stringProp>
             <stringProp name="1716208">8080</stringProp>
-            <stringProp name="1508448">1122</stringProp>
+            <stringProp name="1508449">1123</stringProp>
             <stringProp name="-1703852007">/tw/g/locations</stringProp>
           </collectionProp>
         </collectionProp>

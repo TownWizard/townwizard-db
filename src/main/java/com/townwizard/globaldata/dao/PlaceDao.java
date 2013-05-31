@@ -19,11 +19,6 @@ public interface PlaceDao extends AbstractDao {
     List<PlaceCategory> getAllPlaceCategories();
     
     /**
-     * Get place category by name
-     */
-    PlaceCategory getCategory(String name);
-
-    /**
      * Get place ingest by zip, country code, and category or term.
      * First, search for a category, then, search for a term.
      */
@@ -40,15 +35,11 @@ public interface PlaceDao extends AbstractDao {
      */
     void deleteIngest(PlaceIngest ingest);
     
-    /** 
-     * The list of places given to this method can be a mix of old (associated with some
-     * other location ingest) and new places.
-     * 
-     *  The method will save the new places and will associate both old and new places 
-     *  with the passed place ingest.
-     */    
-    void saveIngest(PlaceIngest ingest, List<Place> places);
-    
+    /**
+     * Delete zip ingest and associated ingests with places
+     */
+    void deleteZipIngest(ZipIngest ingest);
+   
     /**
      * Get zip ingest.
      */
