@@ -12,6 +12,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
 
 import org.springframework.stereotype.Component;
 
@@ -141,9 +142,9 @@ public class LocationServiceImpl implements LocationService {
             synchronized(this) {
                 if(locationsByZip == null) {
                     try {
-                        Log.info("Loading location data...");
+                        if(Log.isInfoEnabled()) Log.log(Level.INFO, getClass(), null, "Loading location data...");
                         loadData();
-                        Log.info("Done loading location data...");
+                        if(Log.isInfoEnabled()) Log.log(Level.INFO, getClass(), null, "Done loading location data...");                        
                     } catch (Exception e) {
                         throw new RuntimeException (e);
                     }

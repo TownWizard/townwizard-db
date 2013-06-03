@@ -43,7 +43,6 @@ public final class GoogleConnector {
         appendMandatoryParameters(sb);
         
         String url = sb.toString();
-        Log.debug(url);
         String response = HttpUtils.executeGetRequest(url);
         return response;
     }

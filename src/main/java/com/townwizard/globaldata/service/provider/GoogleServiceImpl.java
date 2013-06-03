@@ -43,7 +43,6 @@ public class GoogleServiceImpl implements GoogleService {
 
             int i = 0;
             while (true) {
-                if (Log.isDebugEnabled()) Log.debug("Executing next page request request " + (++i));
                 String nextPageToken = j.optString("next_page_token");
                 if (nextPageToken == null || nextPageToken.isEmpty() || i > 10) break;
                 json = connector.executePlacesNearbyPageTokenRequest(nextPageToken);
