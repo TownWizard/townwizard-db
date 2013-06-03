@@ -10,5 +10,7 @@ public interface ConfigurationService {
     boolean getBooleanValue(ConfigurationKey key);
     
     void addConfigurationListener(ConfigurationListener listener);
+    
+    boolean exists(String key);
 
 }

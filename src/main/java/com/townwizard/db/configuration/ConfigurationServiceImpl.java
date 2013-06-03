@@ -85,6 +85,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         return (Boolean)key.getDefaultValue();
     }
     
+    @Override
+    public boolean exists(String key) {
+        ConfigurationKey[] keys = ConfigurationKey.values();
+        for(ConfigurationKey k : keys) {
+            if(k.getKey().equals(key)) return true;
+        }
+        return false;
+    }
+    
     private String getValueAsString(ConfigurationKey key) {
         String value = configurationCache.get(key.getKey());
         if(value == null) {

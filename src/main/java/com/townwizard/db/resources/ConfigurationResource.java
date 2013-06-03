@@ -23,8 +23,11 @@ public class ConfigurationResource extends ResourceSupport {
     @Produces(MediaType.TEXT_PLAIN)
     public String save(@QueryParam ("key") String key, @QueryParam("value") String value) {
         try {
-            configurationService.save(key, value);
-            return "success";
+            if(configurationService.exists(key)) {
+                configurationService.save(key, value);
+                return "success";
+            }
+            return "unknown key";            
         } catch (Exception e) {
             handleGenericException(e);
             return "failure";
@@ -36,8 +39,11 @@ public class ConfigurationResource extends ResourceSupport {
     @Produces(MediaType.TEXT_PLAIN)
     public String delete(@QueryParam ("key") String key) {
         try {
-            configurationService.delete(key);
-            return "success";
+            if(configurationService.exists(key)) {
+                configurationService.delete(key);
+                return "success";
+            }
+            return "unknown key";
         } catch (Exception e) {
             handleGenericException(e);
             return "failure";
