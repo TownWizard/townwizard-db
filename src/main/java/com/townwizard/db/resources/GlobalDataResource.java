@@ -1,5 +1,6 @@
 package com.townwizard.db.resources;
 
+
 import static com.townwizard.db.constants.Constants.DEFAULT_COUNTRY_CODE;
 
 import java.util.List;

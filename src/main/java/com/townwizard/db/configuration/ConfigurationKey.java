@@ -2,6 +2,8 @@ package com.townwizard.db.configuration;
 
 public enum ConfigurationKey {
     
+    LOG_DEBUG_ENABLED("LOG_DEBUG_ENABLED", true,
+            "If set, log level DEBUG is enabled"),
     DIRECTORY_USE_PAGING("DIRECTORY_USE_PAGING", true,
             "Use paging when serving directory listings if yes"),
     DIRECTORY_PAGE_SIZE("DIRECTORY_PAGE_SIZE", 25,

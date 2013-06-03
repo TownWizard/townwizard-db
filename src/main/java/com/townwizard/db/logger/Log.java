@@ -6,10 +6,22 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.townwizard.db.configuration.ConfigurationKey;
+import com.townwizard.db.configuration.ConfigurationService;
+
 /**
  * Centrilized place for logging methods.  This class is a thin wraper around Java logging system
  */
+@Component
 public final class Log {
+    
+    @Autowired private ConfigurationService configurationService;
+    private static ConfigurationService config;
     
     private static Logger logger = Logger.getLogger("com.townwizard.db");
     private static java.util.logging.Formatter formatter = new Formatter();    
@@ -23,14 +35,20 @@ public final class Log {
         for(java.util.logging.Handler h : handlers) {
             h.setFormatter(formatter);            
         }        
-    }    
+    }
+    
+    @PostConstruct
+    public void init() {
+        config = configurationService;
+    }
     
     public static boolean isInfoEnabled() {
         return logger.isLoggable(Level.INFO);
     } 
     
     public static boolean isDebugEnabled() {
-        return logger.isLoggable(Level.FINE);
+        return config.getBooleanValue(ConfigurationKey.LOG_DEBUG_ENABLED) && 
+                logger.isLoggable(Level.FINE);
     }
     
     public static boolean isWarningEnabled() {
