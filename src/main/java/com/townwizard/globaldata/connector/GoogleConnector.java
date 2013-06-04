@@ -7,7 +7,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.springframework.stereotype.Component;
 
 import com.townwizard.db.constants.Constants;
-import com.townwizard.db.logger.Log;
 import com.townwizard.db.util.CollectionUtils;
 import com.townwizard.db.util.HttpUtils;
 

@@ -118,15 +118,6 @@ public abstract class AbstractIngester implements Ingester {
                 }
             } else {
                 processedCategories.add(task.getCategory());
-                /*
-                int processed = processedCategories.size(); 
-                if(processed % 10 == 0) {
-                    if(Log.isDebugEnabled()) {                        
-                        Log.debug("Processed " + processed + " categories out of " +
-                                categoryNameToCategory.size() +  " for zip " + task.getZipCode()); 
-                    }
-                }
-                */
             }
         } catch (Exception e) {
             Log.exception(e);
