@@ -25,8 +25,6 @@ import com.townwizard.db.util.jackson.NullStringDeserializer;
  */
 public abstract class ResourceSupport {
     
-    public static final String EMPTY_JSON = "{}";
-    
     @Autowired
     private UserService userService;
     private static ObjectMapper objectMapper = initializeObjectMapper();    

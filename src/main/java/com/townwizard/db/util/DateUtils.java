@@ -2,6 +2,7 @@ package com.townwizard.db.util;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * Class with date handling helper methods
@@ -36,4 +37,24 @@ public final class DateUtils {
         return c.getTime();
     }
     
+    /**
+     * Add days to a date 
+     */
+    public static Date addDays(Date date, int days){
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);        
+        c.set(Calendar.DAY_OF_YEAR, c.get(Calendar.DAY_OF_YEAR) + days);
+        return c.getTime();
+    }
+    
+    /**
+     * Return the current time in the given time zone
+     */
+    public static Date now(TimeZone timeZone) {  
+        long otherOffset = timeZone.getRawOffset();
+        long myOffset = Calendar.getInstance().getTimeZone().getRawOffset();
+        long offsetDiff = myOffset - otherOffset;
+        long time = System.currentTimeMillis() - offsetDiff;
+        return new Date(time);
+    }    
 }

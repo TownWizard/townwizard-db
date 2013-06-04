@@ -28,7 +28,7 @@ public class EntityTest extends TestSupport {
     
     @Before
     public void beginTransaction() {
-        session = getSessionFactory().openSession();        
+        session = getMasterSessionFactory().openSession();        
         session.beginTransaction();        
     }
     

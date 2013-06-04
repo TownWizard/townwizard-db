@@ -238,7 +238,7 @@ public class EventResponseResourceTest extends ResourceTest {
     private Event getTestEvent() {
         Session session = null;
         try {
-            session = getSessionFactory().openSession();
+            session = getMasterSessionFactory().openSession();
             session.beginTransaction();
             
             Query q = session.createQuery("from Event where externalId = :external_id")
@@ -263,7 +263,7 @@ public class EventResponseResourceTest extends ResourceTest {
     private void deleteTestEventAndEventResponse() {
         Session session = null;
         try {
-            session = getSessionFactory().openSession();
+            session = getMasterSessionFactory().openSession();
             session.beginTransaction();
             
             Query q = session.createQuery("from EventResponse where event.externalId = :external_id")

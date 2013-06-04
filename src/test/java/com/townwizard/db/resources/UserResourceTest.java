@@ -227,7 +227,7 @@ public class UserResourceTest extends ResourceTest {
     private void deleteUserByLastName(String lastName) {
         Session session = null;
         try {
-            session = getSessionFactory().openSession();
+            session = getMasterSessionFactory().openSession();
             session.beginTransaction();
             Query q = session.createQuery("from User where lastName = :last_name").setString("last_name", lastName);
             @SuppressWarnings("unchecked")

@@ -1,28 +1,21 @@
 package com.townwizard.db.dao;
 
-import java.util.Date;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
 
 import com.townwizard.db.model.AbstractEntity;
-import com.townwizard.db.model.AuditableEntity;
 
 /**
  * Abstract class which implements AbstracDao methods (CRUD operations), using Hibernate
  * This class also makes hibernate session available to all subclasses.
  */
 public abstract class AbstractDaoHibernateImpl implements AbstractDao {
-
-    @Autowired
+    
     private SessionFactory sessionFactory;
 
     /**
      * Return current session.
-     * 
-     * This method needs to be called in every DAO method wishing to 
-     * communicate with the DB.
      * 
      * The session returned is "current", meaning it was open outside as a part of an ongoing
      * transaction.  The method will not create a new session if there is no transaction in progress, 
@@ -32,29 +25,43 @@ public abstract class AbstractDaoHibernateImpl implements AbstractDao {
         return sessionFactory.getCurrentSession();
     }
     
-    public <T extends AbstractEntity> Long create(T entity) {
+    @Override
+    public <T> Long create(T entity) {
         return (Long) getSession().save(entity);
     }
     
-    public <T extends AbstractEntity> void update(T entity) {
-        entity.setActive(true);
-        if(entity instanceof AuditableEntity) {
-            ((AuditableEntity) entity).setUpdated(new Date());
-        }
+    @Override
+    public <T> void update(T entity) {
         getSession().update(entity);
     }
     
-    public <T extends AbstractEntity> void delete(T entity) {
-        getSession().delete(entity);
+    @Override
+    public <T> void delete(T entity) {
+        Session session = getSession();
+        session.delete(entity);
+        session.flush();
     }
     
+    @Override
     @SuppressWarnings("unchecked")
-    public <T extends AbstractEntity> T getById(Class<T> klass, Long id) {
+    public <T> T getById(Class<T> klass, Long id) {
         T entity = (T)getSession().get(klass, id);
-        if (entity != null && Boolean.TRUE.equals(entity.getActive())) {
-            return entity;
+        if (entity != null) {
+            if(entity instanceof AbstractEntity) {
+                if(Boolean.FALSE.equals(((AbstractEntity)entity).getActive())) {
+                    entity = null;
+                }
+            }
         }
-        return null;
+        return entity;
+    }
+
+    @Required
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
     
+    public SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
 }

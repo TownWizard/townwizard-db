@@ -19,4 +19,9 @@ public class TwNamingStrategy extends ImprovedNamingStrategy {
         return StringHelper.unqualify(className);
     }
     
+    @Override
+    public String tableName(String tableName) {
+        return tableName;
+    }
+    
 }

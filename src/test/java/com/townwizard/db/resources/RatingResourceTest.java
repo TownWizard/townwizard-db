@@ -132,7 +132,7 @@ public class RatingResourceTest extends ResourceTest {
     private void deleteTestRatingAndContent() {
         Session session = null;
         try {
-            session = getSessionFactory().openSession();
+            session = getMasterSessionFactory().openSession();
             session.beginTransaction();            
 
             Query q = session.createQuery("from Rating where content.externalId = :external_id")

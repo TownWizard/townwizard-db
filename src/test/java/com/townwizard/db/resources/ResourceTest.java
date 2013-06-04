@@ -58,7 +58,12 @@ public abstract class ResourceTest extends TestSupport {
      * Execute get request and return its response as a string
      */
     protected String executeGetRequest(String path) {
-        return HttpUtils.executeGetRequest(getWebServicesUrlBase() + path);
+        try {
+            return HttpUtils.executeGetRequest(getWebServicesUrlBase() + path);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
     
     /**
@@ -137,7 +142,7 @@ public abstract class ResourceTest extends TestSupport {
     protected User getUserByEmailFromTheDb(String email) {
         Session session = null;
         try {
-            session = getSessionFactory().openSession();
+            session = getMasterSessionFactory().openSession();
             session.beginTransaction();
             Query q = session.createQuery("from User where email = :email").setString("email", email);
             session.getTransaction().commit();
@@ -164,7 +169,7 @@ public abstract class ResourceTest extends TestSupport {
     protected void deleteUserByEmail(String email) {
         Session session = null;
         try {
-            session = getSessionFactory().openSession();
+            session = getMasterSessionFactory().openSession();
             session.beginTransaction();
             Query q = session.createQuery("from User where email = :email").setString("email", email);
             @SuppressWarnings("unchecked")
