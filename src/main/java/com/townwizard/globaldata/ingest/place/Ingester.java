@@ -8,6 +8,9 @@ public interface Ingester {
     boolean hasNextCategory();
     String getNextCategory();
     boolean allDone();
+
+    int size();
+    int done();
     
     void ingest(IngestTask task);
 }

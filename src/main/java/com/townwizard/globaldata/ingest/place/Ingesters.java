@@ -6,6 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 import javax.annotation.PostConstruct;
 
@@ -31,6 +32,7 @@ public final class Ingesters implements ConfigurationListener {
 
     private static ExecutorService ingestersLoop;
     private static ExecutorService dbLoop;
+    private static ExecutorService ingestReporter;
     private static boolean stoppedFlag = false;
    
     private List<Ingester> ingesters = new CopyOnWriteArrayList<>();
@@ -53,6 +55,10 @@ public final class Ingesters implements ConfigurationListener {
         dbLoop = Executors.newFixedThreadPool(1, new NamedThreadFactory("db-loop"));
         dbLoop.submit(new DbLoop());
         Log.info("Place ingest db loop started");
+        
+        ingestReporter = Executors.newFixedThreadPool(1, new NamedThreadFactory("ingest-reporter"));
+        ingestReporter.submit(new IngestReporter());
+        Log.info("Place ingest reporter started");        
         
         configurationService.addConfigurationListener(this);
     }
@@ -207,6 +213,42 @@ public final class Ingesters implements ConfigurationListener {
         }
     }
     
+    private final class IngestReporter implements Runnable {
+        @Override
+        public void run() {
+            while (true) {
+                if(Thread.interrupted()) return;
+                try {
+                    if(!ingesters.isEmpty() && Log.isDebugEnabled()) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("\n---------------------------------\n");
+                        sb.append("|   Zip   |   Done   |   Left   |\n");
+                        sb.append("---------------------------------\n");
+                        for(Ingester i : ingesters) {
+                            int done = i.done();
+                            sb.append("|")
+                              .append(String.format("%7s", i.getZipCode())).append("  | ")
+                              .append(String.format("%6d", done)).append("   | ")
+                              .append(String.format("%6d", (i.size() - done))).append("   |\n");
+                        }
+                        sb.append("---------------------------------");
+                        
+                        Log.log(Level.FINE, getClass(), null, sb.toString());
+                    }
+                    
+                    try {
+                        Thread.sleep(60000);
+                    } catch (InterruptedException ie) {
+                        Log.info("Exiting place ingest reporter ...");
+                        return;
+                    }                    
+                } catch (Exception e) {
+                    Log.exception(e);
+                }
+            }
+        }
+    }
+    
     public static void shutdownThreads() {
         if(ingestersLoop != null) {        
             Log.info("About to shutdown place ingesters loop ...");
@@ -230,6 +272,17 @@ public final class Ingesters implements ConfigurationListener {
                 Thread.currentThread().interrupt();
             }            
         }
+        if(ingestReporter != null) {
+            Log.info("About to shutdown place ingest reporter ...");
+            ingestReporter.shutdownNow();
+            try {
+                if(!ingestReporter.awaitTermination(30, TimeUnit.SECONDS)) {
+                    Log.warning("Cannot terminate place ingest reporter");
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }            
+        }        
     }
     
     private Ingester findIngester(IngestTask task) {

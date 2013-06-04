@@ -70,6 +70,16 @@ public abstract class AbstractIngester implements Ingester {
     }
     
     @Override
+    public int size() {
+        return categoryNameToCategory.size();
+    }
+    
+    @Override
+    public int done() {
+        return processedCategories.size();
+    }
+    
+    @Override
     public void ingest(IngestTask task) {
         try {
             //go through places category names and
@@ -108,6 +118,7 @@ public abstract class AbstractIngester implements Ingester {
                 }
             } else {
                 processedCategories.add(task.getCategory());
+                /*
                 int processed = processedCategories.size(); 
                 if(processed % 10 == 0) {
                     if(Log.isDebugEnabled()) {                        
@@ -115,6 +126,7 @@ public abstract class AbstractIngester implements Ingester {
                                 categoryNameToCategory.size() +  " for zip " + task.getZipCode()); 
                     }
                 }
+                */
             }
         } catch (Exception e) {
             Log.exception(e);
