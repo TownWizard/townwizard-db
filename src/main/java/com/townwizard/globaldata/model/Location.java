@@ -75,7 +75,7 @@ public class Location {
     }
     
     public boolean isLocationSet() {
-        return latitude != 0 && longitude != 0;
+        return latitude != null && longitude != null && latitude != 0 && longitude != 0;
     }
 
     public boolean isZipInfoSet() {
