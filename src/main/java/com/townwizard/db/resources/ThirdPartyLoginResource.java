@@ -9,6 +9,7 @@ import static com.townwizard.db.constants.Constants.TWITTER_APP_SECRET;
 import static com.townwizard.db.constants.Constants.TWITTER_LOGIN_RESOURCE;
 
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +36,7 @@ import com.townwizard.db.model.User;
 import com.townwizard.db.model.User.LoginType;
 import com.townwizard.db.services.UserService;
 import com.townwizard.db.util.HttpUtils;
+import com.townwizard.db.util.StringUtils;
 
 /**
  * Contains a REST resource to facilitate Facebook and Twitter login
@@ -108,7 +110,7 @@ public class ThirdPartyLoginResource extends ResourceSupport {
             
             LoginRequest lRequest;
             if(code != null && (lRequest = userService.getLoginRequest(loginRequestId)) != null) {
-                return handlUserLogin(LoginType.FACEBOOK, lRequest, code);
+                return handleUserLogin(LoginType.FACEBOOK, lRequest, code);
             }          
         } catch(Exception e) {
             handleGenericException(e);
@@ -152,7 +154,7 @@ public class ThirdPartyLoginResource extends ResourceSupport {
             
             LoginRequest lRequest;
             if(code != null && (lRequest = userService.getLoginRequest(loginRequestId)) != null) {
-                return handlUserLogin(LoginType.TWITTER, lRequest, code);
+                return handleUserLogin(LoginType.TWITTER, lRequest, code);
             }
         } catch(Exception e) {
             handleGenericException(e);
@@ -204,48 +206,29 @@ public class ThirdPartyLoginResource extends ResourceSupport {
     //Call 3 handler for FB and Twitter (actual login)
     //Give acess code makes a request to the site to get user info, updates the info in the DB,
     //and responses with javascript redirecting the client to its original location
-    private Response handlUserLogin(LoginType loginType, LoginRequest loginRequest, String accessCode) 
-            throws Exception {
-        String userUrl = null;
+    private Response handleUserLogin(LoginType loginType, LoginRequest loginRequest, String accessCode) 
+            throws Exception {        
+        String userJson = null;
         if(loginType == LoginType.FACEBOOK) {
-            StringBuilder tokenUrl = new StringBuilder();
-            tokenUrl.append("https://graph.facebook.com/oauth/access_token?");
-            tokenUrl.append("client_id=").append(FB_APP_ID);
-            tokenUrl.append("&redirect_uri=").append(FB_LOGIN_RESOURCE);
-            tokenUrl.append("&client_secret=").append(FB_APP_SECRET);
-            tokenUrl.append("&code=").append(accessCode);
-            
-            String response = HttpUtils.executeGetRequest(tokenUrl.toString());
-            Map<String, String> accessInfo = parseAcessTokenResponse(response);
-            String accessToken = accessInfo.get("access_token");            
-            userUrl = "https://graph.facebook.com/me?access_token=" + accessToken;
+            userJson = getUserJsonFromFacebook(accessCode);
         } else { //TWITTER
-            OAuthService service = new ServiceBuilder()
-                .provider(TwitterApi.Authenticate.class)
-                .apiKey(TWITTER_APP_ID)
-                .apiSecret(TWITTER_APP_SECRET)
-                .callback(TWITTER_LOGIN_RESOURCE)                
-                .build();
+            userJson = getUserJsonFromTwitter(loginRequest, accessCode);
+        }        
+        
+        if(userJson != null) {
+            Map<String, Object> user = parseJson(userJson);
+            User u = User.fromExternalUser(user, loginType);
+            createOrUpdateExternalUser(u);
             
-            Token accessToken = service.getAccessToken(
-                    new Token(loginRequest.getId(), ""), new Verifier(accessCode));                
-            String response = accessToken.getRawResponse();
-            Map<String, String> accessInfo = parseAcessTokenResponse(response);                
-            userUrl = "https://api.twitter.com/1/users/show.json?user_id=" + accessInfo.get("user_id");
+            String server = getServerPartFromLocationUrl(loginRequest.getLocation());           
+            StringBuilder javaScript = new StringBuilder();
+            javaScript.append("window.location.href='").append(server).append(PHP_LOGIN_PATH)
+                .append("?uid=").append(u.getId()).append("&l=").append(loginRequest.getLocation()).append("';");
+            String html = getJavaScriptHtml(javaScript.toString());
+            return Response.status(Status.OK).entity(html).build();
         }
 
-        String userData = HttpUtils.executeGetRequest(userUrl);
-        Map<String, Object> user = parseJson(userData);
-        User u = User.fromExternalUser(user, loginType);
-        createOrUpdateExternalUser(u);
-        
-        String server = getServerPartFromLocationUrl(loginRequest.getLocation());           
-        StringBuilder javaScript = new StringBuilder();
-        javaScript.append("window.location.href='").append(server).append(PHP_LOGIN_PATH)
-            .append("?uid=").append(u.getId()).append("&l=").append(loginRequest.getLocation()).append("';");
-        String html = getJavaScriptHtml(javaScript.toString());
-
-        return Response.status(Status.OK).entity(html).build();
+        return Response.status(Status.OK).entity("Server error").build();
     }
     
     private String getJavaScriptHtml(String javaScript) {
@@ -295,7 +278,82 @@ public class ThirdPartyLoginResource extends ResourceSupport {
             userService.create(u);
         }
     }
-
     
+    private String getUserJsonFromFacebook(String accessCode) throws Exception {
+        StringBuilder tokenUrl = new StringBuilder();
+        tokenUrl.append("https://graph.facebook.com/oauth/access_token?");
+        tokenUrl.append("client_id=").append(FB_APP_ID);
+        tokenUrl.append("&redirect_uri=").append(FB_LOGIN_RESOURCE);
+        tokenUrl.append("&client_secret=").append(FB_APP_SECRET);
+        tokenUrl.append("&code=").append(accessCode);
+        
+        String response = HttpUtils.executeGetRequest(tokenUrl.toString());
+        Map<String, String> accessInfo = parseAcessTokenResponse(response);
+        String accessToken = accessInfo.get("access_token");            
+        String userUrl = "https://graph.facebook.com/me?access_token=" + accessToken;
+        String userJson = HttpUtils.executeGetRequest(userUrl);
+        return userJson;
+    }
+    
+    /*
+     * Since twitter api v1.1 the user info request requires application to be authorized.
+     * See details here: https://dev.twitter.com/docs/auth/application-only-auth
+     */
+    private String getUserJsonFromTwitter(LoginRequest loginRequest, String accessCode) throws Exception {
+        // 1) get user id
+        OAuthService service = new ServiceBuilder()
+            .provider(TwitterApi.Authenticate.class)
+            .apiKey(TWITTER_APP_ID)
+            .apiSecret(TWITTER_APP_SECRET)
+            .callback(TWITTER_LOGIN_RESOURCE)                
+            .build();
+    
+        Token accessToken = service.getAccessToken(new Token(loginRequest.getId(), ""), new Verifier(accessCode));                
+        String response = accessToken.getRawResponse();
+        Map<String, String> accessInfo = parseAcessTokenResponse(response);
+        String userId = accessInfo.get("user_id");
+        
+        if(userId != null) {
+            //2) authorize request for user info
+            Map<String, String> bearerTokenRequestHeaders = new HashMap<>();            
+            bearerTokenRequestHeaders.put("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+            bearerTokenRequestHeaders.put("Authorization", getTwitterEncodedBearerTokenCredentials());
+            String entity = "grant_type=client_credentials";
+            String bearerTokenResponse = HttpUtils.executePostRequest(
+                    "https://api.twitter.com/oauth2/token", entity, bearerTokenRequestHeaders);
+            
+            //3) check validity of the bearer token response
+            //response should look like
+            //{"token_type":"bearer","access_token":"AAAAAAAAAAAAAAAAAAAAALDpPwAAAAAAaiOGc3h%2FsIY7OotyPtCv78jqQWc%3D0TWriks5cRmXKabi0yZyrQifWaUJaNnfx788iwdtqU"}
+            String bearerToken = null;
+            Map<String, Object> respData = parseJson(bearerTokenResponse);
+            if("bearer".equals(respData.get("token_type"))) {
+                bearerToken = (String)respData.get("access_token");
+            }
+        
+            //4) execute user info request authorized with bearer token
+            if(bearerToken != null) {
+                String userUrl = "https://api.twitter.com/1.1/users/show.json?user_id=" + userId;
+                Map<String, String> userInfoRequestHeaders = new HashMap<>();
+                userInfoRequestHeaders.put("Authorization", "Bearer " + bearerToken);
+                String userJson = HttpUtils.executeGetRequest(userUrl, userInfoRequestHeaders);
+                return userJson;
+            }
+        }
+        
+        return null;
+    }
+    
+    private static String ENCODED_TWITTER_BEARER_TOKEN_CREDENTIALS = null;
+    private String getTwitterEncodedBearerTokenCredentials() throws Exception {
+        if(ENCODED_TWITTER_BEARER_TOKEN_CREDENTIALS == null) {
+            ENCODED_TWITTER_BEARER_TOKEN_CREDENTIALS = "Basic " + StringUtils.base64Encode(
+                URLEncoder.encode(TWITTER_APP_ID, "UTF-8") + ":" +
+                URLEncoder.encode(TWITTER_APP_SECRET, "UTF-8"));
+        }
+        return ENCODED_TWITTER_BEARER_TOKEN_CREDENTIALS;
+
+    }
+
     //TODO: implement login request cleanup job
 }

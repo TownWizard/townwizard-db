@@ -3,6 +3,8 @@ package com.townwizard.db.util;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.xml.bind.DatatypeConverter;
+
 /**
  * String utilities.
  */
@@ -63,5 +65,12 @@ public final class StringUtils {
         }
         int result = Integer.parseInt(sb.toString(), 2);
         return result;
+    }
+    
+    /**
+     * Base64 encode string
+     */
+    public static String base64Encode(String s) {
+        return DatatypeConverter.printBase64Binary(s.getBytes()); 
     }
 }
