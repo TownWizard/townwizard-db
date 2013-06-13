@@ -72,6 +72,7 @@ public class User extends AuditableEntity {
     private LoginType loginType;
     private String externalId;
     private Integer siteId;
+    private String imageUrl;
     
     @OneToOne(mappedBy = "user", cascade = {CascadeType.ALL})
     private Address address;
@@ -163,6 +164,13 @@ public class User extends AuditableEntity {
     public void setSiteId(Integer siteId) {
         this.siteId = siteId;
     }
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     @JsonIgnore
     public boolean isValid() {
         if(getLoginType() == null) {
@@ -211,7 +219,7 @@ public class User extends AuditableEntity {
         u.setFirstName((String)fbUser.get("first_name"));
         u.setLastName((String)fbUser.get("last_name"));
         u.setName((String)fbUser.get("name"));
-        u.setUsername((String)fbUser.get("username"));
+        u.setUsername((String)fbUser.get("username"));        
         String gender = (String)fbUser.get("gender");
         if(gender != null && !gender.isEmpty()) {
             switch(gender.charAt(0)) {
@@ -220,6 +228,7 @@ public class User extends AuditableEntity {
             }
         }
         u.setLoginType(LoginType.FACEBOOK);
+        u.setImageUrl("http://graph.facebook.com/" + u.getExternalId() + "/picture");
         
         return u;
     }
@@ -251,6 +260,7 @@ public class User extends AuditableEntity {
         u.setName((String)twitterUser.get("name"));
         u.setUsername((String)twitterUser.get("screen_name"));
         u.setLoginType(LoginType.TWITTER);
+        u.setImageUrl((String)twitterUser.get("profile_image_url"));
         
         return u;
     }
